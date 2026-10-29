@@ -45,7 +45,8 @@ export interface Resort {
   airports: { id: string; airport: string; code: string; time: string; km: number; mins: number }[];
   compare: {
     snow: Stars; temp: [string, string]; area: [string, string]; beginners: Stars; snowboard: Stars;
-    expert: Stars; apres: Stars; beer: string; wind: ["low" | "mid" | "high", string]; insurance: string;
+    /** Typical € per person for a main course and a drink in a mid-range restaurant, with a note. */
+    meal: [number, string]; apres: Stars; beer: string; wind: ["low" | "mid" | "high", string]; insurance: string;
   };
 }
 

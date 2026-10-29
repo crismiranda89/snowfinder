@@ -84,7 +84,7 @@ function renderCompareBody() {
     return `<tr data-resort="${esc(r.id)}"><td class="dest" data-v="${esc(r.name)}"><b>${esc(r.compareName || r.name)}</b><small>${esc(r.country)} · ${esc(r.area)} · ${esc(air)}</small></td>` + fast +
       `<td>${st(cm.snow)}</td><td class="num">${esc(cm.temp[0])}<small>${esc(cm.temp[1])}</small></td>` +
       `<td class="num">${esc(cm.area[0])}<small>${esc(cm.area[1])}</small></td>` +
-      `<td>${st(cm.beginners)}</td><td>${st(cm.snowboard)}</td><td>${st(cm.expert)}</td><td>${st(cm.apres)}</td>` +
+      `<td>${st(cm.beginners)}</td><td>${st(cm.snowboard)}</td><td class="num" data-v="${cm.meal[0]}">~${euro(cm.meal[0])}<small>${esc(cm.meal[1])}</small></td><td>${st(cm.apres)}</td>` +
       `<td class="num">${esc(cm.beer)}</td><td><span class="risk ${wc}">${wl}</span><small>${esc(cm.wind[1])}</small></td>` +
       `<td><small style="margin:0">${esc(cm.insurance)}</small></td><td><small style="margin:0">${esc(rs?.events || "")}</small></td></tr>`;
   }).join("");
