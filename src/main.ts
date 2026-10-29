@@ -2,7 +2,7 @@
 import { SEASON } from "./data.ts";
 import type { Group } from "./types.ts";
 import { decodeShare, encodeShare, load, save, type State } from "./state.ts";
-import { rankOpen, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
+import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
 
 const REPO = (document.querySelector('a.btn.secondary') as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
@@ -18,9 +18,13 @@ if (shared) {
 }
 save(state);
 
+// How the Houses section groups its cards (this browser only).
+let houseView: HouseView = "price";
+try { if (localStorage.getItem("snowfinder-house-view") === "distance") houseView = "distance"; } catch { /* private mode */ }
+
 function render() {
   resetCache();
-  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderTable(state);
+  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO); renderTable(state);
 }
 function update(mut: (s: State) => void) { mut(state); save(state); render(); }
 
@@ -90,7 +94,13 @@ $("rank").addEventListener("toggle", (ev) => {
 $("reset").addEventListener("click",() => update((s) => { s.edits = {}; s.food = 40; }));
 
 // Photos that fail to load (moved listing, hotlink blocked) fall back to the placeholder.
-$("rank").addEventListener("error", (ev) => {
+$("houseView").addEventListener("click", (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLElement>("button"); if (!b?.dataset.v) return;
+  houseView = b.dataset.v as HouseView;
+  try { localStorage.setItem("snowfinder-house-view", houseView); } catch { /* ignore */ }
+  renderHouseSection(state, houseView, REPO);
+});
+document.addEventListener("error", (ev) => {
   const img = ev.target as HTMLElement;
   if (img.tagName !== "IMG") return;
   const a = img.parentElement!;

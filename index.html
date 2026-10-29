@@ -44,7 +44,7 @@
   </div>
 
   <details class="filters" id="filters">
-    <summary><b>Filters</b><span class="foot" id="filtersum"></span></summary>
+    <summary><b>Filters</b><span class="count" id="housecount"></span><span class="foot" id="filtersum"></span></summary>
   <div class="controls" role="group" aria-label="Trip settings">
     <div class="groupctl" role="group" aria-label="Your group">
       <div class="ctl extra"><span>Couples</span>
@@ -82,6 +82,14 @@
     </div>
   </div>
   </details>
+
+  <section class="block" id="houses-block">
+    <div class="head"><h2>Houses for your group</h2>
+      <div class="seg" id="houseView" role="group" aria-label="Group houses by"><button type="button" data-v="price">By price</button><button type="button" data-v="distance">By distance to lifts</button></div>
+    </div>
+    <p class="foot" id="houseslede" aria-live="polite"></p>
+    <div id="housegroups"></div>
+  </section>
 
   <section class="block">
     <div class="head"><h2>Area × week grid (per person)</h2>

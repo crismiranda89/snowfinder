@@ -111,6 +111,9 @@ export function renderControls(s: State) {
   $("filtersum").textContent = [describe(s.group).replace(" · ", " (").replace(" · ", ", ") + ")", `${TIER_LABEL[s.house]} house`, food.toLowerCase(),
     s.ground === "car" ? "rental car" : "transfer", s.nearLifts ? "≤ 10 min to lifts" : "", s.limit ? "transfers ≤ 2h" : "",
     s.dest.length ? `${s.dest.length} of ${RESORTS_FILE.resorts.length} resorts` : ""].filter(Boolean).join(" · ");
+  const nh = fittingHouses(s).length;
+  $("housecount").textContent = `${nh} house${nh === 1 ? "" : "s"} fit`;
+  $("housecount").className = "count" + (nh ? "" : " none");
   $("groupsum").innerHTML = `<b>${esc(describe(s.group))}</b>` +
     ` · ${cars(p)} ${cars(p) === 1 ? "car" : "cars"} or ${Math.ceil(p / 8)} transfer ${Math.ceil(p / 8) === 1 ? "vehicle" : "vehicles"}`;
 }
@@ -360,3 +363,57 @@ export function renderTable(s: State) {
   applySort(s, "detail");
 }
 
+
+// ---- the Houses section: every house that fits the group at the chosen resorts, for the chosen week
+export type HouseView = "price" | "distance";
+interface Found { x: Priced; r: Resort; tier?: Tier }
+/** Fitting houses at the picked resorts (the lift-distance tick applies), cheapest first. */
+export function fittingHouses(s: State): Found[] {
+  const out: Found[] = [];
+  for (const r of RESORTS_FILE.resorts) {
+    const d = visible(s).filter((o) => o.resort === r.id)[0];
+    if (!d) continue;
+    const h = c(s, d, s.week).stay.houses;
+    const tierOf = new Map<Priced, Tier>();
+    if (h.mode === "tiers") for (const t of h.tiers) for (const x of t.listings) tierOf.set(x, t.tier);
+    for (const x of h.eligible) out.push({ x, r, tier: tierOf.get(x) });
+  }
+  return out.sort((a, b) => a.x.pp - b.x.pp);
+}
+const DIST = [
+  { label: "Ski in / ski out", hint: "100 m or less", max: 100 },
+  { label: "Up to 5 min walk", hint: "up to ~375 m", max: 375 },
+  { label: "5–10 min walk", hint: "up to ~750 m", max: 750 },
+  { label: "Further: shuttle or car", hint: "more than 10 min, or not stated", max: Infinity },
+];
+export function renderHouseSection(s: State, view: HouseView, repo: string) {
+  $("houseView").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
+  const all = fittingHouses(s), p = people(s.group), b = bedrooms(s.group);
+  const resorts = new Set(all.map((f) => f.r.id)).size;
+  $("houseslede").textContent = all.length
+    ? `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people in ${b}+ bedrooms${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}, for ${dates(s, s.week).text}. Prices are per person for the whole stay.`
+    : "";
+  if (!all.length) {
+    const add = `https://github.com/${repo}/blob/main/CONTRIBUTING.md#add-a-house`;
+    $("housegroups").innerHTML = `<div class="hempty-big"><b>No houses fit yet.</b><span class="foot">${s.nearLifts ? `Try unticking “within a 10-min walk” in Filters, or pick other resorts.` : "Pick other resorts in Filters."} Found one? <a href="${esc(add)}" target="_blank" rel="noopener">Add it</a>.</span></div>`;
+    return;
+  }
+  let groups: { title: string; hint: string; xs: Found[] }[];
+  if (view === "price") {
+    const n = all.length, k = n >= 3 ? 3 : 1;
+    const names = k === 3 ? ["Budget", "Mid", "Luxury"] : ["All"];
+    groups = names.map((title, i) => {
+      const xs = all.filter((_, j) => Math.floor((k * j) / n) === i);
+      return { title, hint: xs.length ? `${euro(xs[0].x.pp)}–${euro(xs[xs.length - 1].x.pp)} per person` : "", xs };
+    });
+  } else {
+    groups = DIST.map((g, i) => ({ title: g.label, hint: g.hint, xs: all.filter((f) => {
+      const m = f.x.l.toLiftM ?? Infinity;
+      return m <= g.max && (i === 0 || m > DIST[i - 1].max);
+    }) }));
+  }
+  $("housegroups").innerHTML = groups.filter((g) => g.xs.length).map((g) =>
+    `<div class="hgroup"><h3>${esc(g.title)} <small>${g.xs.length} · ${esc(g.hint)}</small></h3>` +
+    `<div class="hcards" role="list" aria-label="${esc(g.title)}">` +
+    g.xs.map((f) => card(s, f.x, f.r.name, false)).join("") + `</div></div>`).join("");
+}

@@ -233,3 +233,12 @@ tr.dimrow td{opacity:.45}
 .sitefoot a{color:var(--accent)}
 .chip.all[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);border-style:solid;color:var(--accent-ink)}
 .hres a,.hres-head a{color:var(--accent)}
+
+/* Houses section */
+.count{font-size:.8rem;font-weight:700;color:var(--ok);background:var(--ok-bg);border-radius:999px;padding:2px 9px}
+.count.none{color:var(--bad);background:var(--bad-bg)}
+#houses-block .head{flex-wrap:wrap}
+.hgroup{margin-top:14px}
+.hgroup>h3{font-family:var(--f-display);font-size:1.15rem;font-weight:600;margin:0 0 8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.hgroup>h3 small{font-family:var(--f-body,inherit);font-size:.8rem;font-weight:500;color:var(--muted)}
+.hempty-big{display:grid;gap:4px;padding:16px;border:1px dashed var(--line);border-radius:10px}
