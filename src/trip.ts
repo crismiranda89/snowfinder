@@ -10,6 +10,8 @@ const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
 export const tripsReady = () => /^https:\/\/|^http:\/\/localhost[:/]/.test(API); // localhost: a local stand-in for tests
 export const tripId = () => new URLSearchParams(location.search).get("trip") || "";
+/** The trip whose "challenge another group" link brought this visitor here, if any. */
+const fromTrip = () => (new URLSearchParams(location.search).get("from") || "").replace(/[^\w]/g, "").slice(0, 20);
 
 /** What a pick stores: enough to show its card and to reopen the exact plan. */
 export interface PickData {
@@ -17,8 +19,10 @@ export interface PickData {
   when: string; people: number; pp: number; group: number; houseTotal: number; walk: string;
   bedrooms: number; sleeps: number; share: string; foundBy?: string;
 }
-interface Pick { id: string; name: string; reason: string; created: string; data: PickData; status?: string; checked?: string; note?: string }
-interface Idea { id: string; name: string; text: string; links: string[]; images: string[]; status: string; reply: string; created: string; checked?: string }
+interface Pick { id: string; name: string; reason: string; created: string; data: PickData; status?: string; checked?: string; note?: string; approved?: string }
+interface Idea { id: string; name: string; text: string; links: string[]; images: string[]; status: string; reply: string; created: string; checked?: string; approved?: string }
+const isYes = (v?: string) => String(v || "").trim().toLowerCase() === "yes";
+const isNo = (v?: string) => String(v || "").trim().toLowerCase() === "no";
 
 /** "just now", "25 min ago", "3 h ago", else "4 Mar 10:30". */
 function when(iso?: string) {
@@ -31,14 +35,20 @@ function when(iso?: string) {
   return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
 }
 /** The checker's verdict on a pick: is it still bookable for these dates at this price? */
-function pickStatus(p: Pick) {
+function pickStatus(p: Pick, organizer: string) {
+  if (isNo(p.approved)) return `<p class="pstat bad">Not approved by ${esc(organizer)}</p>`;
+  if (!isYes(p.approved)) return `<p class="pstat">Waiting for ${esc(organizer)}'s OK before it's checked</p>`;
   const at = when(p.checked), note = p.note ? ` ${esc(p.note)}` : "";
   if (p.status === "available") return `<p class="pstat ok">✓ Still available${at ? ` · checked ${at}` : ""}${note ? ` ·${note}` : ""}</p>`;
   if (p.status === "unavailable") return `<p class="pstat bad">✕ No longer available for these dates${at ? ` · checked ${at}` : ""}.${note}</p>`;
   if (p.status === "changed") return `<p class="pstat warn">Price changed${at ? ` · checked ${at}` : ""}.${note}</p>`;
   return `<p class="pstat">Availability not checked yet · first check within 30 min</p>`;
 }
-interface TripView { trip: { id: string; organizer: string; title: string }; picks: Pick[]; votes: { name: string; pick: string }[]; ideas: Idea[] }
+interface TripView {
+  trip: { id: string; organizer: string; title: string; parent?: string };
+  picks: Pick[]; votes: { name: string; pick: string }[]; ideas: Idea[];
+  limits?: { trips: number; people: number; tripsUsed: number; peopleUsed: number };
+}
 
 const NAME_KEY = "snowfinder-name";
 const myName = () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } };
@@ -137,9 +147,11 @@ export async function createTrip(s: State, toast: (m: string) => void) {
   const p = pickSummary(s); if (!p) return;
   const a = await ask("Create our trip", autoReason(p)); if (!a) return;
   try {
-    const { trip } = await post({ action: "createTrip", name: a.name, title: `${GROUPS.find((g) => g.id === groupId(s.group))!.label} · ${p.when}`, reason: a.reason, data: pickData(s, p) });
+    const { trip } = await post({ action: "createTrip", name: a.name, title: `${GROUPS.find((g) => g.id === groupId(s.group))!.label} · ${p.when}`, reason: a.reason, data: pickData(s, p), parent: fromTrip() });
     history.pushState(null, "", `?trip=${trip}`);
     await loadTrip(s, toast);
+    confirmed = true;
+    renderTrip(s);
     toast("Trip created. Copy the message below and paste it in your group chats.");
     document.getElementById("tmsg-text")?.scrollIntoView({ block: "center", behavior: "smooth" });
   } catch (e) { toast(`Couldn't create the trip: ${(e as Error).message}`); }
@@ -147,7 +159,13 @@ export async function createTrip(s: State, toast: (m: string) => void) {
 export async function addPick(s: State, toast: (m: string) => void) {
   const p = pickSummary(s); if (!p) return;
   const a = await ask("Add my pick", autoReason(p)); if (!a) return;
-  try { await post({ action: "addPick", trip: tripId(), name: a.name, reason: a.reason, data: pickData(s, p) }); toast("Your pick is in, with your vote."); await loadTrip(s, toast); }
+  try {
+    await post({ action: "addPick", trip: tripId(), name: a.name, reason: a.reason, data: pickData(s, p) });
+    confirmed = true;
+    toast(`Your pick is in, with your vote. ${last?.trip.organizer || "The organiser"} approves it before it's checked.`);
+    await loadTrip(s, toast);
+    document.getElementById("challenge")?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
   catch (e) { toast(`Couldn't add your pick: ${(e as Error).message}`); }
 }
 async function vote(pick: string, s: State, toast: (m: string) => void) {
@@ -159,6 +177,19 @@ async function vote(pick: string, s: State, toast: (m: string) => void) {
 
 // ---- the trip panel at the top
 let last: TripView | null = null;
+/** Set once this visitor confirms a selection (creates the trip or adds a pick): then the challenge prompt shows. */
+let confirmed = false;
+
+/** Invite another group of friends to plan their own snow trip; their trip remembers who challenged them. */
+function challengeHtml(trip: TripView["trip"]) {
+  const link = `${location.origin}${location.pathname}?from=${encodeURIComponent(trip.id)}`;
+  const text = `⛷️ We're planning our ski trip on Snowfinder: every resort, week and house priced per person, all in. ` +
+    `Any group of friends up for a snow trip? Plan yours here: ${link}`;
+  return `<div class="tchallenge" id="challenge"><b>🎿 Any other group of friends you want to challenge to a snow trip?</b>` +
+    `<span class="foot">Send them Snowfinder: they plan their own trip, their own way.</span>` +
+    `<div class="tmsg-acts"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">Challenge a group on WhatsApp</a>` +
+    `<button type="button" class="btn secondary" data-act="copy-challenge" data-text="${esc(text)}">Copy the invite</button></div></div>`;
+}
 export async function loadTrip(s: State, toast: (m: string) => void) {
   const id = tripId(), box = $("trip-block");
   if (!id) { box.hidden = true; return; }
@@ -177,7 +208,7 @@ function pickCard(p: Pick, votes: string[], mine: string, flag: string) {
     `<div class="tp-body"><b>${esc(d.title)}</b><small>${esc(d.resort)} · ${esc(d.walk)} · ${d.bedrooms} bedrooms, sleeps ${d.sleeps}</small>` +
     `<small>${esc(d.when)} · flying to ${esc(d.airport)}</small>` +
     `<div class="mp-price"><b>${euro(d.pp)}</b><small>per person all in · ${euro(d.group)} for ${d.people}</small></div></div></div>` +
-    pickStatus(p) +
+    pickStatus(p, last?.trip.organizer || "the organiser") +
     (p.reason ? `<p class="tp-why">“${esc(p.reason)}” <span class="foot">— ${esc(p.name)}</span></p>` : `<p class="foot">Picked by ${esc(p.name)}</p>`) +
     `<div class="tp-acts"><button type="button" class="btn${mine === p.id ? "" : " secondary"}" data-vote="${esc(p.id)}" aria-pressed="${mine === p.id}">${mine === p.id ? "✓ Your vote" : "Vote for this"}</button>` +
     `<span class="tp-votes"><b>${votes.length}</b> vote${votes.length === 1 ? "" : "s"}${votes.length ? `: ${votes.map(esc).join(", ")}` : ""}</span>` +
@@ -213,7 +244,9 @@ function renderTrip(_s: State) {
     `<textarea id="tmsg-text" readonly rows="12">${esc(msg)}</textarea>` +
     `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-msg">Copy message</button>${wa}` +
     `<span class="foot">Paste it in each group. The house link shows its photo in WhatsApp.</span></div></div>`;
-  $("trip-body").innerHTML = alert + pulse + box +
+  const lim = last.limits;
+  const limits = lim ? `<p class="foot">${lim.peopleUsed} of ${lim.people} people on this trip · ${lim.tripsUsed} of ${lim.trips} trips</p>` : "";
+  $("trip-body").innerHTML = alert + pulse + box + (confirmed ? challengeHtml(trip) : "") + limits +
     (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
     (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +
@@ -223,16 +256,18 @@ function renderTrip(_s: State) {
 }
 
 function ideasHtml(ideas: Idea[]) {
+  const org = last?.trip.organizer || "the organiser";
   const label = (x: Idea) => x.status === "approved" ? `<span class="pill p-ok">Approved</span>`
-    : x.status === "not approved" ? `<span class="pill p-bad">Not approved</span>`
-    : `<span class="pill p-neutral">Waiting for check · every 30 min</span>`;
+    : x.status === "not approved" || isNo(x.approved) ? `<span class="pill p-bad">Not approved</span>`
+    : !isYes(x.approved) ? `<span class="pill p-neutral">Waiting for ${esc(org)}'s OK</span>`
+    : `<span class="pill p-neutral">Approved for checking · within 30 min</span>`;
   const list = ideas.map((x) => `<article class="tidea"><b>${esc(x.name)}</b> ${label(x)}${x.checked ? ` <span class="foot">checked ${when(x.checked)}</span>` : ""}` +
     `<p>${esc(x.text)}</p>` +
     (x.links.length ? `<p>${x.links.map((l) => `<a href="${esc(l)}" target="_blank" rel="noopener noreferrer">${esc(l.replace(/^https?:\/\/(www\.)?/, "").slice(0, 48))}↗</a>`).join(" ")}</p>` : "") +
     (x.images.length ? `<div class="tidea-imgs">${x.images.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer"><img src="${esc(u)}" alt="Screenshot from ${esc(x.name)}" loading="lazy" referrerpolicy="no-referrer"></a>`).join("")}</div>` : "") +
     (x.reply ? `<div class="treply"><span class="eyebrow">${x.status === "not approved" ? "Why not" : "Review"}</span><p>${esc(x.reply)}</p></div>` : "") + `</article>`).join("");
   return `<h3 class="tsub">I have a better option</h3>` +
-    `<form id="ideaform" class="ideaform"><p class="foot">Found something better that isn't here? Describe it, paste links and add screenshots. Within 30 minutes it's checked: does it exist, is it free for these dates, at that price? If not, it's marked not approved. If it is and it beats the picks above, it's added and pinned with your name; otherwise you get a reply saying why.</p>` +
+    `<form id="ideaform" class="ideaform"><p class="foot">Found something better that isn't here? Describe it, paste links and add screenshots. Once the organiser OKs it, it's checked within 30 minutes: does it exist, is it free for these dates, at that price? If not, it's marked not approved. If it is and it beats the picks above, it's added and pinned with your name; otherwise you get a reply saying why.</p>` +
     `<label>Your name<input name="name" required maxlength="40" value="${esc(myName())}"></label>` +
     `<label>What's better about it?<textarea name="text" required maxlength="4000" rows="3" placeholder="e.g. 5 bedrooms right on the piste in Soldeu, €3,200 for the week"></textarea></label>` +
     `<label>Links, one per line<textarea name="links" rows="2" placeholder="https://www.airbnb.com/rooms/…"></textarea></label>` +
@@ -261,6 +296,10 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);
     else if (act === "clear-pick") update((s) => { s.pick = undefined; });
+    else if (act === "copy-challenge") {
+      const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
+      navigator.clipboard.writeText(text).then(() => toast("Invite copied: paste it to the other group."), () => window.prompt("Copy this invite:", text));
+    }
     else if (act === "copy-msg") {
       const ta = $("tmsg-text") as HTMLTextAreaElement;
       navigator.clipboard.writeText(ta.value).then(() => toast("Message copied: paste it in each group chat."), () => { ta.select(); toast("Selected: copy it with your phone's Copy."); });

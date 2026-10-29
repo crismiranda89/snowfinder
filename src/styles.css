@@ -326,3 +326,5 @@ tr.dimrow td{opacity:.45}
 .tmsg label{font-size:.82rem;font-weight:700;color:var(--ink)}
 .tmsg textarea{font:inherit;font-size:.86rem;line-height:1.45;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;resize:vertical;width:100%;box-sizing:border-box}
 .tmsg-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tchallenge{display:grid;gap:6px;background:var(--ok-bg);border:1px solid var(--ok);border-radius:12px;padding:12px}
+.tchallenge>b{color:var(--ink)}

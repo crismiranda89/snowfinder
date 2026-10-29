@@ -27,6 +27,14 @@ The tabs (`trips`, `picks`, `votes`, `ideas`) are created on first use.
 - **Create our trip:** choose a house, then "Create our trip". You give your name and a reason; the
   link opens with your pick on top as the group's best pick.
 - **Friends** vote (one vote per name, changeable), or choose their own house and "Add my pick".
+- **You approve everything from the forms.** A friend's pick or "better option" post shows "Waiting for
+  <you>'s OK" until you type `yes` (or `no`) in its `approved` cell in the `picks` or `ideas` tab. Only then
+  does the checker look at it. Your own pick is approved automatically. The checker sends you a phone
+  notification when something is waiting or anything changes (votes, picks, availability).
+- **Limits:** at most 4 trips and 10 people per trip. Change them in **Project Settings → Script
+  properties** with `MAX_TRIPS` and `MAX_PEOPLE`.
+- **Challenge another group:** after you confirm your pick, the trip offers to send Snowfinder to another
+  group of friends. Their trip remembers who challenged them (the `parent` column).
 - **I have a better option:** text, links and up to 3 screenshots land in the `ideas` tab with status
   `new`. Every 30 minutes the checker opens the links for the trip's dates: not bookable, or not better
   than the picks, sets `not approved` with the reason in `reply`; better adds it to the site and to

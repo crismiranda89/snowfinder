@@ -6,12 +6,17 @@
 // A checker (sheet/CHECKER.md, every 30 minutes) validates proposals with a private key stored in
 // Script Properties as CHECKER_KEY: GET ?checker=<key> lists what to check, POST action "review" /
 // "checkPick" / "foundPick" writes the result. Without the key nobody can approve or reject.
+//
+// The organiser stays in control: a friend's pick or "better option" post is only checked once the
+// organiser types "yes" in its `approved` cell (or "no" to decline). Limits against abuse: at most
+// MAX_TRIPS trips in the sheet and MAX_PEOPLE names per trip (Script Properties; defaults 4 and 10).
+// A trip started from another trip's "challenge a group" link records that trip as `parent`.
 
 const TABS = {
-  trips: ["id", "created", "organizer", "title"],
-  picks: ["trip", "id", "created", "name", "reason", "data", "status", "checked", "note"], // data = JSON of the pick; status: unchecked | available | unavailable | changed
+  trips: ["id", "created", "organizer", "title", "parent"],
+  picks: ["trip", "id", "created", "name", "reason", "data", "status", "checked", "note", "approved"], // status: unchecked | available | unavailable | changed; approved: yes | no | blank (waiting)
   votes: ["trip", "name", "pick", "updated"],
-  ideas: ["trip", "id", "created", "name", "text", "links", "images", "status", "reply", "pick", "checked"], // status: new | approved | not approved
+  ideas: ["trip", "id", "created", "name", "text", "links", "images", "status", "reply", "pick", "checked", "approved"], // status: new | approved | not approved
 };
 const MAX_TEXT = 4000, MAX_IMAGES = 3, MAX_IMAGE_BYTES = 4 * 1024 * 1024;
 
@@ -31,16 +36,35 @@ const clip_ = (s, n) => String(s == null ? "" : s).slice(0, n || 200).trim();
 const id_ = () => Utilities.getUuid().replace(/-/g, "").slice(0, 10);
 const now_ = () => new Date().toISOString();
 
+const prop_ = (k, d) => +(PropertiesService.getScriptProperties().getProperty(k) || d);
+const yes_ = (v) => String(v).trim().toLowerCase() === "yes";
+/** Everyone who has taken part in a trip, by lower-cased name. */
+function people_(trip) {
+  const t = rows_("trips").find((x) => x.id === trip);
+  const names = new Set(t ? [String(t.organizer).toLowerCase()] : []);
+  for (const tab of ["picks", "votes", "ideas"]) rows_(tab).filter((r) => r.trip === trip).forEach((r) => names.add(String(r.name).toLowerCase()));
+  return names;
+}
 const checkerOk_ = (k) => { const want = PropertiesService.getScriptProperties().getProperty("CHECKER_KEY"); return !!want && k === want; };
 
 function doGet(e) {
   if (e.parameter.checker != null) {
     if (!checkerOk_(e.parameter.checker)) return json_({ error: "Not allowed" });
     const strip = ({ _row, ...r }) => r;
+    const ideas = rows_("ideas"), picks = rows_("picks");
     return json_({
       trips: rows_("trips").map(strip),
-      ideas: rows_("ideas").filter((x) => x.status === "new").map((x) => Object.assign(strip(x), { links: safeParse_(x.links, []), images: safeParse_(x.images, []) })),
-      picks: rows_("picks").map((p) => Object.assign(strip(p), { data: safeParse_(p.data) })),
+      // Only what the organiser approved gets checked.
+      ideas: ideas.filter((x) => x.status === "new" && yes_(x.approved)).map((x) => Object.assign(strip(x), { links: safeParse_(x.links, []), images: safeParse_(x.images, []) })),
+      declined: ideas.filter((x) => x.status === "new" && String(x.approved).trim().toLowerCase() === "no").map(strip),
+      picks: picks.filter((p) => yes_(p.approved)).map((p) => Object.assign(strip(p), { data: safeParse_(p.data) })),
+      waiting: {
+        picks: picks.filter((p) => !String(p.approved).trim()).map((p) => ({ trip: p.trip, id: p.id, name: p.name, title: safeParse_(p.data).title })),
+        ideas: ideas.filter((x) => x.status === "new" && !String(x.approved).trim()).map((x) => ({ trip: x.trip, id: x.id, name: x.name, text: clip_(x.text, 140) })),
+      },
+      stats: rows_("trips").map((t) => ({ trip: t.id, organizer: t.organizer, people: people_(t.id).size,
+        picks: picks.filter((p) => p.trip === t.id).length, votes: rows_("votes").filter((v) => v.trip === t.id).length,
+        ideas: ideas.filter((x) => x.trip === t.id).length, unavailable: picks.filter((p) => p.trip === t.id && p.status === "unavailable").length })),
     });
   }
   const id = clip_(e.parameter.trip, 20);
@@ -55,6 +79,7 @@ function doGet(e) {
     picks: rows_("picks").filter((p) => p.trip === id).map((p) => Object.assign(strip(p), { data: safeParse_(p.data) })),
     votes: Object.values(latest),
     ideas: rows_("ideas").filter((x) => x.trip === id).map((x) => Object.assign(strip(x), { links: safeParse_(x.links, []), images: safeParse_(x.images, []) })),
+    limits: { trips: prop_("MAX_TRIPS", 4), people: prop_("MAX_PEOPLE", 10), tripsUsed: rows_("trips").length, peopleUsed: people_(id).size },
   });
 }
 function safeParse_(s, d) { try { return JSON.parse(s); } catch (err) { return d === undefined ? {} : d; } }
@@ -69,28 +94,33 @@ function doPost(e) {
     if (b.action !== "createTrip" && !rows_("trips").some((t) => t.id === b.trip)) return json_({ error: "Trip not found" });
     if (!name) return json_({ error: "Please give your name" });
     if (b.action === "createTrip") {
+      const max = prop_("MAX_TRIPS", 4);
+      if (rows_("trips").length >= max) return json_({ error: `The limit of ${max} trips is reached. Ask the organiser to raise it.` });
+      const parent = rows_("trips").some((t) => t.id === b.parent) ? b.parent : "";
       const trip = id_();
-      tab_("trips").appendRow([trip, now_(), name, clip_(b.title, 120)]);
-      const pick = addPick_(trip, name, b.reason, b.data);
+      tab_("trips").appendRow([trip, now_(), name, clip_(b.title, 120), parent]);
+      const pick = addPick_(trip, name, b.reason, b.data, "unchecked", "yes"); // the organiser's own pick needs no approval
       vote_(trip, name, pick);
       return json_({ ok: true, trip, pick });
     }
+    const max = prop_("MAX_PEOPLE", 10), ppl = people_(b.trip);
+    if (!ppl.has(name.toLowerCase()) && ppl.size >= max) return json_({ error: `This trip already has ${max} people.` });
     if (b.action === "addPick") { const pick = addPick_(b.trip, name, b.reason, b.data); vote_(b.trip, name, pick); return json_({ ok: true, pick }); }
     if (b.action === "vote") { vote_(b.trip, name, clip_(b.pick, 20)); return json_({ ok: true }); }
     if (b.action === "idea") {
       const images = (b.images || []).slice(0, MAX_IMAGES).map(saveImage_).filter(Boolean);
       const links = (b.links || []).slice(0, 10).map((l) => clip_(l, 500)).filter((l) => /^https?:\/\//.test(l));
       const id = id_();
-      tab_("ideas").appendRow([b.trip, id, now_(), name, clip_(b.text, MAX_TEXT), JSON.stringify(links), JSON.stringify(images), "new", "", ""]);
+      tab_("ideas").appendRow([b.trip, id, now_(), name, clip_(b.text, MAX_TEXT), JSON.stringify(links), JSON.stringify(images), "new", "", "", "", ""]);
       return json_({ ok: true, id });
     }
     return json_({ error: "Unknown action" });
   } finally { lock.releaseLock(); }
 }
 
-function addPick_(trip, name, reason, data, status) {
+function addPick_(trip, name, reason, data, status, approved) {
   const id = id_();
-  tab_("picks").appendRow([trip, id, now_(), name, clip_(reason, 600), JSON.stringify(data || {}).slice(0, 8000), status || "unchecked", "", ""]);
+  tab_("picks").appendRow([trip, id, now_(), name, clip_(reason, 600), JSON.stringify(data || {}).slice(0, 8000), status || "unchecked", "", "", approved || ""]);
   return id;
 }
 
@@ -116,7 +146,7 @@ function checker_(b) {
   if (b.action === "foundPick") {
     const x = rows_("ideas").find((r) => r.id === b.idea); if (!x) return { error: "No such post" };
     const data = Object.assign({}, b.data || {}, { foundBy: x.name });
-    const pick = addPick_(x.trip, x.name, b.reason || x.text, data, "available");
+    const pick = addPick_(x.trip, x.name, b.reason || x.text, data, "available", "yes");
     tab_("ideas").getRange(x._row, 8, 1, 4).setValues([["approved", clip_(b.reply, 2000), pick, now_()]]);
     return { ok: true, pick };
   }
