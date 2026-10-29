@@ -13,7 +13,7 @@ Add it either:
 
 | Column | Example | Notes |
 |---|---|---|
-| `resort` | `soldeu` | One of the ids in `data/resorts.json` (`mayrhofen`, `skiwelt`, `alpe-dhuez`, `les-2-alpes`, `morzine`, `val-thorens`, `sauze`, `tonale`, `pas-de-la-casa`, `soldeu`, `baqueira`, `sierra-nevada`). El Tarter counts as `soldeu`. |
+| `resort` | `soldeu` | One of the ids in `data/resorts.json` (`mayrhofen`, `les-2-alpes`, `morzine`, `val-thorens`, `pas-de-la-casa`, `soldeu`). El Tarter counts as `soldeu`. |
 | `url` | `https://www.airbnb.com/rooms/39173169` | The listing page, `https://` only. |
 | `title` | `Spacious Stay w/ Views & Parking` | |
 | `bedrooms` | `5` | Real bedrooms (not sofa beds). |

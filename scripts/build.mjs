@@ -3,6 +3,7 @@
 //   node scripts/build.mjs --serve   → dev server on http://localhost:8000 (rebuilds on save)
 // Env: SITE_URL (absolute URL of the deployed site, for link previews), REPO (owner/name on GitHub).
 import * as esbuild from "esbuild";
+import { createHash } from "node:crypto";
 import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 
 const serve = process.argv.includes("--serve");
@@ -23,4 +24,10 @@ if (serve) {
   console.log(`Snowfinder dev server: http://localhost:${port}`);
 } else {
   await esbuild.build(options);
+  // Fingerprint the script and stylesheet so a phone never runs a new app.js against a cached old page
+  // (GitHub Pages caches every file for 10 minutes).
+  const v = (f) => createHash("sha256").update(readFileSync(f)).digest("hex").slice(0, 10);
+  writeFileSync("dist/index.html", readFileSync("dist/index.html", "utf8")
+    .replace('href="styles.css"', `href="styles.css?v=${v("dist/styles.css")}"`)
+    .replace('src="app.js"', `src="app.js?v=${v("dist/app.js")}"`));
 }

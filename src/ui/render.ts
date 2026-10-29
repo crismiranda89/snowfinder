@@ -46,7 +46,7 @@ function shut(s: State, d: Option, w: number) { return isClosed(SEASON, d, s.pat
 // ---- header bits that only depend on the season
 export function renderStatic() {
   const o = SEASON.origin, first = range(SEASON, "thu", 0).a, last = range(SEASON, "thu", SEASON.weeks.length - 1).b;
-  $("eyebrow").textContent = `Flying from ${o.city} (${o.code}) · ${SEASON.nights} nights including a weekend · ${fmt(first)} to ${fmt(last)} ${last.getUTCFullYear()}`;
+  $("eyebrow").textContent = `From ${o.city} · ${SEASON.nights} nights · ${fmt(first)} – ${fmt(last)} ${last.getUTCFullYear()}`;
   $("pattern").innerHTML = (Object.keys(SEASON.patterns) as (keyof typeof SEASON.patterns)[])
     .map((k) => `<button type="button" data-v="${k}">${esc(SEASON.patterns[k].label)}</button>`).join("");
   $("fooddays").textContent = String(SEASON.foodDays);

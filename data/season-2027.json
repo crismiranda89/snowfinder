@@ -55,24 +55,15 @@
   ],
   "resorts": {
     "mayrhofen":      { "stay": 950,  "pass4": 305.5, "pass5": 372.5, "rent4": 120, "rent5": 135, "lesson": 60, "close": "2027-04-11", "events": "Snowbombing 5–10 Apr" },
-    "skiwelt":        { "stay": 750,  "pass4": 300,   "pass5": 360.5, "rent4": 110, "rent5": 125, "lesson": 70, "close": "2027-04-05", "closeEst": true, "events": "No major events" },
-    "alpe-dhuez":     { "stay": 850,  "pass4": 250,   "pass5": 295,   "rent4": 110, "rent5": 125, "lesson": 45, "passEst": true, "close": "2027-04-25", "events": "Tomorrowland Winter 20–27 Mar" },
     "les-2-alpes":    { "stay": 800,  "pass4": 250,   "pass5": 295,   "rent4": 110, "rent5": 125, "lesson": 45, "passEst": true, "close": "2027-05-02", "events": "No major events" },
     "morzine":        { "stay": 1000, "pass4": 310,   "pass5": 390,   "rent4": 110, "rent5": 125, "lesson": 48, "close": "2027-04-18", "events": "No major events" },
     "val-thorens":    { "stay": 1250, "pass4": 294,   "pass5": 367.5, "rent4": 120, "rent5": 135, "lesson": 45, "close": "2027-05-02", "events": "No major events" },
-    "sauze":          { "stay": 600,  "pass4": 226.5, "pass5": 275,   "rent4": 85,  "rent5": 100, "lesson": 40, "close": "2027-04-18", "events": "UK half-term (15–19 Feb) fills the village" },
-    "tonale":         { "stay": 650,  "pass4": 210,   "pass5": 255,   "rent4": 90,  "rent5": 105, "lesson": 32, "passEst": true, "dynPass": true, "close": "2027-05-02", "events": "Carnival 8–9 Feb raises demand" },
     "pas-de-la-casa": { "stay": 650,  "pass4": 278,   "pass5": 330,   "rent4": 95,  "rent5": 110, "lesson": 33, "close": "2027-04-04", "events": "Carnival (9 Feb) raises demand" },
-    "soldeu":         { "stay": 800,  "pass4": 278,   "pass5": 330,   "rent4": 95,  "rent5": 110, "lesson": 33, "close": "2027-04-04", "events": "UK half-term and Carnival fill the village" },
-    "baqueira":       { "stay": 1100, "pass4": 265,   "pass5": 310,   "rent4": 110, "rent5": 125, "lesson": 70, "passEst": true, "close": "2027-04-05", "closeEst": true, "events": "Spanish weekends and long weekends are very busy" },
-    "sierra-nevada":  { "stay": 700,  "pass4": 211,   "pass5": 256.5, "rent4": 90,  "rent5": 105, "lesson": 40, "passEst": true, "close": "2027-05-02", "closeEst": true, "events": "Andalusia Day (28 Feb) and weekends are very busy" }
+    "soldeu":         { "stay": 800,  "pass4": 278,   "pass5": 330,   "rent4": 95,  "rent5": 110, "lesson": 33, "close": "2027-04-04", "events": "UK half-term and Carnival fill the village" }
   },
   "options": {
     "mayr":     { "flight": 230, "car": 380, "transfer": 550 },
     "mayr-fmm": { "flight": 110, "car": 420, "transfer": 650, "flag": "Ryanair winter flights unconfirmed" },
-    "skiw":     { "flight": 230, "car": 360, "transfer": 480 },
-    "skiw-fmm": { "flight": 110, "car": 400, "transfer": 600, "flag": "Ryanair winter flights unconfirmed" },
-    "alpe":     { "flight": 150, "car": 450, "transfer": 500 },
     "l2a-lys":  { "flight": 150, "car": 470, "transfer": 440 },
     "l2a-cmf":  { "flight": 180, "car": 440, "transfer": 650, "flag": "Flight unconfirmed" },
     "l2a-trn":  { "flight": 110, "car": 480, "transfer": 700, "flag": "Few winter flights" },
@@ -80,18 +71,10 @@
     "vt-cmf":   { "flight": 180, "car": 445, "transfer": 750, "flag": "Flight unconfirmed" },
     "vt-lys":   { "flight": 150, "car": 515, "transfer": 420 },
     "vt-gva":   { "flight": 160, "car": 505, "transfer": 400 },
-    "sau-trn":  { "flight": 110, "car": 270, "transfer": 320, "flag": "Few winter flights" },
-    "sau-bgy":  { "flight": 100, "car": 330, "transfer": 650 },
-    "sau-lys":  { "flight": 150, "car": 460, "transfer": 800, "flag": "Fréjus tunnel toll" },
-    "ton":      { "flight": 100, "car": 290, "transfer": 370 },
     "pas-tls":  { "flight": 110, "car": 320, "transfer": 270 },
     "pas-bcn":  { "flight": 110, "car": 340, "transfer": 280 },
     "sol-tls":  { "flight": 110, "car": 320, "transfer": 280 },
-    "sol-bcn":  { "flight": 110, "car": 340, "transfer": 280 },
-    "baq-tls":  { "flight": 110, "car": 310, "transfer": 900 },
-    "baq-bcn":  { "flight": 110, "car": 320, "transfer": 300 },
-    "sn-agp":   { "flight": 100, "car": 270, "transfer": 160 },
-    "sn-svq":   { "flight": 100, "car": 300, "transfer": 240 }
+    "sol-bcn":  { "flight": 110, "car": 340, "transfer": 280 }
   },
   "flightTimesNote": "Typical scheduled flight time from the origin in minutes, for the fastest usual option. Approximate: check the real schedule for your dates. stops 1 = no direct flight.",
   "flightTimes": {
@@ -101,11 +84,8 @@
     "CMF": { "mins": 330, "stops": 1, "airlines": "No direct flight; connect via Lisbon or London" },
     "TRN": { "mins": 135, "stops": 0, "airlines": "Ryanair" },
     "GVA": { "mins": 135, "stops": 0, "airlines": "easyJet, Swiss, TAP" },
-    "BGY": { "mins": 145, "stops": 0, "airlines": "Ryanair" },
     "TLS": { "mins": 95, "stops": 0, "airlines": "Ryanair" },
-    "BCN": { "mins": 105, "stops": 0, "airlines": "Ryanair, Vueling" },
-    "AGP": { "mins": 85, "stops": 0, "airlines": "Ryanair" },
-    "SVQ": { "mins": 70, "stops": 0, "airlines": "Ryanair" }
+    "BCN": { "mins": 105, "stops": 0, "airlines": "Ryanair, Vueling" }
   },
   "sources": {
     "calendars": [

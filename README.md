@@ -2,7 +2,7 @@
 
 **Which ski resort, which week, and what it really costs for your group.**
 
-Snowfinder compares a 5-night ski trip at 12 resorts in the Alps, Pyrenees and Sierra Nevada, week by week,
+Snowfinder compares a 5-night ski trip at 6 resorts in the Alps and Andorra, week by week,
 for a group of couples and friends. Each price per person adds up flights, rental car or transfer, the
 house, lift pass, ski rental, food and lessons. It shows the cheapest week for every resort, then
 Budget / Mid / Luxury houses that actually fit your group, with photos.
@@ -50,7 +50,7 @@ Telegram group ◄──► Cloudflare Worker + D1 (bot/, optional, free tier)
 | Car | per car × ⌈people ÷ 5⌉ cars, split over the group |
 | Transfer | per vehicle; one per 8 people, a 5–8 seat van costs ×1.4 |
 | House | median of the chosen level's fitting houses, otherwise a 2-bedroom estimate × (bedrooms ÷ 2)<sup>0.9</sup> |
-| Lift pass, rental | per person, fixed for the season (Passo Tonale is dynamic) |
+| Lift pass, rental | per person, fixed for the season |
 | Food | € per person per day × 6 days |
 | Lessons | price per day × ski days × beginners, shared over the group |
 
