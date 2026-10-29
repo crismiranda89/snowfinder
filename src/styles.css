@@ -48,6 +48,8 @@ section.block{display:grid;gap:12px;min-width:0}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .check{display:flex;gap:8px;align-items:center;font-weight:500;cursor:pointer;padding-bottom:6px}
 .check input{width:18px;height:18px;accent-color:var(--accent)}
+.extra select{font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);max-width:100%}
+.ctl label span{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .extra input{width:90px;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
 button:focus-visible,input:focus-visible,td.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ghost{font:inherit;font-size:.85rem;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px 12px;cursor:pointer;margin-left:auto}
@@ -189,10 +191,17 @@ tr.dimrow td{opacity:.45}
 
 /* NEW: houses */
 .hres{display:grid;gap:10px;padding:14px 0;border-top:1px solid var(--line)}
-.hres:first-of-type{border-top:0;padding-top:0}
+.kids>.hres{border-top:0;padding:4px 0 12px}
 .hres-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px}
-.hres-head b{font-family:var(--f-display);font-size:1.3rem;font-weight:600}
-.hcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:12px}
+.hres-head>b{font-family:var(--f-display);font-size:1.3rem;font-weight:600}
+/* horizontal carousel: swipe on phones, scroll (or shift+wheel) on desktop */
+.hcards{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;padding-bottom:8px;scrollbar-width:thin}
+.hcards>.hcard{flex:0 0 min(82%,270px);scroll-snap-align:start}
+.hres-head .on{color:var(--accent)}
+.hres-head .foot b{color:var(--ink)}
+.lift{font-size:.8rem;font-weight:600;color:var(--warn)}
+.lift.ok{color:var(--ok)}
+.lift.unk{color:var(--muted);font-weight:500}
 .hcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-width:0}
 .hcard.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .hphoto{position:relative;display:block;aspect-ratio:3/2;background:linear-gradient(160deg,var(--soft),var(--line));overflow:hidden}
@@ -216,4 +225,4 @@ tr.dimrow td{opacity:.45}
 .sitefoot{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:6px}
 .sitefoot a{color:var(--accent)}
 .chip.all[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);border-style:solid;color:var(--accent-ink)}
-#houses a,.hres-head a{color:var(--accent)}
+.hres a,.hres-head a{color:var(--accent)}

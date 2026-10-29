@@ -63,11 +63,13 @@ export interface Option {
   flight: number; car: number; transfer: number; stay: number;
   pass4: number; pass5: number; rent4: number; rent5: number; lesson: number;
   close: string; closeEst?: boolean; passEst?: boolean; dynPass?: boolean;
+  meal: number; // € per person for a meal out at this resort
   spring: "good" | "ok" | "poor"; flag?: string;
 }
 
 export interface Group { couples: number; solo: number; soloRooms: SoloRooms }
 /** Where solo friends sleep: twin rooms (two per room), a room each, or the living room (sofa bed, no bedroom). */
+export type FoodPlan = "home" | "one" | "both" | "custom";
 export type SoloRooms = "shared" | "own" | "common";
 
 /** One price quote for a listing: the total for the whole stay, as seen on the listing for those dates. */
@@ -85,6 +87,10 @@ export interface Settings {
   pattern: PatternKey;
   days: 4 | 5;
   ground: Ground;
+  /** How the group eats; "custom" (or missing) uses `food` € per person per day. */
+  foodPlan?: FoodPlan;
+  /** Only count houses within a 10-minute walk of the lifts. */
+  nearLifts?: boolean;
   food: number;
   beg: number;
   group: Group;

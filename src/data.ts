@@ -22,7 +22,7 @@ export function buildOptions(resorts: Resort[], season: Season): Option[] {
         flight: o.flight, car: o.car, transfer: o.transfer, stay: rs.stay,
         pass4: rs.pass4, pass5: rs.pass5, rent4: rs.rent4, rent5: rs.rent5, lesson: rs.lesson,
         close: rs.close, closeEst: rs.closeEst, passEst: rs.passEst, dynPass: rs.dynPass,
-        spring: r.spring, flag: o.flag,
+        meal: r.compare.meal?.[0] ?? 25, spring: r.spring, flag: o.flag,
       });
     }
   }

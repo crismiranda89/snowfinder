@@ -1,7 +1,7 @@
 // Cost model, ported 1:1 from the original simulator (baseVal / val / calc) with the fixed group of 4
 // replaced by the group's size. For 2 couples and no house listings it reproduces the original exactly
 // (tests/golden.test.ts).
-import type { Field, Listing, Option, Season, Settings } from "../types.ts";
+import type { Field, FoodPlan, Listing, Option, Season, Settings } from "../types.ts";
 import { level } from "./calendar.ts";
 import { bedrooms, cars, people, transferFactor } from "./group.ts";
 import { houses, stayFromHouses, type HouseResult } from "./houses.ts";
@@ -32,12 +32,24 @@ export function stayEstimate(season: Season, s: Settings, d: Option, w: number):
 
 export interface StayInfo { total: number; source: "edited" | "houses" | "few" | "estimate"; houses: HouseResult }
 export function stay(season: Season, s: Settings, d: Option, w: number, listings: Listing[]): StayInfo {
-  const h = houses(season, d.mkt, listings, s.group, w);
+  const h = houses(season, d.mkt, listings, s.group, w, !!s.nearLifts);
   const e = edited(s, d, "stay", w);
   if (e != null) return { total: e, source: "edited", houses: h };
   const fromHouses = stayFromHouses(h, s.house);
   if (fromHouses != null) return { total: Math.round(fromHouses), source: h.mode === "tiers" ? "houses" : "few", houses: h };
   return { total: stayEstimate(season, s, d, w), source: "estimate", houses: h };
+}
+
+/** Food per person per day as a multiple of the resort's meal-out price; the fraction on top of the meals
+ *  out is groceries for the meals cooked at home and slope snacks. */
+export const FOOD_PLANS: Record<Exclude<FoodPlan, "custom">, { label: string; meals: number }> = {
+  home: { label: "Cook at home + snacks", meals: 0.6 },  // groceries for every meal + a snack
+  one: { label: "One meal out a day", meals: 1.4 },      // 1 meal out + groceries for the rest
+  both: { label: "Lunch and dinner out", meals: 2.2 },   // 2 meals out + breakfast and snacks
+};
+export function foodPerDay(s: Settings, d: Option): number {
+  const p = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan] : null;
+  return p ? Math.round(p.meals * d.meal) : (+s.food || 0);
 }
 
 export interface Parts { flight: number; ground: number; stay: number; pass: number; rent: number; food: number; lesson: number }
@@ -53,7 +65,7 @@ export function calc(season: Season, s: Settings, d: Option, w: number, listings
     stay: st.total / p,
     pass: val(season, s, d, ("pass" + s.days) as Field, w),
     rent: val(season, s, d, ("rent" + s.days) as Field, w),
-    food: (+s.food || 0) * season.foodDays,
+    food: foodPerDay(s, d) * season.foodDays,
     lesson: val(season, s, d, "lesson", w) * s.days * (+s.beg || 0) / p,
   };
   const pp = parts.flight + parts.ground + parts.stay + parts.pass + parts.rent + parts.food + parts.lesson;

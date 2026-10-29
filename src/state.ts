@@ -1,5 +1,5 @@
 // App state: defaults, localStorage (per viewer) and share links (the whole scenario in the URL hash).
-import type { Edits, Group, Ground, PatternKey, Settings, Tier } from "./types.ts";
+import type { Edits, FoodPlan, Group, Ground, PatternKey, Settings, Tier } from "./types.ts";
 
 export interface State extends Settings {
   v: 1;
@@ -13,8 +13,8 @@ export const STORAGE_KEY = "snowfinder-v1";
 
 export function defaults(): State {
   return {
-    v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, food: 40, beg: 2,
-    group: { couples: 2, solo: 0, soloRooms: "shared" }, house: "mid", dest: [], edits: {}, sort: {},
+    v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, nearLifts: true, foodPlan: "home", food: 40, beg: 2,
+    group: { couples: 0, solo: 4, soloRooms: "shared" }, house: "mid", dest: [], edits: {}, sort: {},
   };
 }
 
@@ -53,6 +53,8 @@ export function sanitize(raw: unknown, weeks: number): State {
     days: int(r.days, 4, 5, 4) as 4 | 5,
     ground: oneOf(r.ground, ["car", "transfer"] as const, "car") as Ground,
     limit: !!r.limit,
+    nearLifts: typeof r.nearLifts === "boolean" ? r.nearLifts : !!d.nearLifts,
+    foodPlan: oneOf(r.foodPlan, ["home", "one", "both", "custom"] as const, d.foodPlan!) as FoodPlan,
     food: Math.max(0, Number.isFinite(+r.food) ? +r.food : d.food),
     beg: int(r.beg, 0, people, Math.min(d.beg, people)),
     group,

@@ -2,8 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LISTINGS, OPTIONS, SEASON } from "../src/data.ts";
 import { bedrooms, cars, people, transferFactor } from "../src/model/group.ts";
-import { houses, median, priceFor, stayFromHouses } from "../src/model/houses.ts";
-import { calc } from "../src/model/cost.ts";
+import { houses, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
+import { calc, foodPerDay } from "../src/model/cost.ts";
 import { weekOfStay } from "../src/model/calendar.ts";
 import { decodeShare, defaults, encodeShare, sanitize } from "../src/state.ts";
 import type { Group, Listing, Settings } from "../src/types.ts";
@@ -88,7 +88,7 @@ test("seed: 4 couples + 1 solo in Soldeu, 3–8 Mar, matches the shortlist", () 
   const h = houses(SEASON, "aduk", sol, G(4, 1), W);
   assert.equal(h.mode, "tiers");
   assert.deepEqual(h.tiers.map((t) => t.median), [3443, 3932, 4323]);
-  const s: Settings = { ...defaults(), group: G(4, 1), house: "mid" };
+  const s: Settings = { ...defaults(), group: G(4, 1), house: "mid", nearLifts: false }; // all 4 shortlisted houses
   const opt = OPTIONS.find((o) => o.id === "sol-tls")!;
   const c = calc(SEASON, s, opt, W, sol);
   assert.equal(c.stay.source, "houses");
@@ -106,8 +106,9 @@ test("share link round-trip and sanitising", () => {
   assert.equal(back.week, 6); assert.deepEqual(back.group, s.group); assert.equal(back.house, "lux");
   assert.deepEqual(back.edits, s.edits);
   const bad = sanitize({ week: 99, days: 7, group: { couples: -3, solo: "x" }, beg: 50, edits: { "<script>": { a: 1 } } }, 12);
-  assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, G(0, 1)); assert.equal(bad.beg, 1);
+  assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, G(0, 4)); assert.equal(bad.beg, 4); // bad numbers fall back to the default 4 solo friends
   assert.deepEqual(bad.edits, {});
+  assert.equal(bad.nearLifts, true); assert.equal(sanitize({ nearLifts: false }, 12).nearLifts, false);
   assert.equal(decodeShare("#s=%%%garbage", 12), null);
 });
 
@@ -119,4 +120,23 @@ test("every option belongs to an area; Andorra groups Soldeu and Pas de la Casa"
 
 test("every airport has a flight time from the origin", () => {
   for (const o of OPTIONS) assert.ok(SEASON.flightTimes[o.code]?.mins > 0, `${o.code} has no flight time`);
+});
+
+test("food plans scale with the resort's meal-out price; custom uses the daily amount", () => {
+  const pas = OPTIONS.find((o) => o.id === "pas-tls")!, vt = OPTIONS.find((o) => o.id === "vt-gva")!;
+  const s = (foodPlan: Settings["foodPlan"]) => ({ ...defaults(), foodPlan, food: 40 });
+  assert.equal(foodPerDay(s("home"), pas), 12); assert.equal(foodPerDay(s("one"), pas), 28); assert.equal(foodPerDay(s("both"), pas), 44);
+  assert.ok(foodPerDay(s("both"), vt) > foodPerDay(s("both"), pas));
+  assert.equal(foodPerDay(s("custom"), vt), 40);
+  assert.equal(calc(SEASON, s("one"), pas, 0).parts.food, 28 * SEASON.foodDays);
+});
+
+test("near the lifts: within a 10-minute walk, unknown distance excluded", () => {
+  assert.equal(walkMins(900), 12); assert.equal(walkMins(750), 10); assert.equal(walkMins(20), 1);
+  const at = (toLiftM: number | null) => ({ ...LISTINGS[0], toLiftM });
+  assert.ok(nearLifts(at(750))); assert.ok(!nearLifts(at(900))); assert.ok(!nearLifts(at(null)));
+  const sol = LISTINGS.filter((l) => l.resort === "soldeu");
+  const all = houses(SEASON, "aduk", sol, G(4, 1), 6), near = houses(SEASON, "aduk", sol, G(4, 1), 6, true);
+  assert.ok(near.eligible.every((x) => nearLifts(x.l)));
+  assert.ok(near.eligible.length < all.eligible.length);
 });

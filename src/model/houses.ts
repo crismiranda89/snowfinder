@@ -10,6 +10,13 @@ export const TIERS: Tier[] = ["budget", "mid", "lux"];
 export const TIER_LABEL: Record<Tier, string> = { budget: "Budget", mid: "Mid", lux: "Luxury" };
 /** A house counts for the group if it has enough beds and between the needed bedrooms and this many more. */
 export const MAX_EXTRA_BEDROOMS = 2;
+/** Walking pace to the lifts in ski boots, metres per minute (a listing's "900 m, about 12 minutes"). */
+export const WALK_M_PER_MIN = 75;
+/** "Near the lifts" means at most this many minutes' walk. */
+export const NEAR_LIFT_MIN = 10;
+export const walkMins = (m: number) => Math.max(1, Math.round(m / WALK_M_PER_MIN));
+/** Listings with a known distance within NEAR_LIFT_MIN minutes' walk. Unknown distance doesn't count. */
+export const nearLifts = (l: Listing) => l.toLiftM != null && walkMins(l.toLiftM) <= NEAR_LIFT_MIN;
 
 export interface Priced { l: Listing; total: number; pp: number; exact: boolean; quote: Quote }
 export interface TierResult { tier: Tier; listings: Priced[]; median: number; medianPP: number; pick: Priced }
@@ -51,9 +58,9 @@ export function bestPick(xs: Priced[]): Priced {
     a.total - b.total)[0];
 }
 
-export function houses(season: Season, market: string, listings: Listing[], g: Group, w: number): HouseResult {
+export function houses(season: Season, market: string, listings: Listing[], g: Group, w: number, onlyNearLifts = false): HouseResult {
   const p = people(g);
-  const eligible = listings.filter((l) => fits(l, g)).map((l) => {
+  const eligible = listings.filter((l) => fits(l, g) && (!onlyNearLifts || nearLifts(l))).map((l) => {
     const pr = priceFor(season, market, l, w);
     return { l, total: pr.total, pp: pr.total / p, exact: pr.exact, quote: pr.quote };
   }).sort((a, b) => a.total - b.total);
