@@ -85,6 +85,8 @@ export function whatsappText(d: PickData, link: string): string {
     ``,
     looked > 1 ? `I compared ${looked} places for ${group.toLowerCase()}. My pick:` : `My pick for ${group.toLowerCase()}:`,
     `🏠 *${d.title}*${country ? ` (${d.resort}, ${country})` : ` (${d.resort})`}`,
+    // First link in the message: WhatsApp turns it into a preview with the listing's photo.
+    `📸 ${d.url}`,
     `📅 ${d.when} · ${n} nights`,
     `🚡 ${d.walk.charAt(0).toUpperCase()}${d.walk.slice(1)}`,
     `💶 *${euro(d.pp)} per person, all in*: flight from ${SEASON.origin.city}, house, lift pass, rental and food`,
@@ -136,10 +138,10 @@ export async function createTrip(s: State, toast: (m: string) => void) {
   const a = await ask("Create our trip", autoReason(p)); if (!a) return;
   try {
     const { trip } = await post({ action: "createTrip", name: a.name, title: `${GROUPS.find((g) => g.id === groupId(s.group))!.label} · ${p.when}`, reason: a.reason, data: pickData(s, p) });
-    const url = `${location.origin}${location.pathname}?trip=${trip}`;
     history.pushState(null, "", `?trip=${trip}`);
-    try { await navigator.clipboard.writeText(url); toast("Trip created. Link copied: send it to the group."); } catch { window.prompt("Send this link to the group:", url); }
     await loadTrip(s, toast);
+    toast("Trip created. Copy the message below and paste it in your group chats.");
+    document.getElementById("tmsg-text")?.scrollIntoView({ block: "center", behavior: "smooth" });
   } catch (e) { toast(`Couldn't create the trip: ${(e as Error).message}`); }
 }
 export async function addPick(s: State, toast: (m: string) => void) {
@@ -207,7 +209,11 @@ function renderTrip(_s: State) {
   const link = `${location.origin}${location.pathname}?trip=${encodeURIComponent(trip.id)}`;
   const msg = best ? whatsappText(best.data, link) : `⛷️ Our ski trip: vote here ${link}`;
   const wa = `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send on WhatsApp</a>`;
-  $("trip-body").innerHTML = alert + `<div class="tshare">${pulse}${wa}</div>` +
+  const box = `<div class="tmsg"><label for="tmsg-text">Message for your group chats</label>` +
+    `<textarea id="tmsg-text" readonly rows="12">${esc(msg)}</textarea>` +
+    `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-msg">Copy message</button>${wa}` +
+    `<span class="foot">Paste it in each group. The house link shows its photo in WhatsApp.</span></div></div>`;
+  $("trip-body").innerHTML = alert + pulse + box +
     (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
     (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +
@@ -255,6 +261,10 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);
     else if (act === "clear-pick") update((s) => { s.pick = undefined; });
+    else if (act === "copy-msg") {
+      const ta = $("tmsg-text") as HTMLTextAreaElement;
+      navigator.clipboard.writeText(ta.value).then(() => toast("Message copied: paste it in each group chat."), () => { ta.select(); toast("Selected: copy it with your phone's Copy."); });
+    }
     const v = t.closest<HTMLElement>("[data-vote]");
     if (v) vote(v.dataset.vote!, getState(), toast);
   });
