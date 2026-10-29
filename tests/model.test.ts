@@ -107,7 +107,8 @@ test("share link round-trip and sanitising", () => {
   assert.deepEqual(back.edits, s.edits);
   const bad = sanitize({ week: 99, days: 7, group: { couples: -3, solo: "x" }, beg: 50, edits: { "<script>": { a: 1 } } }, 12);
   assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, G(4, 1, "common")); assert.equal(bad.beg, 0); // unknown groups fall back to 4 couples + 1; lessons are off
-  assert.deepEqual(sanitize({ group: G(0, 4) }, 12).group, G(4, 1, "common")); // only the three group setups exist
+  assert.deepEqual(sanitize({ group: G(0, 4) }, 12).group, G(0, 4, "own")); // 4 friends, own rooms
+  assert.deepEqual(sanitize({ group: G(2, 3) }, 12).group, G(4, 1, "common")); // only the listed group setups exist
   assert.deepEqual(bad.edits, {});
   assert.equal(bad.nearLifts, true); assert.equal(sanitize({ nearLifts: false }, 12).nearLifts, false);
   assert.equal(decodeShare("#s=%%%garbage", 12), null);

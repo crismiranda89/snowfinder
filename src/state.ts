@@ -17,6 +17,7 @@ export const GROUPS: { id: string; label: string; group: Group }[] = [
   { id: "4c1", label: "4 couples + 1 friend (living room)", group: { couples: 4, solo: 1, soloRooms: "common" } },
   { id: "4c", label: "4 couples", group: { couples: 4, solo: 0, soloRooms: "common" } },
   { id: "3c", label: "3 couples", group: { couples: 3, solo: 0, soloRooms: "common" } },
+  { id: "4s", label: "4 friends, no couples (own rooms)", group: { couples: 0, solo: 4, soloRooms: "own" } },
 ];
 export const groupId = (g: Group) => GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo)?.id || GROUPS[0].id;
 
