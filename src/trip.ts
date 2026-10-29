@@ -66,8 +66,22 @@ const setName = (n: string) => { try { localStorage.setItem(NAME_KEY, n); } catc
 async function get(id: string): Promise<TripView> {
   const r = await fetch(`${API}?trip=${encodeURIComponent(id)}`);
   const j = await r.json();
-  if (j.error) throw new Error(j.error);
+  if (j.error) throw Object.assign(new Error(j.error), { trip: j.trip as string | undefined });
   return j;
+}
+
+// The trips this browser created, one per group setup (group id → trip id), so each group gets its own.
+const TRIPS_KEY = "snowfinder-my-trips";
+const myTrips = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(TRIPS_KEY) || "{}"); } catch { return {}; } };
+const rememberTrip = (group: string, trip: string) => { try { localStorage.setItem(TRIPS_KEY, JSON.stringify({ ...myTrips(), [group]: trip })); } catch { /* private mode */ } };
+const groupLabel = (id: string) => GROUPS.find((g) => g.id === id)?.label || id;
+/** The open trip's group setup, read from its title ("4 couples · Thu 4 Mar → Tue 9 Mar"). */
+const tripGroup = () => GROUPS.find((g) => g.label === (last?.trip.title || "").split(" · ")[0])?.id || "";
+function openTrip(id: string, s: State, toast: (m: string) => void) {
+  history.pushState(null, "", `?trip=${encodeURIComponent(id)}`);
+  last = null; confirmed = false;
+  renderMyPick(s); loadTrip(s, toast);
+  $("trip-block").scrollIntoView({ block: "start", behavior: "smooth" });
 }
 async function post(body: object): Promise<any> {
   // text/plain keeps this a "simple" request, so Apps Script needs no CORS preflight
@@ -122,7 +136,8 @@ export function renderMyPick(s: State) {
   const box = $("mypick"), p = pickSummary(s);
   if (!p) { box.hidden = true; box.innerHTML = ""; return; }
   box.hidden = false;
-  const inTrip = !!tripId();
+  // In a trip of the same group you add your pick to it; for another group you start (or open) that group's trip.
+  const g = groupId(s.group), inTrip = !!tripId() && (!last || tripGroup() === g || !tripGroup()), own = myTrips()[g];
   box.innerHTML = `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
     `<div class="mp-body"><span class="eyebrow">Your pick</span><b>${esc(p.listing.title)}</b>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
@@ -132,7 +147,9 @@ export function renderMyPick(s: State) {
       return `<option value="${esc(f.d.id)}"${f.d.id === p.option.id ? " selected" : ""}>${esc(f.d.air)}${t ? ` · ${hm(t.mins + f.d.mins)}` : ""} · ${euro(f.pp)} pp</option>`;
     }).join("")}</select></label></div>` +
     `<div class="mp-acts">${tripsReady()
-      ? `<button type="button" class="btn" data-act="${inTrip ? "add-pick" : "create-trip"}">${inTrip ? "Add my pick to the trip" : "Create our trip"}</button>`
+      ? inTrip ? `<button type="button" class="btn" data-act="add-pick">Add my pick to the trip</button>`
+        : own ? `<button type="button" class="btn" data-act="open-trip" data-trip="${esc(own)}">Open our ${esc(groupLabel(g).toLowerCase())} trip</button>`
+        : `<button type="button" class="btn" data-act="create-trip">Create a trip for ${esc(groupLabel(g).toLowerCase())}</button>`
       : `<span class="foot">Shared trips aren't set up on this site yet.</span>`}` +
     `<button type="button" class="ghost" data-act="clear-pick">Clear</button></div>`;
 }
@@ -158,14 +175,21 @@ export async function createTrip(s: State, toast: (m: string) => void) {
   const p = pickSummary(s); if (!p) return;
   const a = await ask("Create our trip", autoReason(p)); if (!a) return;
   try {
-    const { trip } = await post({ action: "createTrip", name: a.name, title: `${GROUPS.find((g) => g.id === groupId(s.group))!.label} · ${p.when}`, reason: a.reason, data: pickData(s, p), parent: fromTrip() });
+    const { trip } = await post({ action: "createTrip", name: a.name, title: `${groupLabel(groupId(s.group))} · ${p.when}`, reason: a.reason, data: pickData(s, p), parent: fromTrip() });
+    rememberTrip(groupId(s.group), trip);
     history.pushState(null, "", `?trip=${trip}`);
+    last = null;
     await loadTrip(s, toast);
+    renderMyPick(s);
     confirmed = true;
     renderTrip(s);
     toast("Trip created. Copy the message below and paste it in your group chats.");
     document.getElementById("tmsg-text")?.scrollIntoView({ block: "center", behavior: "smooth" });
-  } catch (e) { toast(`Couldn't create the trip: ${(e as Error).message}`); }
+  } catch (e) {
+    const old = (e as { trip?: string }).trip;
+    if (old) { rememberTrip(groupId(s.group), old); toast(`${(e as Error).message} Opening it.`); openTrip(old, s, toast); return; }
+    toast(`Couldn't create the trip: ${(e as Error).message}`);
+  }
 }
 export async function addPick(s: State, toast: (m: string) => void) {
   const p = pickSummary(s); if (!p) return;
@@ -207,7 +231,7 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
   box.hidden = false;
   if (!tripsReady()) { $("trip-body").innerHTML = `<p class="foot">This trip link needs the shared-trip sheet, which isn't set up on this copy of the site.</p>`; return; }
   if (!last) $("trip-body").innerHTML = `<p class="foot">Loading the trip…</p>`;
-  try { last = await get(id); renderTrip(s); }
+  try { last = await get(id); renderTrip(s); renderMyPick(s); }
   catch (e) { $("trip-body").innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
 }
 
@@ -248,6 +272,8 @@ function renderTrip(_s: State) {
   // organiser and the person who sent it see the details. Spam and odd text never reach the group.
   const norm = (s: string) => s.normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
   const isOrg = !!me && norm(me) === norm(trip.organizer);
+  // Trips made before this browser kept a list: the organiser's own trip is remembered when they open it.
+  if (isOrg && tripGroup() && !myTrips()[tripGroup()]) rememberTrip(tripGroup(), trip.id);
   const shown = (x: { name: string; approved?: string }) => isYes(x.approved) || isOrg || (!!me && norm(x.name) === norm(me));
   const hiddenPicks = picks.filter((p) => p !== best && !shown(p));
   const found = picks.filter((p) => p !== best && p.data.foundBy && shown(p));
@@ -274,7 +300,10 @@ function renderTrip(_s: State) {
     `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-msg">Copy message</button>${wa}` +
     `<span class="foot">Paste it in each group. The house link shows its photo in WhatsApp.</span></div></div>`;
   const lim = last.limits;
-  const limits = lim ? `<p class="foot">${lim.peopleUsed} of ${lim.people} people on this trip · ${lim.tripsUsed} of ${lim.trips} trips</p>` : "";
+  const others = Object.entries(myTrips()).filter(([, id]) => id !== trip.id);
+  const limits = (lim ? `<p class="foot">${lim.peopleUsed} of ${lim.people} people on this trip · ${lim.tripsUsed} of ${lim.trips} trips</p>` : "") +
+    (others.length ? `<p class="foot">Your other trips: ${others.map(([g, id]) => `<button type="button" class="linkbtn" data-act="open-trip" data-trip="${esc(id)}">${esc(groupLabel(g))}</button>`).join(" · ")}</p>` : "") +
+    `<p class="foot">Another group? Pick it in Filters, choose a house and “Create a trip” for it: one trip per group.</p>`;
   $("trip-body").innerHTML = alert + pulse + box + (confirmed ? challengeHtml(trip) : "") + limits +
     (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
@@ -338,6 +367,7 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     const act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);
+    else if (act === "open-trip") openTrip(t.closest<HTMLElement>("[data-trip]")!.dataset.trip!, getState(), toast);
     else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
     else if (act === "copy-challenge") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;

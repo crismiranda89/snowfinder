@@ -9,7 +9,7 @@
 //
 // The organiser stays in control: a friend's pick or "better option" post is only checked once the
 // organiser types "yes" in its `approved` cell (or "no" to decline). Limits against abuse: at most
-// MAX_TRIPS trips in the sheet and MAX_PEOPLE names per trip (Script Properties; defaults 4 and 10).
+// MAX_TRIPS trips in the sheet and MAX_PEOPLE names per trip (Script Properties; defaults 8 and 10).
 // A trip started from another trip's "challenge a group" link records that trip as `parent`.
 
 const TABS = {
@@ -109,7 +109,7 @@ function doGet(e) {
     picks: rows_("picks").filter((p) => p.trip === id).map((p) => Object.assign(strip(p), { data: safeParse_(p.data) })),
     votes: Object.values(latest),
     ideas: rows_("ideas").filter((x) => x.trip === id).map((x) => Object.assign(strip(x), { links: safeParse_(x.links, []), images: safeParse_(x.images, []) })),
-    limits: { trips: prop_("MAX_TRIPS", 4), people: prop_("MAX_PEOPLE", 10), tripsUsed: rows_("trips").length, peopleUsed: people_(id).size },
+    limits: { trips: prop_("MAX_TRIPS", 8), people: prop_("MAX_PEOPLE", 10), tripsUsed: rows_("trips").length, peopleUsed: people_(id).size },
   });
 }
 function safeParse_(s, d) { try { return JSON.parse(s); } catch (err) { return d === undefined ? {} : d; } }
@@ -125,7 +125,12 @@ function doPost(e) {
     if (b.action !== "createTrip" && !rows_("trips").some((t) => t.id === b.trip)) return json_({ error: "Trip not found" });
     if (!name) return json_({ error: "Please give your name" });
     if (b.action === "createTrip") {
-      const max = prop_("MAX_TRIPS", 4);
+      // One trip per group setup for each organiser (same name, same browser): the title starts with the group.
+      const group = clip_(b.title, 120).split(" · ")[0], k = hash_(String(b.key || ""));
+      const same = rows_("trips").find((t) => String(t.title).split(" · ")[0] === group &&
+        rows_("people").some((r) => r.trip === t.id && r.key === k && norm_(r.name) === norm_(t.organizer)));
+      if (same) return json_({ error: `You already have a trip for ${group}.`, trip: same.id });
+      const max = prop_("MAX_TRIPS", 8);
       if (rows_("trips").length >= max) return json_({ error: `The limit of ${max} trips is reached. Ask the organiser to raise it.` });
       const data = cleanPick_(b.data);
       if (!data) return json_({ error: "Choose one of the site's houses first." });

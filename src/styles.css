@@ -275,7 +275,7 @@ tr.dimrow td{opacity:.45}
 .mp-acts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 
 /* the trip panel */
-.trip #trip-body{display:grid;gap:12px}
+.trip:not(.collapsed) #trip-body{display:grid;gap:12px}
 .tpick{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:grid}
 .tpick.pinned{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
 .tflag{background:var(--accent);color:var(--accent-ink);font-size:.86rem;padding:7px 12px}

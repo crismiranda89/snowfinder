@@ -79,8 +79,13 @@ let joined = 0;
 for (const n of ["a1", "A1", " a1 ", "a２", "a3", "a4", "a5", "a6", "a7", "a8", "a9", "a10", "a11"]) if (!post({ action: "vote", trip: t2, name: n, key: "k-" + n + "-llllllllllll", pick: "x" }).error) joined++;
 const people = view && get({ trip: t2 }).limits.peopleUsed;
 check("People limit (10) holds against name variants", people <= 10, `${people} people on the trip`);
-let trips = 2; for (let i = 0; i < 5; i++) if (!post({ action: "createTrip", name: "T" + i, key: "k-T" + i + "-mmmmmmmmmmmmmmmm", title: "t", reason: "r", data: pickData() }).error) trips++;
-check("Trip limit (4) holds", trips <= 4, `${trips} trips`);
+// One trip per group for the same organiser and browser; another group is fine.
+const again = post({ action: "createTrip", name: "Zed", key: "k-z-kkkkkkkkkkkkkkkk", title: "t", reason: "r", data: pickData() });
+check("Same organiser, same group: second trip refused (and pointed to the first)", again.error && again.trip === t2, again.error || "accepted");
+const other = post({ action: "createTrip", name: "Zed", key: "k-z-kkkkkkkkkkkkkkkk", title: "3 couples · Thu 4 Mar", reason: "r", data: pickData() });
+check("Same organiser, another group: allowed", other.ok, other.error || "ok");
+let trips = 3; for (let i = 0; i < 10; i++) if (!post({ action: "createTrip", name: "T" + i, key: "k-T" + i + "-mmmmmmmmmmmmmmmm", title: "t", reason: "r", data: pickData() }).error) trips++;
+check("Trip limit (8) holds", trips <= 8, `${trips} trips`);
 
 // 11. Legitimate use still works: the same browser can change its vote; a real post with a Booking link goes in.
 const okVote = post({ action: "vote", trip: T, name: "Cristiano", key: "k-cristiano-aaaaaaaaaaaa", pick: org.pick });
