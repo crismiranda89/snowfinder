@@ -18,13 +18,15 @@ if (shared) {
 }
 save(state);
 
+// The Houses section shows every date (each house at its cheapest week) until a week is picked in the grid.
+let weekChosen = false;
 // How the Houses section groups its cards (this browser only).
 let houseView: HouseView = "price";
 try { if (localStorage.getItem("snowfinder-house-view") === "distance") houseView = "distance"; } catch { /* private mode */ }
 
 function render() {
   resetCache();
-  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO); renderMyPick(state); renderTable(state);
+  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTable(state);
 }
 function update(mut: (s: State) => void) { mut(state); save(state); render(); }
 
@@ -86,8 +88,11 @@ $("foodPlan").addEventListener("change", (ev) => update((s) => { s.foodPlan = (e
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
 ($("nearLifts") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.nearLifts = (ev.target as HTMLInputElement).checked; }));
 ($("limit") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.limit = (ev.target as HTMLInputElement).checked; }));
-$("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) update((s) => { s.week = +b.dataset.w!; }); });
-function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) update((s) => { s.week = +cell.dataset.w!; }); }
+$("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); } });
+function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; update((s) => { s.week = +cell.dataset.w!; }); } }
+$("houseslede").addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest("[data-act='all-dates']")) { weekChosen = false; render(); } });
+// Choosing a house in the all-dates view also picks its cheapest week (trip.ts sets the week).
+document.addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest(".choose[data-week]")) weekChosen = true; }, true);
 $("heatbody").addEventListener("click", pickCell);
 $("heatbody").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pickCell(ev); } });
 $("tbody").addEventListener("change", (ev) => {
@@ -117,7 +122,7 @@ $("houseView").addEventListener("click", (ev) => {
   const b = (ev.target as HTMLElement).closest<HTMLElement>("button"); if (!b?.dataset.v) return;
   houseView = b.dataset.v as HouseView;
   try { localStorage.setItem("snowfinder-house-view", houseView); } catch { /* ignore */ }
-  renderHouseSection(state, houseView, REPO);
+  renderHouseSection(state, houseView, REPO, !weekChosen);
 });
 document.addEventListener("error", (ev) => {
   const img = ev.target as HTMLElement;

@@ -317,7 +317,11 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
   document.addEventListener("click", (ev) => {
     const t = ev.target as HTMLElement;
     const choose = t.closest<HTMLElement>(".choose");
-    if (choose) { const id = choose.dataset.pick!; update((s) => { s.pick = s.pick === id ? undefined : id; }); return; }
+    if (choose) {
+      const id = choose.dataset.pick!, week = choose.dataset.week;
+      update((s) => { s.pick = s.pick === id ? undefined : id; if (s.pick && week != null) s.week = +week; });
+      return;
+    }
     const act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);

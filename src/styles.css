@@ -319,6 +319,8 @@ tr.dimrow td{opacity:.45}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .tshare{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
 .btn.wa{background:#1fa855;border-color:#1fa855;color:#fff}
+.cheapwk{font-size:.8rem;font-weight:600;color:var(--accent)}
+#houseslede .linkbtn{font-size:inherit}
 .nlift{font-size:.8rem;color:var(--ink)}
 .maplinks{display:flex;flex-wrap:wrap;gap:4px 12px}
 .hbody .maplinks a{font-size:.82rem;margin-top:0}

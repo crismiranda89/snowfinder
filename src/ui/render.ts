@@ -286,7 +286,8 @@ function sourceName(l: Listing) {
   const h = (() => { try { return new URL(l.url).hostname; } catch { return ""; } })();
   return /airbnb\./.test(h) ? "Airbnb" : /booking\./.test(h) ? "Booking.com" : /vrbo\./.test(h) ? "Vrbo" : h.replace(/^www\./, "") || "listing";
 }
-function card(s: State, x: Priced, label: string, selected: boolean) {
+/** week: set in the all-dates view, the week this price is for (shown, and used when the house is chosen). */
+function card(s: State, x: Priced, label: string, selected: boolean, week?: number) {
   const l = x.l, src = sourceName(l);
   const qa = new Date(x.quote.checkin), qb = new Date(x.quote.checkout);
   const dates = qa.getUTCMonth() === qb.getUTCMonth() ? `${qa.getUTCDate()}–${fmt(qb)}` : `${fmt(qa)} – ${fmt(qb)}`;
@@ -312,10 +313,11 @@ function card(s: State, x: Priced, label: string, selected: boolean) {
   return `<article class="hcard${selected || s.pick === l.id ? " sel" : ""}" role="listitem">` +
     `<a class="hphoto" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${photo}<span class="tier">${esc(label)}</span></a>` +
     `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
+    (week != null ? `<span class="cheapwk">📅 Cheapest week: ${esc(seasonRange(SEASON, s.pattern, week, s.days).text)}</span>` : "") +
     `<div class="hprice"><b>${euro(x.pp)}</b><small>per person · ${euro(x.total)} total</small></div>` +
     `<small>Quote for ${dates}${nq > 1 ? ` (+${nq - 1} more)` : ""}${x.exact ? "" : ", adjusted to this week's demand"}${l.notes ? " · " + esc(l.notes) : ""}</small>` +
     `<div class="hacts"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a>` +
-    `<button type="button" class="choose" data-pick="${esc(l.id)}" aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div></div></article>`;
+    `<button type="button" class="choose" data-pick="${esc(l.id)}"${week != null ? ` data-week="${week}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div></div></article>`;
 }
 function searchLinks(r: Resort, s: State) {
   const rg = dates(s, s.week), ci = isoOf(rg.a), co = isoOf(rg.b), p = people(s.group), b = bedrooms(s.group);
@@ -393,25 +395,43 @@ export function fittingHouses(s: State): Found[] {
   }
   return out.sort((a, b) => a.x.pp - b.x.pp);
 }
+/** Every fitting house at its cheapest week of the season (closed weeks skipped), cheapest first. */
+export function fittingHousesAllDates(s: State): (Found & { week: number })[] {
+  const best = new Map<string, Found & { week: number }>();
+  SEASON.weeks.forEach((_, w) => {
+    for (const r of RESORTS_FILE.resorts) {
+      const d = visible(s).filter((o) => o.resort === r.id && !shut(s, o, w))[0];
+      if (!d) continue;
+      for (const x of c(s, d, w).stay.houses.eligible) {
+        const had = best.get(x.l.id);
+        if (!had || x.pp < had.x.pp) best.set(x.l.id, { x, r, week: w });
+      }
+    }
+  });
+  return [...best.values()].sort((a, b) => a.x.pp - b.x.pp);
+}
 const DIST = [
   { label: "Ski in / ski out", hint: "100 m or less", max: 100 },
   { label: "Up to 5 min walk", hint: "up to ~375 m", max: 375 },
   { label: "5–10 min walk", hint: "up to ~750 m", max: 750 },
   { label: "Further: shuttle or car", hint: "more than 10 min, or not stated", max: Infinity },
 ];
-export function renderHouseSection(s: State, view: HouseView, repo: string) {
+/** allDates: no week picked yet, so each house shows its cheapest week of the season. */
+export function renderHouseSection(s: State, view: HouseView, repo: string, allDates = false) {
   $("houseView").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
-  const all = fittingHouses(s), p = people(s.group), b = bedrooms(s.group);
+  const all: (Found & { week?: number })[] = allDates ? fittingHousesAllDates(s) : fittingHouses(s);
+  const p = people(s.group), b = bedrooms(s.group);
   const resorts = new Set(all.map((f) => f.r.id)).size;
-  $("houseslede").textContent = all.length
-    ? `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people in ${b}+ bedrooms${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}, for ${dates(s, s.week).text}. Prices are per person for the whole stay.`
-    : "";
+  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people in ${b}+ bedrooms${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}`;
+  $("houseslede").innerHTML = !all.length ? ""
+    : allDates ? `${esc(fit)}, across all dates: each shows its cheapest week. Tap a week in the grid below to price that week. Prices are per person for the whole stay.`
+    : `${esc(fit)}, for ${esc(dates(s, s.week).text)}. <button type="button" class="linkbtn" data-act="all-dates">Show all dates</button>`;
   if (!all.length) {
     const add = `https://github.com/${repo}/blob/main/CONTRIBUTING.md#add-a-house`;
     $("housegroups").innerHTML = `<div class="hempty-big"><b>No houses fit yet.</b><span class="foot">${s.nearLifts ? `Try unticking “within a 10-min walk” in Filters, or pick other resorts.` : "Pick other resorts in Filters."} Found one? <a href="${esc(add)}" target="_blank" rel="noopener">Add it</a>.</span></div>`;
     return;
   }
-  let groups: { title: string; hint: string; xs: Found[] }[];
+  let groups: { title: string; hint: string; xs: (Found & { week?: number })[] }[];
   if (view === "price") {
     const n = all.length, k = n >= 3 ? 3 : 1;
     const names = k === 3 ? ["Budget", "Mid", "Luxury"] : ["All"];
@@ -428,7 +448,7 @@ export function renderHouseSection(s: State, view: HouseView, repo: string) {
   $("housegroups").innerHTML = groups.filter((g) => g.xs.length).map((g) =>
     `<div class="hgroup"><h3>${esc(g.title)} <small>${g.xs.length} · ${esc(g.hint)}</small></h3>` +
     `<div class="hcards" role="list" aria-label="${esc(g.title)}">` +
-    g.xs.map((f) => card(s, f.x, f.r.name, false)).join("") + `</div></div>`).join("");
+    g.xs.map((f) => card(s, f.x, f.r.name, false, f.week)).join("") + `</div></div>`).join("");
 }
 
 // ---- a person's pick: one house, priced with the cheapest way there under the current settings
