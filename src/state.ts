@@ -19,8 +19,10 @@ export const GROUPS: { id: string; label: string; group: Group }[] = [
   { id: "4c", label: "4 couples", group: { couples: 4, solo: 0, soloRooms: "common" } },
   { id: "3c", label: "3 couples", group: { couples: 3, solo: 0, soloRooms: "common" } },
   { id: "4s", label: "4 friends, no couples (own rooms)", group: { couples: 0, solo: 4, soloRooms: "own" } },
+  { id: "4t", label: "4 friends, no couples (sharing 2 rooms)", group: { couples: 0, solo: 4, soloRooms: "shared" } },
 ];
-export const groupId = (g: Group) => GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo)?.id || GROUPS[0].id;
+export const groupId = (g: Group) => (GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo && x.group.soloRooms === g.soloRooms)
+  || GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo))?.id || GROUPS[0].id;
 
 export function defaults(): State {
   return {
@@ -41,7 +43,7 @@ export function sanitize(raw: unknown, weeks: number): State {
   if (!raw || typeof raw !== "object") return d;
   const r = raw as Record<string, any>;
   const g = (r.group || {}) as Partial<Group>;
-  const group: Group = { ...GROUPS.find((x) => x.id === groupId({ couples: +g.couples! || 0, solo: +g.solo! || 0, soloRooms: "common" }))!.group };
+  const group: Group = { ...GROUPS.find((x) => x.id === groupId({ couples: +g.couples! || 0, solo: +g.solo! || 0, soloRooms: g.soloRooms as Group["soloRooms"] }))!.group };
   const people = 2 * group.couples + group.solo;
   const edits: Edits = {};
   if (r.edits && typeof r.edits === "object") {
