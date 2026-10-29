@@ -7,6 +7,8 @@ import type { Listing, Option, Resort, ResortsFile, Season } from "./types.ts";
 export const RESORTS_FILE = resortsJson as unknown as ResortsFile;
 export const SEASON = seasonJson as unknown as Season;
 export const LISTINGS = (listingsJson as unknown as { listings: Listing[] }).listings;
+// "…, 4 beds, …" in a listing's notes (Booking.com counts a double as one bed).
+for (const l of LISTINGS) { const m = /(\d+) (?:real |separate |single )?beds?\b/.exec(l.notes || ""); if (m) l.beds = +m[1]; }
 
 export function buildOptions(resorts: Resort[], season: Season): Option[] {
   const out: Option[] = [];

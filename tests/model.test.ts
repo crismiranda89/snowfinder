@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LISTINGS, OPTIONS, RESORTS_FILE, SEASON } from "../src/data.ts";
 import { bedrooms, cars, people, transferFactor } from "../src/model/group.ts";
-import { houses, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
+import { fits, houses, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
 import { calc, foodPerDay } from "../src/model/cost.ts";
 import { foodDays, isClosed, leaveDays, nights, patternLabel, range, weekOfStay } from "../src/model/calendar.ts";
 import { decodeShare, defaults, encodeShare, sanitize } from "../src/state.ts";
@@ -108,7 +108,8 @@ test("share link round-trip and sanitising", () => {
   const bad = sanitize({ week: 99, days: 7, group: { couples: -3, solo: "x" }, beg: 50, edits: { "<script>": { a: 1 } } }, 12);
   assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, G(4, 1, "common")); assert.equal(bad.beg, 0); // unknown groups fall back to 4 couples + 1; lessons are off
   assert.deepEqual(sanitize({ group: G(0, 4, "own") }, 12).group, G(0, 4, "own")); // 4 friends, own rooms
-  assert.deepEqual(sanitize({ group: G(0, 4, "shared") }, 12).group, G(0, 4, "shared")); // 4 friends, 2 twin rooms
+  assert.deepEqual(sanitize({ group: G(0, 4, "shared") }, 12).group, G(0, 4, "shared")); // 4 friends, 2 rooms
+  assert.deepEqual(sanitize({ group: G(0, 4, "twin") }, 12).group, G(0, 4, "twin")); // 4 friends, a bed each
   assert.deepEqual(sanitize({ group: G(2, 3) }, 12).group, G(4, 1, "common")); // only the listed group setups exist
   assert.deepEqual(bad.edits, {});
   assert.equal(bad.nearLifts, true); assert.equal(sanitize({ nearLifts: false }, 12).nearLifts, false);
@@ -172,4 +173,14 @@ test("every resort has a description and things to do when not skiing", () => {
     const f = RESORTS_FILE.fit.find((x) => x.resort === r.id);
     assert.ok(f?.text && f.offski, `${r.id} is missing its description or non-ski activities`);
   }
+});
+
+test("4 separate beds: a listing needs 4 beds, or 4 bedrooms; an unknown bed count doesn't fit", () => {
+  const g = G(0, 4, "twin");
+  const l = (beds: number | undefined, bedrooms = 2) => ({ ...LISTINGS[0], bedrooms, sleeps: 4, beds });
+  assert.equal(fits(l(4), g), true);
+  assert.equal(fits(l(3), g), false); // 2 singles + 1 double
+  assert.equal(fits(l(undefined), g), false);
+  assert.equal(fits(l(undefined, 4), g), true);
+  assert.equal(fits(l(3), G(0, 4, "shared")), true);
 });

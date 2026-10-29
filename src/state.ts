@@ -20,6 +20,7 @@ export const GROUPS: { id: string; label: string; group: Group }[] = [
   { id: "3c", label: "3 couples", group: { couples: 3, solo: 0, soloRooms: "common" } },
   { id: "4s", label: "4 friends, no couples (own rooms)", group: { couples: 0, solo: 4, soloRooms: "own" } },
   { id: "4t", label: "4 friends, no couples (sharing 2 rooms)", group: { couples: 0, solo: 4, soloRooms: "shared" } },
+  { id: "4b", label: "4 friends, 4 separate beds (2 rooms)", group: { couples: 0, solo: 4, soloRooms: "twin" } },
 ];
 export const groupId = (g: Group) => (GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo && x.group.soloRooms === g.soloRooms)
   || GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo))?.id || GROUPS[0].id;

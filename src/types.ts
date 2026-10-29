@@ -69,9 +69,9 @@ export interface Option {
 }
 
 export interface Group { couples: number; solo: number; soloRooms: SoloRooms }
-/** Where solo friends sleep: twin rooms (two per room), a room each, or the living room (sofa bed, no bedroom). */
+/** Where solo friends sleep: two per room, two per room with a bed each (twin), a room each, or the living room (sofa bed, no bedroom). */
 export type FoodPlan = "home" | "one" | "both" | "custom";
-export type SoloRooms = "shared" | "own" | "common";
+export type SoloRooms = "shared" | "twin" | "own" | "common";
 
 /** One price quote for a listing: the total for the whole stay, as seen on the listing for those dates. */
 export interface Quote { checkin: string; checkout: string; nights: number; total: number }
@@ -79,6 +79,8 @@ export interface Quote { checkin: string; checkout: string; nights: number; tota
 export interface Listing {
   id: string; resort: string; url: string; title: string; source: string;
   bedrooms: number; sleeps: number; quotes: Quote[];
+  /** Number of beds when the listing says (a double counts as one); read from its notes. */
+  beds?: number;
   rating: number | null; toLiftM: number | null; photo: string | null; addedBy: string; notes?: string;
   /** Where the house is; locApprox when the platform blurs the pin (Airbnb). */
   lat?: number; lng?: number; locApprox?: boolean;

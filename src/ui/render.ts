@@ -304,7 +304,7 @@ function card(s: State, x: Priced, label: string, selected: boolean, week?: numb
   const photo = l.photo
     ? `<img src="${esc(l.photo)}" alt="${esc(l.title)}" loading="lazy" decoding="async" referrerpolicy="no-referrer"><span class="credit">Photo: ${esc(src)}</span>`
     : `<span class="ph">${HOUSE_SVG}</span>`;
-  const facts = [`${l.bedrooms} bedroom${l.bedrooms > 1 ? "s" : ""}`, `sleeps ${l.sleeps}`];
+  const facts = [`${l.bedrooms} bedroom${l.bedrooms > 1 ? "s" : ""}`, ...(l.beds ? [`${l.beds} beds`] : []), `sleeps ${l.sleeps}`];
   const lift = l.toLiftM == null ? `<span class="lift unk">Distance to lifts unknown</span>`
     : `<span class="lift${nearLifts(l) ? " ok" : ""}">${l.toLiftM <= 100 ? "Ski in / ski out" : `${walkMins(l.toLiftM)} min walk to the lifts`} · ${l.toLiftM >= 1000 ? `${(l.toLiftM / 1000).toFixed(1)} km` : `${l.toLiftM} m`}</span>`;
   if (l.rating != null) facts.push(`★ ${l.rating.toFixed(1)}/10`);
@@ -341,7 +341,7 @@ function searchLinks(r: Resort, s: State) {
  *  labelled with its level; the level picked above is highlighted and sets the house cost. */
 function resortHouses(s: State, r: Resort, h: HouseResult, repo: string) {
   const p = people(s.group), b = bedrooms(s.group);
-  const need = `${b}+ bedroom${b > 1 ? "s" : ""}, sleeps ${p}${s.nearLifts ? `, ≤ ${NEAR_LIFT_MIN} min walk to the lifts` : ""}`;
+  const need = `${b}+ bedroom${b > 1 ? "s" : ""}, ${s.group.soloRooms === "twin" ? `${p} beds` : `sleeps ${p}`}${s.nearLifts ? `, ≤ ${NEAR_LIFT_MIN} min walk to the lifts` : ""}`;
   const add = `https://github.com/${repo}/blob/main/CONTRIBUTING.md#add-a-house`;
   if (h.mode === "none") {
     const all = LISTINGS_BY_RESORT[r.id] || [];
@@ -448,7 +448,7 @@ export function renderHouseSection(s: State, view: HouseView, repo: string, allD
   const all: (Found & { week?: number })[] = allDates ? fittingHousesAllDates(s) : fittingHouses(s);
   const p = people(s.group), b = bedrooms(s.group);
   const resorts = new Set(all.map((f) => f.r.id)).size;
-  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people in ${b}+ bedrooms${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}`;
+  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people in ${b}+ bedrooms${s.group.soloRooms === "twin" ? ", a bed each" : ""}${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}`;
   $("houseslede").innerHTML = !all.length ? ""
     : allDates ? `${esc(fit)}, across all dates: each shows its cheapest week. Tap a week in the grid below to price that week. Prices are per person for the whole stay.`
     : `${esc(fit)}, for ${esc(dates(s, s.week).text)}. <button type="button" class="linkbtn" data-act="all-dates">Show all dates</button>`;

@@ -10,7 +10,7 @@ export const VAN_FACTOR = 1.4; // a 5–8 seat van costs ~40% more than a 1–4 
 export function people(g: Group): number { return Math.max(1, 2 * g.couples + g.solo); }
 
 export function bedrooms(g: Group): number {
-  const solo = g.soloRooms === "own" ? g.solo : g.soloRooms === "common" ? 0 : Math.ceil(g.solo / 2);
+  const solo = g.soloRooms === "own" ? g.solo : g.soloRooms === "common" ? 0 : Math.ceil(g.solo / 2); // shared and twin: two per room
   return Math.max(1, g.couples + solo);
 }
 
