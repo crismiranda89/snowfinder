@@ -3,7 +3,7 @@
 // browser makes no CORS preflight). Tabs are created on first use. Friends need no account: they type a
 // name, and one vote is kept per name per trip. See sheet/README.md for setup.
 //
-// A checker (sheet/CHECKER.md, every 30 minutes) validates proposals with a private key stored in
+// Checks run only when the organiser asks, in a Claude Code session (sheet/CHECKER.md), with a key in
 // Script Properties as CHECKER_KEY: GET ?checker=<key> lists what to check, POST action "review" /
 // "checkPick" / "foundPick" writes the result. Without the key nobody can approve or reject.
 //
