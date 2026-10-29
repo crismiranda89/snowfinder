@@ -4,8 +4,8 @@ import { LISTINGS, OPTIONS, RESORTS_FILE, RESORT_BY_ID, SEASON } from "../data.t
 import { LEVELS, MONTHS, closeTxt, extraNights, fmt, foodDays, isClosed, isoOf, late, leaveDays, level, nights, patternLabel, range as seasonRange, softHoliday, weekLevel } from "../model/calendar.ts";
 import { FOOD_PLANS, calc, edited, foodPerDay, val, type Calc } from "../model/cost.ts";
 import { bedrooms, cars, describe, people, transferFactor } from "../model/group.ts";
-import { NEAR_LIFT_MIN, TIER_LABEL, nearLifts, priceFor, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
-import type { Field, Listing, Option, Resort, Tier } from "../types.ts";
+import { NEAR_LIFT_MIN, TIER_LABEL, houses, nearLifts, priceFor, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
+import type { Field, Listing, Option, PatternKey, Resort, Tier } from "../types.ts";
 import { groupId, type State } from "../state.ts";
 import { applySort, sortBtn } from "./sort.ts";
 
@@ -404,6 +404,21 @@ export function fittingHouses(s: State): Found[] {
     for (const x of h.eligible) out.push({ x, r, tier: tierOf.get(x) });
   }
   return out.sort((a, b) => a.x.pp - b.x.pp);
+}
+/** How many trips the site priced for this group: every fitting house × week × start day × flight there
+ *  (closed weeks skipped). The headline number in the WhatsApp message. */
+export function combinations(s: State): number {
+  let n = 0;
+  for (const pattern of Object.keys(SEASON.patterns) as PatternKey[]) {
+    const t = { ...s, pattern };
+    SEASON.weeks.forEach((_, w) => {
+      for (const d of visible(s)) {
+        if (shut(t, d, w)) continue;
+        n += houses(SEASON, d.mkt, LISTINGS_BY_RESORT[d.resort] || [], s.group, w, !!s.nearLifts, nights(SEASON, s.days)).eligible.length;
+      }
+    });
+  }
+  return n;
 }
 /** Every fitting house at its cheapest week of the season (closed weeks skipped), cheapest first. */
 export function fittingHousesAllDates(s: State): (Found & { week: number })[] {

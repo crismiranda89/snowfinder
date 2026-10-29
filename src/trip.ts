@@ -5,7 +5,7 @@ import { GROUPS, decodeShare, encodeShare, groupId, type State } from "./state.t
 import { RESORTS_FILE, SEASON } from "./data.ts";
 import { addDays, isoOf, nights } from "./model/calendar.ts";
 import type { PatternKey } from "./types.ts";
-import { esc, euro, fittingHouses, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
+import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -94,15 +94,13 @@ export function whatsappText(d: PickData, link: string): string {
   const s = d.share ? decodeShare("#" + d.share, SEASON.weeks.length) : null;
   const group = s ? GROUPS.find((g) => g.id === groupId(s.group))!.label : `${d.people} people`;
   // Prices are cached per render for the viewer's own settings: count with the pick's settings, then clear.
-  resetCache();
-  const looked = s ? fittingHouses(s).length : 0;
-  resetCache();
+  const combos = s ? combinations(s) : 0;
   const n = s ? nights(SEASON, s.days) : 5;
   const country = RESORTS_FILE.resorts.find((r) => r.name === d.resort)?.country || "";
   return [
     `⛷️ *Ski trip – let's decide!*`,
     ``,
-    looked > 1 ? `I compared ${looked} places for ${group.toLowerCase()}. My pick:` : `My pick for ${group.toLowerCase()}:`,
+    combos > 1 ? `I compared *${combos.toLocaleString("en-GB")} combinations* of house, week, start day and flight for ${group.toLowerCase()}. The winner:` : `My pick for ${group.toLowerCase()}:`,
     `🏠 *${d.title}*${country ? ` (${d.resort}, ${country})` : ` (${d.resort})`}`,
     // First link in the message: WhatsApp turns it into a preview with the listing's photo.
     `📸 ${d.url}`,
