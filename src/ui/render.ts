@@ -63,7 +63,7 @@ export function renderStatic() {
   $("cmporigin").textContent = o.city;
   $("collected").textContent = `Season ${SEASON.season}. Estimates collected on ${fmt(new Date(SEASON.collected))} ${SEASON.collected.slice(0, 4)}. Check flights and houses with real dates before booking.`;
   $("fit").innerHTML = RESORTS_FILE.fit.map((f) =>
-    `<div class="fitcard"><span class="tag" style="color:var(--${esc(f.tone)})">${esc(f.tag)}</span><b>${esc(RESORT_BY_ID[f.resort]?.name ?? f.resort)}</b><p>${esc(f.text)}</p></div>`).join("");
+    `<div class="fitcard"><span class="tag" style="color:var(--${esc(f.tone)})">${esc(f.tag)}</span><b>${esc(RESORT_BY_ID[f.resort]?.name ?? f.resort)}</b><p>${esc(f.text)}</p>${f.offski ? `<p class="offski"><b>Not skiing:</b> ${esc(f.offski)}</p>` : ""}</div>`).join("");
   $("fitfoot").textContent = RESORTS_FILE.fitFootnote;
   const src = SEASON.sources;
   const links = (xs: { label: string; url: string; note?: string }[]) =>

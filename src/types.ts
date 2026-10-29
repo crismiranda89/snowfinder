@@ -52,7 +52,8 @@ export interface Resort {
 
 export interface ResortsFile {
   resorts: Resort[];
-  fit: { resort: string; tag: string; tone: string; text: string }[];
+  /** One card per resort: what it's best for, and what friends who don't ski can do. */
+  fit: { resort: string; tag: string; tone: string; text: string; offski?: string }[];
   fitFootnote: string;
 }
 

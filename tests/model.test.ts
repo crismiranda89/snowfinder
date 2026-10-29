@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { LISTINGS, OPTIONS, SEASON } from "../src/data.ts";
+import { LISTINGS, OPTIONS, RESORTS_FILE, SEASON } from "../src/data.ts";
 import { bedrooms, cars, people, transferFactor } from "../src/model/group.ts";
 import { houses, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
 import { calc, foodPerDay } from "../src/model/cost.ts";
@@ -165,4 +165,11 @@ test("a picked house survives saving and share links; junk is dropped", () => {
   assert.equal(sanitize({ pick: "<script>" }, 12).pick, undefined);
   const back = decodeShare("#" + encodeShare({ ...defaults(), pick: "68b19f100b" }), 12)!;
   assert.equal(back.pick, "68b19f100b");
+});
+
+test("every resort has a description and things to do when not skiing", () => {
+  for (const r of RESORTS_FILE.resorts) {
+    const f = RESORTS_FILE.fit.find((x) => x.resort === r.id);
+    assert.ok(f?.text && f.offski, `${r.id} is missing its description or non-ski activities`);
+  }
 });

@@ -1,0 +1,8 @@
+LICENSE
+README.md
+pyproject.toml
+src/snowfinder_pipeline.egg-info/PKG-INFO
+src/snowfinder_pipeline.egg-info/SOURCES.txt
+src/snowfinder_pipeline.egg-info/dependency_links.txt
+src/snowfinder_pipeline.egg-info/requires.txt
+src/snowfinder_pipeline.egg-info/top_level.txt

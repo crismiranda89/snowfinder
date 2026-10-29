@@ -397,23 +397,47 @@
   ],
   "fit": [
     {
+      "resort": "mayrhofen",
+      "tag": "Steep slopes and Austrian après",
+      "tone": "accent",
+      "text": "Big, well-run Zillertal ski area with the famous Harakiri run and the Ice Bar and Arena bars at the gondola. Snow is reliable on Hintertux glacier nearby; Innsbruck airport is about an hour away.",
+      "offski": "Erlebnisbad pool and sauna in the village, winter walks and snowshoe trails, toboggan runs, the Zillertal cheese dairy, and day trips to Innsbruck or Swarovski Crystal Worlds."
+    },
+    {
+      "resort": "les-2-alpes",
+      "tag": "Snowboard and glacier",
+      "tone": "ok",
+      "text": "Great for snowboarding and nightlife, with a glacier up to 3,600 m that keeps snow late. Beginners ride the gondola back to the village because the lower slopes are steep.",
+      "offski": "Ice cave on the glacier (pedestrians can take the lifts up), heated outdoor pool, ice rink, snowshoe walks, spas and the bars of the main street."
+    },
+    {
+      "resort": "morzine",
+      "tag": "Quickest from Porto",
+      "tone": "warn",
+      "text": "About 1h15 from Geneva and part of the huge Portes du Soleil. A real Alpine town with good restaurants, but it sits lowest, so snow is the least reliable late in the season.",
+      "offski": "Aquariaz tropical water park in Avoriaz, ice rink and ice hockey games, dog sledding, snowshoe walks to Lac de Montriond, spas, and day trips to Annecy or Geneva."
+    },
+    {
       "resort": "val-thorens",
       "tag": "Best snow and nightlife",
       "tone": "accent",
-      "text": "Guaranteed snow, top après-ski, great for skiing and snowboarding. Cold and wind can make beginners' first days hard, and it's one of the priciest."
-    },
-    {
-      "resort": "soldeu",
-      "tag": "Learn and party on a budget",
-      "tone": "ok",
-      "text": "Excellent ski school, Andorra prices and lively après-ski without the excess of Pas de la Casa. The transfer is over 2h45."
+      "text": "Guaranteed snow, top après-ski, great for skiing and snowboarding. Cold and wind can make beginners' first days hard, and it's one of the priciest.",
+      "offski": "France's longest toboggan run (6 km), a mountain coaster, the Orelle zipline, ice driving on a frozen circuit, an aquatic centre and spas. At 2,300 m it is cold and there is little to do off the snow besides the bars."
     },
     {
       "resort": "pas-de-la-casa",
       "tag": "Cheapest party",
       "tone": "warn",
-      "text": "Cheap lessons and drinks and very lively nights. Snow is less reliable than in the high Alps, and experienced skiers run out of terrain faster."
+      "text": "Cheap lessons and drinks and very lively nights. Snow is less reliable than in the high Alps, and experienced skiers run out of terrain faster.",
+      "offski": "Tax-free shopping in the town itself, Caldea thermal spa (about 45 min), dog sledding and snowmobiles at Grau Roig next door, and very lively bars."
+    },
+    {
+      "resort": "soldeu",
+      "tag": "Learn and party on a budget",
+      "tone": "ok",
+      "text": "Excellent ski school, Andorra prices and lively après-ski without the excess of Pas de la Casa. The transfer is over 2h45.",
+      "offski": "Caldea thermal spa (about 25 min), ice rink in Canillo, dog sledding and snowmobiles at Grau Roig, snowshoe walks, and tax-free shopping in Andorra la Vella."
     }
   ],
-  "fitFootnote": "Les 2 Alpes is great for snowboarding and nightlife, but beginners ride the gondola back to the village. Morzine is the quickest to reach from Porto (via Geneva) but sits lowest, so its snow is the least reliable late in the season."
+  "fitFootnote": "Not skiing lists what friends who don't ski or snowboard can do. Check opening days and prices locally."
 }

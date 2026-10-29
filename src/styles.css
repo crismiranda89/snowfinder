@@ -333,3 +333,5 @@ tr.dimrow td{opacity:.45}
 .hcard .allin{color:var(--ink)}
 .mp-air{display:grid;gap:4px;font-size:.9rem;margin-top:4px;min-width:0}
 .mp-air select{width:100%;min-width:0;max-width:100%}
+.fitcard .offski{color:var(--ink);border-top:1px solid var(--line);padding-top:6px}
+.fitcard .offski b{font-family:var(--f-body);font-size:.9rem;font-weight:600}
