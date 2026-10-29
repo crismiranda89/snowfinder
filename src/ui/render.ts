@@ -4,9 +4,9 @@ import { LISTINGS, OPTIONS, RESORTS_FILE, RESORT_BY_ID, SEASON } from "../data.t
 import { LEVELS, MONTHS, closeTxt, extraNights, fmt, foodDays, isClosed, isoOf, late, leaveDays, level, nights, patternLabel, range as seasonRange, softHoliday, weekLevel } from "../model/calendar.ts";
 import { FOOD_PLANS, calc, edited, foodPerDay, val, type Calc } from "../model/cost.ts";
 import { bedrooms, cars, describe, people, transferFactor } from "../model/group.ts";
-import { NEAR_LIFT_MIN, TIER_LABEL, nearLifts, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
+import { NEAR_LIFT_MIN, TIER_LABEL, nearLifts, priceFor, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
 import type { Field, Listing, Option, Resort, Tier } from "../types.ts";
-import type { State } from "../state.ts";
+import { groupId, type State } from "../state.ts";
 import { applySort, sortBtn } from "./sort.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -90,7 +90,7 @@ function renderCompareBody() {
 }
 
 export function renderControls(s: State) {
-  const segs: [string, string][] = [["pattern", s.pattern], ["days", String(s.days)], ["ground", s.ground], ["house", s.house], ["soloRooms", s.group.soloRooms]];
+  const segs: [string, string][] = [["pattern", s.pattern], ["days", String(s.days)], ["ground", s.ground], ["house", s.house]];
   for (const [id, v] of segs) $(id).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
   ($("limit") as HTMLInputElement).checked = s.limit;
   ($("nearLifts") as HTMLInputElement).checked = !!s.nearLifts;
@@ -105,7 +105,8 @@ export function renderControls(s: State) {
   const perDay = OPTIONS.map((d) => foodPerDay(s, d));
   $("foodhint").textContent = plan === "custom" ? `× ${fd} days, arrival to departure`
     : `${euro(Math.min(...perDay))}–${euro(Math.max(...perDay))} per person per day, by resort, × ${fd} days`;
-  setNum("food", s.food); setNum("couples", s.group.couples); setNum("solo", s.group.solo);
+  setNum("food", s.food);
+  ($("groupPreset") as HTMLSelectElement).value = groupId(s.group);
   const p = people(s.group);
   const food = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan].label : `food ${euro(s.food)}/day`;
   $("filtersum").textContent = [describe(s.group).replace(" · ", " (").replace(" · ", ", ") + ")", `${TIER_LABEL[s.house]} house`, food.toLowerCase(),
@@ -297,12 +298,24 @@ function card(s: State, x: Priced, label: string, selected: boolean) {
   const lift = l.toLiftM == null ? `<span class="lift unk">Distance to lifts unknown</span>`
     : `<span class="lift${nearLifts(l) ? " ok" : ""}">${l.toLiftM <= 100 ? "Ski in / ski out" : `${walkMins(l.toLiftM)} min walk to the lifts`} · ${l.toLiftM >= 1000 ? `${(l.toLiftM / 1000).toFixed(1)} km` : `${l.toLiftM} m`}</span>`;
   if (l.rating != null) facts.push(`★ ${l.rating.toFixed(1)}/10`);
-  return `<article class="hcard${selected ? " sel" : ""}" role="listitem">` +
+  const resortName = RESORT_BY_ID[l.resort]?.name || "";
+  const where = l.lat != null ? `${l.lat},${l.lng}` : `${l.title}, ${resortName}`;
+  const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(where)}`;
+  // Streets wind: a walk is roughly 1.3× the straight line.
+  const walkM = l.lift ? Math.max(10, Math.round((l.lift.m * 1.3) / 10) * 10) : 0;
+  const liftLine = l.lift
+    ? `<span class="nlift">🚡 Nearest lift${l.lift.name ? `: ${esc(l.lift.name)}` : ""} · ≈ ${walkM >= 1000 ? `${(walkM / 1000).toFixed(1)} km` : `${walkM} m`} walk (${walkMins(walkM)} min)${l.locApprox ? " · approx. location" : ""}</span>` : "";
+  const routeUrl = l.lift && l.lat != null
+    ? `https://www.google.com/maps/dir/?api=1&origin=${l.lat},${l.lng}&destination=${l.lift.lat},${l.lift.lng}&travelmode=walking` : "";
+  const mapLinks = `<span class="maplinks"><a href="${esc(mapUrl)}" target="_blank" rel="noopener noreferrer">📍 Map</a>` +
+    (routeUrl ? `<a href="${esc(routeUrl)}" target="_blank" rel="noopener noreferrer">Walking route to the lift ↗</a>` : "") + `</span>`;
+  return `<article class="hcard${selected || s.pick === l.id ? " sel" : ""}" role="listitem">` +
     `<a class="hphoto" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${photo}<span class="tier">${esc(label)}</span></a>` +
-    `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}<small>${esc(facts.join(" · "))}</small>` +
+    `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
     `<div class="hprice"><b>${euro(x.pp)}</b><small>per person · ${euro(x.total)} total</small></div>` +
     `<small>Quote for ${dates}${nq > 1 ? ` (+${nq - 1} more)` : ""}${x.exact ? "" : ", adjusted to this week's demand"}${l.notes ? " · " + esc(l.notes) : ""}</small>` +
-    `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a></div></article>`;
+    `<div class="hacts"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a>` +
+    `<button type="button" class="choose" data-pick="${esc(l.id)}" aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div></div></article>`;
 }
 function searchLinks(r: Resort, s: State) {
   const rg = dates(s, s.week), ci = isoOf(rg.a), co = isoOf(rg.b), p = people(s.group), b = bedrooms(s.group);
@@ -416,4 +429,22 @@ export function renderHouseSection(s: State, view: HouseView, repo: string) {
     `<div class="hgroup"><h3>${esc(g.title)} <small>${g.xs.length} · ${esc(g.hint)}</small></h3>` +
     `<div class="hcards" role="list" aria-label="${esc(g.title)}">` +
     g.xs.map((f) => card(s, f.x, f.r.name, false)).join("") + `</div></div>`).join("");
+}
+
+// ---- a person's pick: one house, priced with the cheapest way there under the current settings
+export interface PickSummary {
+  listing: Listing; resort: Resort; option: Option; when: string; people: number;
+  housePP: number; houseTotal: number; pp: number; group: number; walk: string;
+}
+export function pickSummary(s: State): PickSummary | null {
+  const l = s.pick ? LISTINGS.find((x) => x.id === s.pick) : undefined;
+  const r = l && RESORT_BY_ID[l.resort];
+  if (!l || !r) return null;
+  const opts = OPTIONS.filter((d) => d.resort === r.id && !shut(s, d, s.week));
+  if (!opts.length) return null;
+  const p = people(s.group);
+  const house = priceFor(SEASON, opts[0].mkt, l, s.week, nights(SEASON, s.days)).total;
+  const best = opts.map((d) => ({ d, k: c(s, d, s.week) })).map(({ d, k }) => ({ d, pp: k.pp - k.parts.stay + house / p })).sort((a, b) => a.pp - b.pp)[0];
+  const walk = l.toLiftM == null ? "distance to lifts not stated" : l.toLiftM <= 100 ? "ski in / ski out" : `${walkMins(l.toLiftM)} min walk to the lifts`;
+  return { listing: l, resort: r, option: best.d, when: dates(s, s.week).text, people: p, housePP: house / p, houseTotal: house, pp: best.pp, group: best.pp * p, walk };
 }

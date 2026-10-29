@@ -6,13 +6,13 @@ so you can record the same place for different weeks (only the first row needs t
 from __future__ import annotations
 
 from datetime import date
-from typing import Optional
+from typing import Literal, Optional
 from urllib.parse import urlsplit
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 COLUMNS = ["resort", "url", "title", "bedrooms", "sleeps", "checkin", "checkout", "total_eur",
-           "rating", "rating_scale", "to_lift_m", "photo_url", "added_by", "notes"]
+           "rating", "rating_scale", "to_lift_m", "photo_url", "added_by", "notes", "lat", "lng", "location"]
 
 
 def _blank_to_none(v):
@@ -36,6 +36,9 @@ class QuoteRow(BaseModel):
     photo_url: Optional[str] = None
     added_by: Optional[str] = None
     notes: Optional[str] = Field(default=None, max_length=200)
+    lat: Optional[float] = Field(default=None, ge=-90, le=90)
+    lng: Optional[float] = Field(default=None, ge=-180, le=180)
+    location: Optional[Literal["exact", "approx"]] = None  # approx: the platform blurs the pin (Airbnb)
 
     @field_validator("*", mode="before")
     @classmethod
@@ -66,6 +69,8 @@ class QuoteRow(BaseModel):
 
     @model_validator(mode="after")
     def check(self):
+        if (self.lat is None) != (self.lng is None):
+            raise ValueError("give both lat and lng, or neither")
         nights = (self.checkout - self.checkin).days
         if nights < 1 or nights > 30:
             raise ValueError("checkout must be 1–30 nights after checkin")

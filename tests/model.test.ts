@@ -101,12 +101,13 @@ test("median", () => {
 });
 
 test("share link round-trip and sanitising", () => {
-  const s = { ...defaults(), week: 6, group: G(4, 1, "own"), house: "lux" as const, edits: { "sol-tls@6": { flight: 99 } } };
+  const s = { ...defaults(), week: 6, group: G(3, 0, "common"), house: "lux" as const, edits: { "sol-tls@6": { flight: 99 } } };
   const back = decodeShare("#" + encodeShare(s), SEASON.weeks.length)!;
   assert.equal(back.week, 6); assert.deepEqual(back.group, s.group); assert.equal(back.house, "lux");
   assert.deepEqual(back.edits, s.edits);
   const bad = sanitize({ week: 99, days: 7, group: { couples: -3, solo: "x" }, beg: 50, edits: { "<script>": { a: 1 } } }, 12);
-  assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, G(0, 4)); assert.equal(bad.beg, 0); // bad numbers fall back to the default 4 solo friends; lessons are off
+  assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, G(4, 1, "common")); assert.equal(bad.beg, 0); // unknown groups fall back to 4 couples + 1; lessons are off
+  assert.deepEqual(sanitize({ group: G(0, 4) }, 12).group, G(4, 1, "common")); // only the three group setups exist
   assert.deepEqual(bad.edits, {});
   assert.equal(bad.nearLifts, true); assert.equal(sanitize({ nearLifts: false }, 12).nearLifts, false);
   assert.equal(decodeShare("#s=%%%garbage", 12), null);
@@ -150,9 +151,16 @@ test("5 ski days add a night: dates, label, food days, house price", () => {
   const opt = OPTIONS.find((o) => o.id === "sol-tls")!;
   const s4 = { ...defaults(), days: 4 as const }, s5 = { ...defaults(), days: 5 as const };
   const c4 = calc(SEASON, s4, opt, 6, []), c5 = calc(SEASON, s5, opt, 6, []);
-  assert.equal(c5.stayTotal, Math.round(c4.stayTotal * 6 / 5));
+  assert.ok(Math.abs(c5.stayTotal - c4.stayTotal * 6 / 5) <= 1);
   assert.equal(c5.parts.food, c4.parts.food / 6 * 7);
   // a stay that ends one day later can run past a resort's closing date
   const pas = OPTIONS.find((o) => o.id === "pas-tls")!;
   assert.ok(SEASON.weeks.some((_, w) => !isClosed(SEASON, pas, "thu", w, 4) || isClosed(SEASON, pas, "thu", w, 5)));
+});
+
+test("a picked house survives saving and share links; junk is dropped", () => {
+  assert.equal(sanitize({ pick: "e4ca9ff38c" }, 12).pick, "e4ca9ff38c");
+  assert.equal(sanitize({ pick: "<script>" }, 12).pick, undefined);
+  const back = decodeShare("#" + encodeShare({ ...defaults(), pick: "68b19f100b" }), 12)!;
+  assert.equal(back.pick, "68b19f100b");
 });

@@ -93,3 +93,19 @@ def test_seed_file_is_valid():
         good, errs = validate(csv.DictReader(f), ids, "seed")
     houses, merge_errs = merge(good)
     assert not errs and not merge_errs and len(houses) >= 10
+
+
+def test_coordinates_and_nearest_lift():
+    from pipeline.build_listings import merge, nearest_lift, validate
+    lifts = [{"name": "Far", "lat": 42.60, "lng": 1.70}, {"name": "Gondola", "lat": 42.5770, "lng": 1.6670}]
+    near = nearest_lift(42.5780, 1.6665, lifts)
+    assert near["name"] == "Gondola" and 100 < near["m"] < 130
+    assert nearest_lift(43.5, 1.6, lifts) is None  # more than 5 km away: no lift
+    row = {"resort": "soldeu", "url": "https://www.booking.com/hotel/ad/x.html", "title": "X", "bedrooms": "4", "sleeps": "9",
+           "checkin": "2027-03-04", "checkout": "2027-03-09", "total_eur": "3000", "lat": "42.5780", "lng": "1.6665", "location": "exact"}
+    good, bad = validate([row], {"soldeu"}, "test")
+    assert not bad
+    houses, _ = merge(good, lifts)
+    assert houses[0]["lat"] == 42.578 and houses[0]["locApprox"] is False and houses[0]["lift"]["name"] == "Gondola"
+    _, bad = validate([{**row, "lng": ""}], {"soldeu"}, "test")
+    assert bad  # lat without lng is rejected

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import math
 import json
 import os
 import sys
@@ -27,7 +28,7 @@ from .providers.sheet import SheetProvider
 from .schema import QuoteRow
 
 ROOT = Path(__file__).resolve().parents[1]
-STATIC = ("title", "bedrooms", "sleeps", "rating10", "to_lift_m", "photo_url", "added_by", "notes")
+STATIC = ("title", "bedrooms", "sleeps", "rating10", "to_lift_m", "photo_url", "added_by", "notes", "lat", "lng", "location")
 
 
 def canonical(url: str) -> str:
@@ -61,7 +62,19 @@ def validate(rows: Iterable[dict], resort_ids: set[str], origin: str) -> tuple[l
     return good, errors
 
 
-def merge(quotes: list[QuoteRow]) -> tuple[list[dict], list[str]]:
+def nearest_lift(lat: float, lng: float, lifts: list[dict]) -> dict | None:
+    """Closest lift station in a straight line, in metres (the site turns it into an approximate walk)."""
+    best = None
+    for l in lifts:
+        dy = (l["lat"] - lat) * 111_320
+        dx = (l["lng"] - lng) * 111_320 * math.cos(math.radians(lat))
+        m = math.hypot(dx, dy)
+        if best is None or m < best["m"]:
+            best = {"name": l["name"], "m": round(m), "lat": l["lat"], "lng": l["lng"]}
+    return best if best and best["m"] <= 5000 else None
+
+
+def merge(quotes: list[QuoteRow], lifts: list[dict] | None = None) -> tuple[list[dict], list[str]]:
     """Group quote rows by listing URL. The first non-empty value of each house field wins."""
     houses: dict[str, dict] = {}
     for q in quotes:
@@ -93,6 +106,8 @@ def merge(quotes: list[QuoteRow]) -> tuple[list[dict], list[str]]:
             "photo": h["photo_url"],
             "addedBy": h["added_by"] or "",
             **({"notes": h["notes"]} if h["notes"] else {}),
+            **({"lat": h["lat"], "lng": h["lng"], "locApprox": h["location"] == "approx"} if h["lat"] is not None else {}),
+            **({"lift": lift} if h["lat"] is not None and (lift := nearest_lift(h["lat"], h["lng"], lifts or [])) else {}),
         })
     out.sort(key=lambda x: (x["resort"], x["title"].lower()))
     return out, errors
@@ -125,7 +140,9 @@ def build(root: Path = ROOT, sheet_url: str | None = None, do_enrich: bool = Tru
         good, bad = validate(p.rows(), resort_ids, p.name)
         quotes += good
         errors += bad
-    listings, merge_errors = merge(quotes)
+    lifts_path = root / "data/lifts.json"
+    lifts = json.loads(lifts_path.read_text("utf-8"))["lifts"] if lifts_path.exists() else []
+    listings, merge_errors = merge(quotes, lifts)
     errors += merge_errors
 
     out_path = root / "data/generated/listings.json"

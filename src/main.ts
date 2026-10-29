@@ -1,9 +1,9 @@
 // Boot: restore state (a share link wins over this browser's saved state), render, wire up controls.
 import { SEASON } from "./data.ts";
-import type { Group } from "./types.ts";
-import { decodeShare, encodeShare, load, save, type State } from "./state.ts";
+import { GROUPS, decodeShare, encodeShare, load, save, type State } from "./state.ts";
 import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
+import { loadTrip, renderMyPick, wireTrip } from "./trip.ts";
 
 const REPO = (document.querySelector('a.btn.secondary') as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
 const WEEKS = SEASON.weeks.length;
@@ -24,7 +24,7 @@ try { if (localStorage.getItem("snowfinder-house-view") === "distance") houseVie
 
 function render() {
   resetCache();
-  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO); renderTable(state);
+  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO); renderMyPick(state); renderTable(state);
 }
 function update(mut: (s: State) => void) { mut(state); save(state); render(); }
 
@@ -80,9 +80,8 @@ seg("pattern", (s, v) => { s.pattern = v as State["pattern"]; });
 seg("days", (s, v) => { s.days = +v as 4 | 5; });
 seg("ground", (s, v) => { s.ground = v as State["ground"]; });
 seg("house", (s, v) => { s.house = v as State["house"]; });
-seg("soloRooms", (s, v) => { s.group.soloRooms = v as Group["soloRooms"]; });
-num("couples", 0, 20, (s, v) => { s.group.couples = v; if (!s.group.couples && !s.group.solo) s.group.solo = 1; });
-num("solo", 0, 20, (s, v) => { s.group.solo = v; if (!s.group.couples && !s.group.solo) s.group.couples = 1; });
+$("groupPreset").innerHTML = GROUPS.map((g) => `<option value="${g.id}">${g.label}</option>`).join("");
+$("groupPreset").addEventListener("change", (ev) => { const g = GROUPS.find((x) => x.id === (ev.target as HTMLSelectElement).value); if (g) update((s) => { s.group = { ...g.group }; }); });
 $("foodPlan").addEventListener("change", (ev) => update((s) => { s.foodPlan = (ev.target as HTMLSelectElement).value as State["foodPlan"]; }));
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
 ($("nearLifts") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.nearLifts = (ev.target as HTMLInputElement).checked; }));
@@ -144,3 +143,5 @@ initSort(() => state, "detail", () => save(state));
 initSort(() => state, "cmp", () => save(state));
 render();
 applySort(state, "cmp");
+wireTrip(() => state, update, toast);
+loadTrip(state, toast);

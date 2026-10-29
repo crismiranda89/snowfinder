@@ -25,6 +25,8 @@ Add it either:
 | `photo_url` | | Optional. On the listing, right-click the main photo → *Copy image address*. Leave it blank for Airbnb: the weekly job finds it. Booking blocks automated lookups, so paste it for Booking. |
 | `added_by` | `cristiano` | |
 | `notes` | `2 adjoining apartments` | Short, shown on the card. |
+| `lat`, `lng` | `42.5781`, `1.6656` | Optional. Where the house is (Booking shows it on the listing's map). Gives the card a map pin and its nearest lift. |
+| `location` | `exact` | `exact`, or `approx` when the platform blurs the pin (Airbnb does). |
 
 Check your rows before opening a pull request:
 

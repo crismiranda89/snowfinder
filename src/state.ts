@@ -6,15 +6,24 @@ export interface State extends Settings {
   week: number;
   limit: boolean;
   dest: string[]; // resort ids; empty = all
+  pick?: string;  // listing id of the house this person picks for the group
   sort: Record<string, { col: number; dir: 1 | -1 }>;
 }
 
 export const STORAGE_KEY = "snowfinder-v1";
 
+/** The group setups the site has houses for. Anything else (an old link, a hand-edited one) falls back to the first. */
+export const GROUPS: { id: string; label: string; group: Group }[] = [
+  { id: "4c1", label: "4 couples + 1 friend (living room)", group: { couples: 4, solo: 1, soloRooms: "common" } },
+  { id: "4c", label: "4 couples", group: { couples: 4, solo: 0, soloRooms: "common" } },
+  { id: "3c", label: "3 couples", group: { couples: 3, solo: 0, soloRooms: "common" } },
+];
+export const groupId = (g: Group) => GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo)?.id || GROUPS[0].id;
+
 export function defaults(): State {
   return {
     v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, nearLifts: true, foodPlan: "home", food: 40, beg: 0,
-    group: { couples: 0, solo: 4, soloRooms: "shared" }, house: "mid", dest: [], edits: {}, sort: {},
+    group: { ...GROUPS[0].group }, house: "mid", dest: [], edits: {}, sort: {},
   };
 }
 
@@ -30,12 +39,7 @@ export function sanitize(raw: unknown, weeks: number): State {
   if (!raw || typeof raw !== "object") return d;
   const r = raw as Record<string, any>;
   const g = (r.group || {}) as Partial<Group>;
-  const group: Group = {
-    couples: int(g.couples, 0, 20, d.group.couples),
-    solo: int(g.solo, 0, 20, d.group.solo),
-    soloRooms: oneOf(g.soloRooms, ["shared", "own", "common"] as const, "shared"),
-  };
-  if (group.couples === 0 && group.solo === 0) group.solo = 1;
+  const group: Group = { ...GROUPS.find((x) => x.id === groupId({ couples: +g.couples! || 0, solo: +g.solo! || 0, soloRooms: "common" }))!.group };
   const people = 2 * group.couples + group.solo;
   const edits: Edits = {};
   if (r.edits && typeof r.edits === "object") {
@@ -62,6 +66,7 @@ export function sanitize(raw: unknown, weeks: number): State {
     dest: Array.isArray(r.dest) ? r.dest.filter((x: unknown) => typeof x === "string") : [],
     edits,
     sort: r.sort && typeof r.sort === "object" ? r.sort : {},
+    pick: typeof r.pick === "string" && /^[\w-]{1,40}$/.test(r.pick) ? r.pick : undefined,
   };
 }
 

@@ -9,12 +9,14 @@ import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 const serve = process.argv.includes("--serve");
 const SITE_URL = (process.env.SITE_URL || "https://example.github.io/snowfinder/").replace(/\/?$/, "/");
 const REPO = process.env.REPO || "OWNER/snowfinder";
+// Apps Script web-app URL of the shared-trip sheet (sheet/README.md); empty turns shared trips off.
+const SHEET_API = /^https:\/\/script\.google\.com\//.test(process.env.SHEET_API || "") ? process.env.SHEET_API : "";
 
 rmSync("dist", { recursive: true, force: true });
 mkdirSync("dist", { recursive: true });
 cpSync("public", "dist", { recursive: true });
 cpSync("src/styles.css", "dist/styles.css");
-writeFileSync("dist/index.html", readFileSync("index.html", "utf8").replaceAll("%SITE_URL%", SITE_URL).replaceAll("%REPO%", REPO));
+writeFileSync("dist/index.html", readFileSync("index.html", "utf8").replaceAll("%SITE_URL%", SITE_URL).replaceAll("%REPO%", REPO).replaceAll("%SHEET_API%", SHEET_API));
 
 const options = { entryPoints: ["src/main.ts"], bundle: true, format: "esm", target: "es2020", outfile: "dist/app.js", minify: !serve, sourcemap: serve, logLevel: "info" };
 if (serve) {

@@ -79,6 +79,10 @@ export interface Listing {
   id: string; resort: string; url: string; title: string; source: string;
   bedrooms: number; sleeps: number; quotes: Quote[];
   rating: number | null; toLiftM: number | null; photo: string | null; addedBy: string; notes?: string;
+  /** Where the house is; locApprox when the platform blurs the pin (Airbnb). */
+  lat?: number; lng?: number; locApprox?: boolean;
+  /** Nearest ski-lift station (OpenStreetMap), straight-line metres. */
+  lift?: { name: string; m: number; lat: number; lng: number };
 }
 
 export type Edits = Record<string, Partial<Record<Field, number>>>;
