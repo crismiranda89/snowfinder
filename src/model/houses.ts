@@ -37,9 +37,10 @@ export function median(xs: number[]): number {
 
 export function fits(l: Listing, g: Group): boolean {
   const b = bedrooms(g);
-  // Twin: everyone needs a bed of their own, so the listing must say it has enough beds, or have a bedroom each.
-  const ownBeds = g.soloRooms !== "twin" || (l.beds ?? 0) >= people(g) || l.bedrooms >= people(g);
-  return ownBeds && l.sleeps >= people(g) && l.bedrooms >= b && l.bedrooms <= b + MAX_EXTRA_BEDROOMS;
+  // Twin: everyone needs a bed of their own, in any room: the listing must say it has enough beds, or have a
+  // bedroom each. Any number of bedrooms up to one per person.
+  if (g.soloRooms === "twin") return ((l.beds ?? 0) >= people(g) || l.bedrooms >= people(g)) && l.sleeps >= people(g) && l.bedrooms <= Math.max(b + MAX_EXTRA_BEDROOMS, people(g));
+  return l.sleeps >= people(g) && l.bedrooms >= b && l.bedrooms <= b + MAX_EXTRA_BEDROOMS;
 }
 
 export function priceFor(season: Season, market: string, l: Listing, w: number, n = season.nights): { total: number; exact: boolean; quote: Quote } {

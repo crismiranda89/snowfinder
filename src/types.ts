@@ -69,7 +69,7 @@ export interface Option {
 }
 
 export interface Group { couples: number; solo: number; soloRooms: SoloRooms }
-/** Where solo friends sleep: two per room, two per room with a bed each (twin), a room each, or the living room (sofa bed, no bedroom). */
+/** Where solo friends sleep: two per room, a bed each in any room (twin), a room each, or the living room (sofa bed, no bedroom). */
 export type FoodPlan = "home" | "one" | "both" | "custom";
 export type SoloRooms = "shared" | "twin" | "own" | "common";
 

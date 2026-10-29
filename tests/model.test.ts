@@ -175,12 +175,14 @@ test("every resort has a description and things to do when not skiing", () => {
   }
 });
 
-test("4 separate beds: a listing needs 4 beds, or 4 bedrooms; an unknown bed count doesn't fit", () => {
+test("4 separate beds, any rooms: a listing needs 4 beds, or 4 bedrooms; an unknown bed count doesn't fit", () => {
   const g = G(0, 4, "twin");
   const l = (beds: number | undefined, bedrooms = 2) => ({ ...LISTINGS[0], bedrooms, sleeps: 4, beds });
   assert.equal(fits(l(4), g), true);
   assert.equal(fits(l(3), g), false); // 2 singles + 1 double
   assert.equal(fits(l(undefined), g), false);
   assert.equal(fits(l(undefined, 4), g), true);
+  assert.equal(fits(l(4, 1), g), true); // all four beds in one room is fine
+  assert.equal(bedrooms(g), 1);
   assert.equal(fits(l(3), G(0, 4, "shared")), true);
 });

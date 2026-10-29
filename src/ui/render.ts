@@ -341,7 +341,7 @@ function searchLinks(r: Resort, s: State) {
  *  labelled with its level; the level picked above is highlighted and sets the house cost. */
 function resortHouses(s: State, r: Resort, h: HouseResult, repo: string) {
   const p = people(s.group), b = bedrooms(s.group);
-  const need = `${b}+ bedroom${b > 1 ? "s" : ""}, ${s.group.soloRooms === "twin" ? `${p} beds` : `sleeps ${p}`}${s.nearLifts ? `, ≤ ${NEAR_LIFT_MIN} min walk to the lifts` : ""}`;
+  const need = `${s.group.soloRooms === "twin" ? `${p} separate beds` : `${b}+ bedroom${b > 1 ? "s" : ""}, sleeps ${p}`}${s.nearLifts ? `, ≤ ${NEAR_LIFT_MIN} min walk to the lifts` : ""}`;
   const add = `https://github.com/${repo}/blob/main/CONTRIBUTING.md#add-a-house`;
   if (h.mode === "none") {
     const all = LISTINGS_BY_RESORT[r.id] || [];
@@ -448,7 +448,7 @@ export function renderHouseSection(s: State, view: HouseView, repo: string, allD
   const all: (Found & { week?: number })[] = allDates ? fittingHousesAllDates(s) : fittingHouses(s);
   const p = people(s.group), b = bedrooms(s.group);
   const resorts = new Set(all.map((f) => f.r.id)).size;
-  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people in ${b}+ bedrooms${s.group.soloRooms === "twin" ? ", a bed each" : ""}${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}`;
+  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people ${s.group.soloRooms === "twin" ? "with a bed each" : `in ${b}+ bedrooms`}${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}`;
   $("houseslede").innerHTML = !all.length ? ""
     : allDates ? `${esc(fit)}, across all dates: each shows its cheapest week. Tap a week in the grid below to price that week. Prices are per person for the whole stay.`
     : `${esc(fit)}, for ${esc(dates(s, s.week).text)}. <button type="button" class="linkbtn" data-act="all-dates">Show all dates</button>`;
