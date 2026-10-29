@@ -1,0 +1,797 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Simulador Viagem à Neve (Copy)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column — controls (pattern, days, ground), week strip, week × destination grid, ranking for the chosen week, editable table, assumptions + sources */
+:root{
+  --bg:#f3f6f9; --surface:#ffffff; --ink:#132130; --muted:#5a6a7a; --line:#d8e0e8; --soft:#e9eff5;
+  --accent:#1d5dbf; --accent-ink:#ffffff;
+  --c-flight:#3d6fd6; --c-ground:#8b67cf; --c-stay:#d9822b; --c-pass:#23968a; --c-rent:#c84b6a; --c-food:#7a8a2a; --c-lesson:#4a6c8c;
+  --ok:#1f8a4c; --ok-bg:#e3f4ea; --warn:#a86200; --warn-bg:#fbefdc; --bad:#b3261e; --bad-bg:#fbe5e3;
+  --h0:#dff1e6; --h1:#eef4d6; --h2:#fbe7c8; --h3:#f8d0c4; --h-ink:#132130;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1621; --surface:#16212e; --ink:#e6edf4; --muted:#93a3b4; --line:#2a3848; --soft:#1d2a39;
+  --accent:#6ea2ff; --accent-ink:#0b1420;
+  --c-flight:#6f98f0; --c-ground:#a98be3; --c-stay:#eda15a; --c-pass:#4fc0b2; --c-rent:#e57a95; --c-food:#b5c75a; --c-lesson:#8fb3d6;
+  --ok:#5cc98a; --ok-bg:#163223; --warn:#f0b35c; --warn-bg:#3a2b12; --bad:#ff8a80; --bad-bg:#3d1b19;
+  --h0:#173a28; --h1:#2f3a1a; --h2:#47341a; --h3:#4d2420; --h-ink:#e6edf4;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1621; --surface:#16212e; --ink:#e6edf4; --muted:#93a3b4; --line:#2a3848; --soft:#1d2a39;
+  --accent:#6ea2ff; --accent-ink:#0b1420;
+  --c-flight:#6f98f0; --c-ground:#a98be3; --c-stay:#eda15a; --c-pass:#4fc0b2; --c-rent:#e57a95; --c-food:#b5c75a; --c-lesson:#8fb3d6;
+  --ok:#5cc98a; --ok-bg:#163223; --warn:#f0b35c; --warn-bg:#3a2b12; --bad:#ff8a80; --bad-bg:#3d1b19;
+  --h0:#173a28; --h1:#2f3a1a; --h2:#47341a; --h3:#4d2420; --h-ink:#e6edf4;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1160px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:30px}
+h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;text-wrap:balance;margin:0;line-height:1.05}
+h1{font-size:clamp(2rem,5vw,3rem)}
+h2{font-size:1.6rem}
+.lede{color:var(--muted);max-width:70ch;margin:8px 0 0}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.num{font-variant-numeric:tabular-nums}
+.foot{font-size:.82rem;color:var(--muted);margin:0}
+section.block{display:grid;gap:12px;min-width:0}
+.head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:end;gap:8px}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.ctl{display:grid;gap:6px}
+.ctl > span{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{font:inherit;font-weight:500;border:0;background:transparent;color:var(--ink);padding:7px 12px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.check{display:flex;gap:8px;align-items:center;font-weight:500;cursor:pointer;padding-bottom:6px}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.extra input{width:90px;font:inherit;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+button:focus-visible,input:focus-visible,td.cell:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ghost{font:inherit;font-size:.85rem;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:7px 12px;cursor:pointer;margin-left:auto}
+
+/* week strip */
+.weeks{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
+.wk{font:inherit;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:10px 12px;cursor:pointer;display:grid;gap:4px;min-width:0}
+.wk[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.wk b{font-family:var(--f-display);font-size:1.15rem;font-weight:600;line-height:1.1}
+.wk small{color:var(--muted);font-size:.78rem}
+.lvl{display:flex;gap:3px;margin-top:2px}
+.lvl i{flex:1;height:4px;border-radius:2px;background:var(--soft)}
+.lvl.l0 i:nth-child(-n+1){background:var(--ok)}
+.lvl.l1 i:nth-child(-n+2){background:var(--c-pass)}
+.lvl.l2 i:nth-child(-n+3){background:var(--warn)}
+.lvl.l3 i{background:var(--bad)}
+
+/* heat grid */
+.gridbox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:.86rem}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;background:var(--soft);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+.heat{min-width:1280px}
+.heat th.sel{color:var(--accent)}
+td.cell{text-align:center;color:var(--h-ink);font-variant-numeric:tabular-nums;cursor:pointer;border-left:2px solid var(--surface);font-weight:500}
+td.cell.h0{background:var(--h0)} td.cell.h1{background:var(--h1)} td.cell.h2{background:var(--h2)} td.cell.h3{background:var(--h3)}
+td.cell.best{font-weight:700;box-shadow:inset 0 0 0 2px var(--ok)}
+td.cell.selcol{outline:2px solid var(--accent);outline-offset:-2px}
+.dest b{display:block}
+.dest small{color:var(--muted)}
+.hl{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.8rem;color:var(--muted)}
+.hl i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* ranking */
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.85rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}
+.rank{display:grid}
+.row{display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr) 96px;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:first-child{border-top:1px solid var(--line)}
+.who{min-width:0}
+.who b{font-family:var(--f-display);font-size:1.25rem;font-weight:600;display:block;line-height:1.1}
+.who small{color:var(--muted);font-size:.82rem}
+.bar{display:flex;height:22px;border-radius:4px;overflow:hidden;background:var(--soft);min-width:0}
+.bar span{height:100%}
+.tot{text-align:right}
+.tot b{font-family:var(--f-display);font-size:1.45rem;font-weight:700;display:block;line-height:1}
+.tot small{color:var(--muted);font-size:.75rem}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.pill{font-size:.7rem;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.p-ok{background:var(--ok-bg);color:var(--ok)} .p-warn{background:var(--warn-bg);color:var(--warn)}
+.p-bad{background:var(--bad-bg);color:var(--bad)} .p-neutral{background:var(--soft);color:var(--muted)}
+.weekinfo{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:4px}
+.weekinfo b{font-family:var(--f-display);font-size:1.2rem;font-weight:600}
+
+/* detail table */
+.detail{min-width:1180px}
+td.r,th.r{text-align:right}
+td input{width:76px;font:inherit;font-variant-numeric:tabular-nums;text-align:right;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+td input.edited{border-color:var(--accent);background:var(--surface)}
+.sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+td.total{font-weight:600}
+
+/* comparison */
+.cmp{min-width:1180px;font-size:.84rem}
+.cmp td{vertical-align:top}
+.cmp td small{display:block;color:var(--muted);margin-top:2px;line-height:1.35}
+.stars{color:var(--accent);letter-spacing:1px;white-space:nowrap;font-size:.95rem}
+.stars .off{color:var(--line)}
+.risk{font-weight:600;white-space:nowrap}
+.r-low{color:var(--ok)} .r-mid{color:var(--warn)} .r-high{color:var(--bad)}
+.fit{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.fitcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:grid;gap:6px;min-width:0}
+.fitcard b{font-family:var(--f-display);font-size:1.2rem;font-weight:600}
+.fitcard p{margin:0;color:var(--muted);font-size:.9rem}
+.fitcard .tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600}
+.destctl{flex-basis:100%;border-top:1px solid var(--line);padding-top:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.85rem;font-weight:500;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 12px;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip small{color:var(--muted);font-size:.75rem}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip[aria-pressed="true"] small{color:var(--accent-ink);opacity:.8}
+.chip.all{background:transparent;border-style:dashed}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sorth{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit}
+.sorth::after{content:"↕";opacity:.35;font-size:.9em}
+th[aria-sort="ascending"] .sorth::after{content:"▲";opacity:1;color:var(--accent)}
+th[aria-sort="descending"] .sorth::after{content:"▼";opacity:1;color:var(--accent)}
+.sorth:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+td.cell.closed{background:repeating-linear-gradient(45deg,var(--soft) 0 6px,var(--surface) 6px 12px);color:var(--muted);font-weight:400;font-size:.78rem}
+td.cell.thin{box-shadow:inset 0 -3px 0 var(--bad)}
+tr.dimrow td{opacity:.45}
+.wk .shut{color:var(--bad);font-weight:600}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:24px}
+.notes section{min-width:0}
+.notes h3{font-family:var(--f-display);font-size:1.2rem;font-weight:600;margin:0 0 8px}
+.notes ul{margin:0;padding-left:18px;color:var(--muted);display:grid;gap:6px;font-size:.9rem}
+.notes a{color:var(--accent)}
+
+@media (max-width:640px){
+  .row{grid-template-columns:minmax(0,1fr) 84px;grid-template-areas:"who tot" "bar bar";gap:8px 12px}
+  .who{grid-area:who}.tot{grid-area:tot}.bar{grid-area:bar}
+  .ghost{margin-left:0}
+}
+@media (prefers-reduced-motion:no-preference){.bar span{transition:width .35s ease}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Porto → neve · 4 pessoas · 5 noites com fim de semana · fim jan. a meados de abr. 2027</div>
+    <h1>Quanto custa cada estância, semana a semana</h1>
+    <p class="lede">Escolhe o padrão de estadia e a semana. A grelha mostra o custo por pessoa de cada destino em todas as semanas, para encontrarem a combinação mais barata. Os preços sobem nas semanas de férias escolares francesas, alemãs, austríacas e britânicas, que é quando as estâncias enchem.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Opções da simulação">
+    <div class="ctl"><span>Padrão de estadia</span>
+      <div class="seg" id="pattern">
+        <button type="button" data-v="wed" aria-pressed="false">Qua → Seg</button>
+        <button type="button" data-v="thu" aria-pressed="true">Qui → Ter</button>
+        <button type="button" data-v="fri" aria-pressed="false">Sex → Qua</button>
+      </div>
+    </div>
+    <div class="ctl"><span>Dias de ski</span>
+      <div class="seg" id="days"><button type="button" data-v="4" aria-pressed="true">4 dias</button><button type="button" data-v="5" aria-pressed="false">5 dias</button></div>
+    </div>
+    <div class="ctl"><span>Aeroporto → estância</span>
+      <div class="seg" id="ground"><button type="button" data-v="car" aria-pressed="true">Carro alugado</button><button type="button" data-v="transfer" aria-pressed="false">Transfer</button></div>
+    </div>
+    <div class="ctl extra"><span>Alimentação (€/pessoa/dia)</span>
+      <input id="food" type="number" min="0" step="5" value="40" inputmode="numeric" aria-describedby="foodhint">
+      <small class="foot" id="foodhint">× 6 dias, da chegada à partida</small>
+    </div>
+    <div class="ctl extra"><span>Principiantes com aulas</span>
+      <input id="beg" type="number" min="0" max="4" step="1" value="3" inputmode="numeric" aria-describedby="beghint">
+      <small class="foot" id="beghint">aulas de grupo em todos os dias de ski</small>
+    </div>
+    <label class="check"><input id="limit" type="checkbox"> Só transfers até ~2h</label>
+    <button type="button" class="ghost" id="reset">Repor valores</button>
+    <div class="ctl destctl"><span>Destinos <em id="destcount" class="foot" style="font-style:normal;text-transform:none;letter-spacing:0"></em></span>
+      <div class="chips" id="dests" role="group" aria-label="Escolher destinos"></div>
+    </div>
+  </div>
+
+  <section class="block">
+    <div class="head"><h2>Escolhe a semana</h2>
+      <div class="hl"><span>Procura esperada:</span><span style="color:var(--ok)">baixa</span><span style="color:var(--c-pass)">normal</span><span style="color:var(--warn)">alta</span><span style="color:var(--bad)">pico</span></div>
+    </div>
+    <div class="weeks" id="weeks"></div>
+    <div class="weekinfo" id="weekinfo"></div>
+  </section>
+
+  <section class="block">
+    <div class="head"><h2>Grelha destino × semana (por pessoa)</h2>
+      <div class="hl"><span><i style="background:var(--h0)"></i>mais barato</span><span><i style="background:var(--h1)"></i></span><span><i style="background:var(--h2)"></i></span><span><i style="background:var(--h3)"></i>mais caro</span><span><i style="background:transparent;box-shadow:inset 0 0 0 2px var(--ok)"></i>melhor semana do destino</span><span><i style="background:repeating-linear-gradient(45deg,var(--soft) 0 3px,var(--surface) 3px 6px);border:1px solid var(--line)"></i>estância fechada</span><span><i style="background:transparent;box-shadow:inset 0 -3px 0 var(--bad)"></i>neve de primavera fraca</span></div>
+    </div>
+    <div class="gridbox"><table class="heat"><thead id="heathead"></thead><tbody id="heatbody"></tbody></table></div>
+    <p class="foot">Toca numa célula para escolher essa semana. Toca no cabeçalho de uma coluna para ordenar por essa semana ou pelo destino. As cores comparam todas as células abertas entre si. Uma estância aparece fechada quando o fecho previsto é antes do dia de regresso.</p>
+  </section>
+
+  <section class="block">
+    <div class="head"><h2 id="rankTitle">Ranking da semana</h2>
+      <div class="legend">
+        <span><i style="background:var(--c-flight)"></i>Voo</span>
+        <span><i style="background:var(--c-ground)"></i>Carro / transfer</span>
+        <span><i style="background:var(--c-stay)"></i>Alojamento</span>
+        <span><i style="background:var(--c-pass)"></i>Forfait</span>
+        <span><i style="background:var(--c-rent)"></i>Material</span>
+        <span><i style="background:var(--c-food)"></i>Alimentação</span>
+        <span><i style="background:var(--c-lesson)"></i>Aulas</span>
+      </div>
+    </div>
+    <div class="rank" id="rank"></div>
+  </section>
+
+  <section class="block">
+    <h2>Para o vosso grupo: 3 principiantes e 1 com experiência</h2>
+    <p class="foot">Para quem começa importa ter pistas verdes e azuis largas, boas escolas e frio suportável; o tamanho do domínio quase não conta. Para quem já tem experiência, conta o terreno. A avaliação abaixo cruza as duas coisas com o après-ski e o preço.</p>
+    <div class="fit">
+      <div class="fitcard"><span class="tag" style="color:var(--ok)">Melhor equilíbrio</span><b>Alpe d'Huez</b><p>A melhor zona de aprendizagem da lista, muito sol, après-ski animado e uma preta de 16 km para o experiente. Preço intermédio.</p></div>
+      <div class="fitcard"><span class="tag" style="color:var(--accent)">Melhor neve e festa</span><b>Val Thorens</b><p>Neve garantida, après-ski de topo e bom para ski e snowboard. O frio e o vento podem tornar os primeiros dias difíceis para os principiantes, e é dos mais caros.</p></div>
+      <div class="fitcard"><span class="tag" style="color:var(--ok)">Aprender com festa, barato</span><b>Soldeu</b><p>Escola excelente para principiantes, preços de Andorra e après-ski animado sem os excessos de Pas de la Casa. O transfer passa das 2h45.</p></div>
+      <div class="fitcard"><span class="tag" style="color:var(--warn)">Après-ski austríaco mais barato</span><b>SkiWelt (Söll)</b><p>Azuis largas para aprender, festa forte e transfer curto desde Munique. O risco é a neve, por ser baixo; melhor em fim de janeiro e fevereiro.</p></div>
+      <div class="fitcard"><span class="tag" style="color:var(--warn)">Mais barato com festa</span><b>Pas de la Casa</b><p>Aulas e bebidas baratas e noite muito animada. A neve é a menos garantida dos Alpes e Pirenéus altos, e o experiente esgota o terreno mais depressa.</p></div>
+      <div class="fitcard"><span class="tag" style="color:var(--muted)">Para aprender barato</span><b>Passo Tonale</b><p>Ótimo para os três principiantes e dos mais baratos, mas pouca vida à noite e pouco desafio para quem já sabe.</p></div>
+    </div>
+    <p class="foot">Les 2 Alpes é ótimo para snowboard e festa, mas os principiantes têm de descer à vila de teleférico. Sauze d'Oulx é muito boa opção se houver voo para Turim nas vossas datas. Baqueira tem a melhor neve dos Pirenéus mas é cara e menos festiva. Sierra Nevada é a mais perto mas a neve é a mais incerta.</p>
+  </section>
+
+  <section class="block">
+    <h2>Comparação das estâncias</h2>
+    <p class="foot">Avaliações de 1 a 5 feitas a partir de guias de estâncias e da informação recolhida. Temperaturas são médias aproximadas de fevereiro (máxima / mínima), não uma previsão. O preço da cerveja é uma referência aproximada num bar da estância. As distâncias por aeroporto estão na linha de cada estância.</p>
+    <div class="gridbox">
+      <table class="cmp">
+        <thead><tr><th>Estância e aeroportos</th><th>Neve e altitude</th><th>Temp. fev.</th><th>Domínio</th><th>Principiantes</th><th>Snowboard</th><th>Ski (experiente)</th><th>Après-ski</th><th>Cerveja</th><th>Vento e fecho</th><th>Seguro e resgate</th><th>Eventos</th></tr></thead>
+        <tbody>
+<tr><td class="dest"><b>Mayrhofen</b><small>Áustria · Zillertal · MUC 197 km, FMM 268 km</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>630 m na vila, 2000 m+ no Penken; glaciar de Hintertux incluído no forfait</small></td>
+<td class="num">3° / −7°<small>na vila; cerca de −4° de máxima no Penken</small></td>
+<td class="num">546 km<small>Superskipass, todo o vale (Mayrhofen tem ~140 km)</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Zona de principiantes no Ahorn; muitas pistas são vermelhas</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Vans Penken Park, um dos melhores parques dos Alpes</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Harakiri (78%) e muito vermelho</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Ice Bar, Brück'n Stadl, festa forte ao fim da tarde</small></td>
+<td class="num">~5–6 €</td>
+<td><span class="risk r-low">Baixo</span><small>Pistas parcialmente entre árvores</small></td>
+<td><small style="margin:0">Sem seguro com o forfait; resgate pago à parte. CESD cobre saúde, não resgate.</small></td>
+<td><small style="margin:0">Snowbombing é de 5 a 10 abr. (fora das vossas datas)</small></td></tr>
+<tr><td class="dest"><b>SkiWelt (Söll / Ellmau)</b><small>Áustria · Tirol · MUC 130 km, FMM 235 km</small></td>
+<td><span class="stars" aria-label="2 de 5">★★<span class="off">★★★</span></span><small>Domínio baixo (620–1957 m); depende muito de neve artificial, sobretudo em março</small></td>
+<td class="num">3° / −6°<small>na vila</small></td>
+<td class="num">~270 km<small>SkiWelt Wilder Kaiser – Brixental</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Muitas azuis largas e fáceis, boas para progredir</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Vários parques; pistas largas e poucos planos</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Muito terreno fácil e médio, pouco difícil</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Söll e Ellmau têm après-ski austríaco muito animado</small></td>
+<td class="num">~5–6 €</td>
+<td><span class="risk r-low">Baixo</span><small>Pistas entre árvores</small></td>
+<td><small style="margin:0">Sem seguro com o forfait; resgate pago à parte. CESD cobre saúde, não resgate.</small></td>
+<td><small style="margin:0">Sem eventos grandes nas vossas datas</small></td></tr>
+<tr><td class="dest"><b>Alpe d'Huez</b><small>França · Oisans · LYS 150 km</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>1860 m na vila, Pic Blanc a 3330 m</small></td>
+<td class="num">1° / −8°<small>na vila; zona muito soalheira</small></td>
+<td class="num">250 km<small>Espace Alpe d'Huez</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Muitas verdes, zonas e forfait de principiante (26 €/dia)</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Snowpark e terreno largo; alguns caminhos planos</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Sarenne, a pista preta de 16 km</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>La Folie Douce, Smithy's Tavern</small></td>
+<td class="num">~6–8 €</td>
+<td><span class="risk r-mid">Médio</span><small>Topo exposto em dias de vento</small></td>
+<td><small style="margin:0">Carré Neige ~3,50 €/dia com o forfait: resgate e cursos não usados.</small></td>
+<td><small style="margin:0">Tomorrowland Winter de 20 a 27 mar. (logo a seguir às vossas datas)</small></td></tr>
+<tr><td class="dest"><b>Les 2 Alpes</b><small>França · Oisans · LYS 165 km, CMF 140 km, TRN 165 km</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Glaciar a 3600 m; neve garantida em cima</small></td>
+<td class="num">0° / −8°<small>na vila (1650 m)</small></td>
+<td class="num">~200 km<small>Grand Domaine; Supernova dá acesso a Alpe d'Huez</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Pistas fáceis no alto; a descida até à vila é difícil e faz-se de teleférico. Forfait de principiante 26 €</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Um dos snowparks mais conhecidos de França</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Muito desnível e fora de pista</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Ambiente muito jovem, bares cheios ao longo da avenida principal</small></td>
+<td class="num">~6–7 €</td>
+<td><span class="risk r-mid">Médio</span><small>Glaciar exposto</small></td>
+<td><small style="margin:0">Seguro opcional com o forfait (~3–4 €/dia). CESD cobre saúde, não resgate.</small></td>
+<td><small style="margin:0">Sem eventos grandes nas vossas datas</small></td></tr>
+<tr><td class="dest"><b>Morzine / Avoriaz</b><small>França · Portes du Soleil · GVA 80 km</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Morzine a 1000 m (risco de chuva na vila); Avoriaz a 1800 m</small></td>
+<td class="num">4° / −5°<small>em Morzine; Avoriaz ~ −1° / −8°</small></td>
+<td class="num">600 km<small>Portes du Soleil, França e Suíça</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Melhor para principiantes em Avoriaz do que em Morzine</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Avoriaz tem tradição freestyle; há muitos teleskis e planos no domínio</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Le Mur Suisse e terreno variado</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Morzine: Tibetan Café, Le Ridge; Avoriaz mais calmo</small></td>
+<td class="num">~6–8 €</td>
+<td><span class="risk r-low">Baixo</span><small>Muitas pistas entre árvores; nevoeiro frequente</small></td>
+<td><small style="margin:0">Carré Neige com o forfait. No lado suíço o CESD vale, o resgate não.</small></td>
+<td><small style="margin:0">Sem eventos grandes nas vossas datas</small></td></tr>
+<tr><td class="dest"><b>Val Thorens</b><small>França · 3 Vallées · CMF 122 km, LYS 199 km, GVA 202 km</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Vila a 2300 m, a mais alta da Europa; neve até maio</small></td>
+<td class="num">−3° / −11°<small>na vila; a estância mais fria da lista</small></td>
+<td class="num">150 km<small>Val Thorens–Orelle (600 km com 3 Vallées)</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Teleféricos gratuitos para principiantes e azuis largas; frio e vento custam</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>VT Park e pistas largas com poucos planos</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Cime Caron e acesso a todas as 3 Vallées</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>La Folie Douce, Malaysia, Frog & Roastbeef</small></td>
+<td class="num">~7–9 €</td>
+<td><span class="risk r-high">Alto</span><small>Acima da linha das árvores: elevadores fecham com vento</small></td>
+<td><small style="margin:0">Carré Neige ~3,50 €/dia com o forfait: resgate e cursos não usados.</small></td>
+<td><small style="margin:0">Sem eventos grandes nas vossas datas</small></td></tr>
+<tr><td class="dest"><b>Sauze d'Oulx</b><small>Itália · Via Lattea · TRN 97 km, BGY 260 km, LYS 230 km</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Vila a 1500 m, topo a 2823 m; boa neve artificial</small></td>
+<td class="num">2° / −6°<small>na vila</small></td>
+<td class="num">400 km<small>Via Lattea, com Sestriere e Montgenèvre</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Zona de principiantes no planalto de Sportinia; aulas baratas</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Parque em Sestriere; algumas ligações planas</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Domínio enorme com muito terreno variado</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Fama de après-ski animado, muito frequentado por britânicos</small></td>
+<td class="num">~4–5 €</td>
+<td><span class="risk r-mid">Médio</span><small>Algumas ligações altas fecham com vento</small></td>
+<td><small style="margin:0">Seguro de responsabilidade civil obrigatório em Itália desde 2022 (alguns euros por dia com o forfait).</small></td>
+<td><small style="margin:0">Half-term britânico (15–19 fev.) enche a vila</small></td></tr>
+<tr><td class="dest"><b>Passo Tonale</b><small>Itália · Pontedilegno-Tonale · BGY 126 km</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Passo a 1883 m e glaciar Presena a 3016 m</small></td>
+<td class="num">1° / −8°<small>no passo; muito vento</small></td>
+<td class="num">100 km<small>Pontedilegno-Tonale</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Pistas largas e fáceis; aulas de grupo das mais baratas</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Snowpark pequeno; zonas planas no passo</small></td>
+<td><span class="stars" aria-label="2 de 5">★★<span class="off">★★★</span></span><small>Pouco desafio fora do glaciar</small></td>
+<td><span class="stars" aria-label="2 de 5">★★<span class="off">★★★</span></span><small>Poucos bares; festas Paradice Music em algumas datas</small></td>
+<td class="num">~4–5 €</td>
+<td><span class="risk r-high">Alto</span><small>Passo de montanha muito exposto</small></td>
+<td><small style="margin:0">Seguro de responsabilidade civil obrigatório em Itália desde 2022 (alguns euros por dia com o forfait).</small></td>
+<td><small style="margin:0">Carnaval a 8–9 fev. aumenta a procura</small></td></tr>
+<tr><td class="dest"><b>Pas de la Casa</b><small>Andorra · Grandvalira · TLS 176 km, BCN 200 km</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Vila a 2100 m, mas a neve nos Pirenéus varia de ano para ano</small></td>
+<td class="num">1° / −7°<small>na vila</small></td>
+<td class="num">210 km<small>Grandvalira inteira</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Pistas largas e escolas baratas; forfait de principiante 45,50 €</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Snowparks em Grandvalira; algumas ligações planas</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Bom para um dia ou dois de desafio</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Rua principal cheia de bares e discotecas até tarde</small></td>
+<td class="num">~3–4 €</td>
+<td><span class="risk r-mid">Médio</span><small>Port d'Envalira exposto; estrada pode fechar com neve</small></td>
+<td><small style="margin:0">CESD não vale em Andorra (fora da UE). Comprem o seguro do forfait ou um seguro de viagem com desportos de inverno.</small></td>
+<td><small style="margin:0">Carnaval a 9 fev. aumenta a procura</small></td></tr>
+<tr><td class="dest"><b>Soldeu</b><small>Andorra · Grandvalira · TLS 185 km, BCN 200 km</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Vila a 1710 m, pistas até 2640 m; neve dos Pirenéus variável</small></td>
+<td class="num">2° / −7°<small>na vila</small></td>
+<td class="num">210 km<small>Grandvalira inteira (a mesma de Pas de la Casa)</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Das melhores escolas para quem aprende em inglês; zonas fáceis no alto</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Snowparks de Grandvalira perto</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Igual a Pas de la Casa</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Fat Albert e Aspen Bar; animado mas menos excessivo que Pas de la Casa</small></td>
+<td class="num">~4–5 €</td>
+<td><span class="risk r-mid">Médio</span><small>Topo exposto em dias de vento</small></td>
+<td><small style="margin:0">CESD não vale em Andorra (fora da UE). Comprem o seguro do forfait ou um seguro de viagem com desportos de inverno.</small></td>
+<td><small style="margin:0">Half-term britânico e Carnaval enchem a vila</small></td></tr>
+<tr><td class="dest"><b>Baqueira</b><small>Espanha · Val d'Aran · TLS 170 km, BCN 330 km</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>A melhor neve dos Pirenéus, por influência atlântica</small></td>
+<td class="num">1° / −7°<small>em Baqueira 1500</small></td>
+<td class="num">~170 km<small>Baqueira, Beret, Bonaigua</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>O planalto de Beret é ótimo para aprender; aulas caras</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Pistas largas e snowpark</small></td>
+<td><span class="stars" aria-label="5 de 5">★★★★★<span class="off"></span></span><small>Muito fora de pista e pretas de qualidade</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Ambiente mais elegante; jantares tardios em Vielha e Baqueira</small></td>
+<td class="num">~5–7 €</td>
+<td><span class="risk r-mid">Médio</span><small>Algum vento no topo</small></td>
+<td><small style="margin:0">CESD cobre saúde em Espanha, não o resgate. Seguro opcional com o forfait.</small></td>
+<td><small style="margin:0">Fins de semana e pontes espanholas muito cheios</small></td></tr>
+<tr><td class="dest"><b>Sierra Nevada</b><small>Espanha · Granada · AGP 180 km, SVQ 300 km</small></td>
+<td><span class="stars" aria-label="2 de 5">★★<span class="off">★★★</span></span><small>Alta (2100–3300 m), mas clima do sul: neve muito variável de ano para ano</small></td>
+<td class="num">4° / −4°<small>em Pradollano; muito sol</small></td>
+<td class="num">~110 km<small>Domínio único</small></td>
+<td><span class="stars" aria-label="4 de 5">★★★★<span class="off">★</span></span><small>Zona de Borreguiles boa para aprender; aulas baratas</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Snowpark; poucas árvores</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Terreno médio</small></td>
+<td><span class="stars" aria-label="3 de 5">★★★<span class="off">★★</span></span><small>Bares em Pradollano, animados ao fim de semana</small></td>
+<td class="num">~3–4 €</td>
+<td><span class="risk r-high">Alto</span><small>Vento forte fecha os elevadores de cima com frequência</small></td>
+<td><small style="margin:0">CESD cobre saúde em Espanha, não o resgate. Seguro opcional com o forfait.</small></td>
+<td><small style="margin:0">Dia da Andaluzia (28 fev.) e fins de semana muito cheios</small></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="foot">Fontes: <a href="https://www.skiweather.eu/profile/val-thorens/1266" target="_blank" rel="noopener">avaliação de principiantes em Val Thorens</a> · <a href="https://www.easeweather.com/europe/andorra/encamp/pas-de-la-casa/february" target="_blank" rel="noopener">clima de Pas de la Casa em fevereiro</a> · <a href="https://www.sno.co.uk/ski/andorra/pas-de-la-casa/snow-history" target="_blank" rel="noopener">neve em Pas de la Casa</a> · <a href="https://www.skiinfo.fr/news/carre-neige-bien-plus-quune-simple-assurance-ski-un-pilier-du-ski-savoyard/" target="_blank" rel="noopener">Carré Neige</a> · <a href="https://hellosafe.com/it/travel-insurance/ski-insurance" target="_blank" rel="noopener">seguro obrigatório em Itália</a> · <a href="https://seg-social.pt/documents/10152/14911/N39_cartao_europeu_seguro_doenca/3cd10933-cab7-420d-a234-6fa1792cf3aa" target="_blank" rel="noopener">países do CESD</a> · <a href="https://weraveyou.com/2026/09/tomorrowland-winter-2027-alpe-dhuez/" target="_blank" rel="noopener">Tomorrowland Winter 2027</a> · <a href="https://guide-ski.fr/?p=682" target="_blank" rel="noopener">forfait de principiante em Alpe d'Huez</a> · <a href="https://guide-ski.fr/?p=379" target="_blank" rel="noopener">Les 2 Alpes</a> · <a href="https://www.estiber.com/blog/?p=10154" target="_blank" rel="noopener">forfait de principiante em Grandvalira</a> · <a href="https://www.postoffice.co.uk/skireport2026" target="_blank" rel="noopener">Post Office Ski Report 2026</a> · <a href="https://www.granadadirect.com/sierra-nevada/como-llegar/" target="_blank" rel="noopener">acesso a Sierra Nevada</a></p>
+  </section>
+
+  <section class="block">
+    <h2>Detalhe da semana e valores editáveis</h2>
+    <p class="foot">Voo, forfait, material e aula (por dia) são por pessoa. Carro, transfer e alojamento são para o grupo de 4. O total por pessoa é a média do grupo: as aulas só são pagas pelos principiantes. Um valor que alteres aqui fica guardado só para a semana escolhida, para poderes pôr orçamentos reais semana a semana.</p>
+    <div class="gridbox">
+      <table class="detail">
+        <thead><tr>
+          <th>Destino e aeroporto</th><th>Viagem e distância</th>
+          <th class="r"><span class="sw" style="background:var(--c-flight)"></span>Voo i/v pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-ground)"></span>Carro grupo</th>
+          <th class="r"><span class="sw" style="background:var(--c-ground)"></span>Transfer grupo</th>
+          <th class="r"><span class="sw" style="background:var(--c-stay)"></span>Alojamento grupo</th>
+          <th class="r"><span class="sw" style="background:var(--c-pass)"></span>Forfait pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-rent)"></span>Material pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-food)"></span>Alimentação pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-lesson)"></span>Aula €/dia</th>
+          <th class="r">Total pp</th><th class="r">Total grupo</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="notes">
+    <section>
+      <h3>Como os preços variam por semana</h3>
+      <ul>
+        <li>Cada destino tem um nível de procura por semana (baixa, normal, alta, pico), baseado nas férias escolares dos mercados que lá vão.</li>
+        <li>Alojamento: −10% em procura baixa, +30% em alta, +60% em pico, face a uma semana normal. Voos: −10%, +20%, +35%. Carro e transfer: +10% em alta, +20% em pico.</li>
+        <li>Forfaits e aluguer de material têm preço fixo na época alta (19 dez. a abril), por isso não mudam com a semana. A exceção é Passo Tonale, que tem preços dinâmicos.</li>
+        <li>Os padrões Qua→Seg, Qui→Ter e Sex→Qua gastam 4 dias de férias. Na semana da Páscoa a Sexta-feira Santa (26 mar.) é feriado e baixa para 3. A semana de 4 a 9 de fevereiro (Qui→Ter) acaba no dia de Carnaval, que costuma ser tolerância de ponto (assinalado com *).</li>
+        <li>A partir de 20 de março, as estâncias baixas aparecem com aviso de neve de primavera. Datas de fecho de SkiWelt, Baqueira e Sierra Nevada são estimadas a partir de épocas anteriores.</li>
+        <li>Todas as tabelas ordenam-se tocando no cabeçalho da coluna; tocar outra vez inverte a ordem. O filtro de destinos aplica-se à grelha, ao ranking, ao detalhe e à comparação.</li>
+        <li>Muitos apartamentos em França alugam de sábado a sábado. Estadias de 5 noites a meio da semana encontram-se mais facilmente fora das semanas de férias.</li>
+        <li>Valores de base: 5 noites com 4 dias de ski, voo direto com uma mala de porão, carro de 6 dias com combustível, portagens e estacionamento, apartamento de 2 quartos. A alimentação usa o valor médio por pessoa e por dia dos filtros, multiplicado por 6 dias (com 5 noites são 6 dias de calendário, da chegada à partida). Ajustem o valor consoante queiram incluir o après-ski ou não.</li>
+        <li>Aulas: preço de aulas de grupo para adultos, por pessoa e por dia de ski, multiplicado pelo número de principiantes. Muitos cursos de grupo funcionam de domingo ou segunda a sexta; numa estadia de quinta a terça talvez tenham de marcar dia a dia, ou dividir um monitor particular entre os três (cerca de 75–85 € por hora em França).</li>
+        <li>Voos por confirmar: Porto–Chambéry não foi confirmado; Porto–Memmingen (Ryanair, ~5 por semana) e Porto–Turim (Ryanair) existem, mas não está garantido que voem nas vossas datas de inverno.</li>
+        <li>As distâncias são do aeroporto à estância por estrada. Os tempos são sem trânsito; aos sábados podem ser bastante maiores.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Calendários usados</h3>
+      <ul>
+        <li><a href="https://icalendrier.fr/vacances/hiver" target="_blank" rel="noopener">Férias de inverno em França 2027</a>: zona C 6–22 fev., zona A 13 fev.–1 mar., zona B 20 fev.–8 mar.</li>
+        <li><a href="https://www.oesterreich.gv.at/de/themen/bildung_und_ausbildung/schulen/Seite.1100114" target="_blank" rel="noopener">Semesterferien na Áustria 2027</a>: Viena 1–6 fev., Caríntia 8–13 fev., Tirol e Salzburgo 15–20 fev.</li>
+        <li><a href="https://www.muenchen.de/aktuell/schulferien-bayern-2026-2027-alle-termine-im-ueberblick" target="_blank" rel="noopener">Faschingsferien na Baviera 2027</a>: 8–12 fev.</li>
+        <li><a href="https://www.snowthere.com/guides/february-half-term-ski-2027" target="_blank" rel="noopener">Half-term britânico 2027</a>: sobretudo 15–19 fev.</li>
+        <li><a href="https://www.newsistruzione.it/2026/06/30/calendario-scolastico-lombardia-2026-2027-date/amp" target="_blank" rel="noopener">Carnaval em Itália 2027</a>: 8–9 fev.</li>
+        <li><a href="https://icalendrier.fr/vacances/paques" target="_blank" rel="noopener">Férias da Páscoa em França 2027</a>: zona C 3–19 abr., zona A 10–26 abr., zona B 17 abr.–3 mai. Páscoa a 28 mar.</li>
+        <li>Fecho das estâncias: <a href="https://guide-ski.fr/?p=274" target="_blank" rel="noopener">Val Thorens</a> · <a href="https://guide-ski.fr/?p=602" target="_blank" rel="noopener">Alpe d'Huez</a> · <a href="https://guide-ski.fr/?p=379" target="_blank" rel="noopener">Les 2 Alpes</a> · <a href="https://guide-ski.fr/?p=6821" target="_blank" rel="noopener">Avoriaz</a> · <a href="https://www.skiinfo.fr/tyrol/mayrhofen/forfaits-de-ski-saison.html" target="_blank" rel="noopener">Mayrhofen</a> · <a href="https://www.skiresort.com/en/ski-resort/via-lattea-sestriere-sauze-doulx-san-sicario-claviere-montgenevre/" target="_blank" rel="noopener">Via Lattea</a> · <a href="https://pixidia.com/?p=92203" target="_blank" rel="noopener">Grandvalira</a> · <a href="https://www.estiber.com/blog/cierre-de-estaciones-de-esqui-fechas/" target="_blank" rel="noopener">Espanha 2025/26</a> · <a href="https://www.schneehoehen.de/saisonkalender/oesterreich" target="_blank" rel="noopener">Áustria</a></li>
+        <li>Eventos: <a href="https://weraveyou.com/2026/09/tomorrowland-winter-2027-alpe-dhuez/" target="_blank" rel="noopener">Tomorrowland Winter</a> (Alpe d'Huez, 20–27 mar.) · <a href="https://a.storyblok.com/f/303949/x/0a94fc1e2d/zillertal_pressetext_winter-26-27.pdf" target="_blank" rel="noopener">Snowbombing</a> (Mayrhofen, 5–10 abr.)</li>
+      </ul>
+      <h3 style="margin-top:16px">Fontes de preços</h3>
+      <ul>
+        <li><a href="https://www.schneehoehen.de/skigebiete/preise/mayrhofen" target="_blank" rel="noopener">Zillertaler Superskipass 2026/27</a> · <a href="https://guide-ski.fr/?p=626" target="_blank" rel="noopener">Val Thorens</a> · <a href="https://guide-ski.fr/?p=682" target="_blank" rel="noopener">Alpe d'Huez</a> · <a href="https://www.estiber.com/blog/?p=10154" target="_blank" rel="noopener">Grandvalira</a> · <a href="https://www.schneehoehen.de/skigebiete/preise/chatel" target="_blank" rel="noopener">Portes du Soleil</a> · <a href="https://www.kitzbueheler-alpen.com/de/kam/wi/ski/preise.html" target="_blank" rel="noopener">SkiWelt</a> · <a href="https://guide-ski.fr/?p=379" target="_blank" rel="noopener">Les 2 Alpes</a> · <a href="https://www.schneehoehen.de/skigebiete/preise/sestriere-via-lattea" target="_blank" rel="noopener">Via Lattea</a> · <a href="https://web.sierranevada.es/en/invierno/forfaits/compra-presencial/tarifas-compra-presencial/" target="_blank" rel="noopener">Sierra Nevada</a> · <a href="https://www.nevasport.com/noticias/art/69396/baqueira-supera-la-barrera-de-los-70-euros-por-su-forfait-de-esqui/" target="_blank" rel="noopener">Baqueira (2025/26)</a></li>
+        <li><a href="https://www.manawa.com/de-DE/aktivitat/osterreich/mayrhofen/skiverleih/skiverleih-in-mayrhofen-osterreich/16905" target="_blank" rel="noopener">Aluguer de material em Mayrhofen</a></li>
+        <li><a href="https://airportstaxitransfers.com/transportation/taxibookings/Transfer-from-Chambery-Airport-to-Val-Thorens" target="_blank" rel="noopener">Transfer Chambéry–Val Thorens</a> · <a href="https://www.alps2alps.com/geneva-airport/geneva-to-morzine-transfer/" target="_blank" rel="noopener">Genebra–Morzine</a> · <a href="https://en.satoorday.com/tickets-dolomites-flyski-shuttle-from-passo-del-tonale-to-bergamo-airport" target="_blank" rel="noopener">Bérgamo–Tonale</a> · <a href="https://www.rome2rio.com/s/L-Hospitalet-pr%C3%A8s-l-Andorre/Toulouse-Airport-TLS" target="_blank" rel="noopener">Toulouse–Pas de la Casa</a></li>
+        <li><a href="https://parkto.fr/villes/val-thorens" target="_blank" rel="noopener">Estacionamento em Val Thorens</a></li>
+        <li>Aulas de grupo: <a href="https://www.checkyeti.com/fr/winter/france/val-thorens/cours-de-ski-pour-debutants" target="_blank" rel="noopener">Val Thorens</a> · <a href="https://www.checkyeti.com/de/winter/oesterreich/mayrhofen/zertifizierte-skischulen-skilehrer" target="_blank" rel="noopener">Mayrhofen</a> · <a href="https://evolution2.com/en/avoriaz/adult-ski-group-lessons" target="_blank" rel="noopener">Avoriaz</a> · <a href="https://www.estiber.com/blog/clases-de-esqui-en-grandvalira/" target="_blank" rel="noopener">Grandvalira</a> · <a href="https://freedome.it/attivita/corso-sci-gruppo-adulti-passo-tonale/" target="_blank" rel="noopener">Passo Tonale</a> · <a href="https://www.checkyeti.com/de/winter/oesterreich/soell/erwachsenen-skikurse" target="_blank" rel="noopener">Söll</a> · <a href="https://freedome.it/attivita/corso-collettivo-sci-adulti-sauze-oulx/" target="_blank" rel="noopener">Sauze d'Oulx</a> · <a href="https://www.checkyeti.com/es/p/1318/escuela-espanola-de-esqui-y-snowboard-sierra-nevada" target="_blank" rel="noopener">Sierra Nevada</a> · <a href="https://www.checkyeti.com/es/winter/espana/baqueira-beret/clases-de-esqui" target="_blank" rel="noopener">Baqueira</a></li>
+        <li>Voos e transfers: <a href="https://www.flightconnections.com/flights-from-opo-to-fmm" target="_blank" rel="noopener">Porto–Memmingen</a> · <a href="https://www.momondo.pt/voos/porto/turim" target="_blank" rel="noopener">Porto–Turim</a> · <a href="https://www.omio.com.br/voos/porto/sevilha-plzwf" target="_blank" rel="noopener">Porto–Sevilha</a> · <a href="https://www.ski-lifts.com/?p=5425" target="_blank" rel="noopener">Turim–Sauze</a> · <a href="https://www.granadadirect.com/sierra-nevada/como-llegar/" target="_blank" rel="noopener">Granada–Sierra Nevada</a></li>
+      </ul>
+    </section>
+  </div>
+  <p class="foot">Estimativas recolhidas a 29 de outubro de 2026. Confirmem voos e alojamento com datas reais antes de reservar.</p>
+</div>
+
+<script>
+// Base values = a "normal demand" week. flight, pass, rent per person; car, transfer, stay are group totals for 4.
+var BASE = [
+  {id:"mayr", name:"Mayrhofen", country:"Áustria", air:"Munique (MUC)", time:"~2h", km:197, mins:120, alt:"630–3250 m", apres:5, mkt:"atmayr",
+   flight:230, car:380, transfer:550, stay:950, pass4:305.5, pass5:372.5, rent4:120, rent5:135, lesson:60, close:"2027-04-11", spring:"good"},
+  {id:"mayr-fmm", name:"Mayrhofen", country:"Áustria", air:"Memmingen (FMM)", time:"~3h", km:268, mins:180, alt:"630–3250 m", apres:5, mkt:"atmayr",
+   flight:110, car:420, transfer:650, stay:950, pass4:305.5, pass5:372.5, rent4:120, rent5:135, lesson:60, close:"2027-04-11", spring:"good", flag:"Voo Ryanair por confirmar no inverno"},
+  {id:"skiw", name:"SkiWelt (Söll)", country:"Áustria", air:"Munique (MUC)", time:"~1h30", km:130, mins:90, alt:"620–1957 m", apres:5, mkt:"at",
+   flight:230, car:360, transfer:480, stay:750, pass4:300, pass5:360.5, rent4:110, rent5:125, lesson:70, close:"2027-04-05", closeEst:true, spring:"poor"},
+  {id:"skiw-fmm", name:"SkiWelt (Söll)", country:"Áustria", air:"Memmingen (FMM)", time:"~2h45", km:235, mins:165, alt:"620–1957 m", apres:5, mkt:"at",
+   flight:110, car:400, transfer:600, stay:750, pass4:300, pass5:360.5, rent4:110, rent5:125, lesson:70, close:"2027-04-05", closeEst:true, spring:"poor", flag:"Voo Ryanair por confirmar no inverno"},
+  {id:"alpe", name:"Alpe d'Huez", country:"França", air:"Lyon (LYS)", time:"~2h", km:150, mins:120, alt:"1860–3330 m", apres:4, mkt:"fralpe",
+   flight:150, car:450, transfer:500, stay:850, pass4:250, pass5:295, rent4:110, rent5:125, passEst:true, lesson:45, close:"2027-04-25", spring:"ok"},
+  {id:"l2a-lys", name:"Les 2 Alpes", country:"França", air:"Lyon (LYS)", time:"~2h15", km:165, mins:135, alt:"1650–3600 m", apres:5, mkt:"fruk",
+   flight:150, car:470, transfer:440, stay:800, pass4:250, pass5:295, rent4:110, rent5:125, passEst:true, lesson:45, close:"2027-05-02", spring:"good"},
+  {id:"l2a-cmf", name:"Les 2 Alpes", country:"França", air:"Chambéry (CMF)", time:"~2h", km:140, mins:120, alt:"1650–3600 m", apres:5, mkt:"fruk",
+   flight:180, car:440, transfer:650, stay:800, pass4:250, pass5:295, rent4:110, rent5:125, passEst:true, lesson:45, close:"2027-05-02", spring:"good", flag:"Voo por confirmar"},
+  {id:"l2a-trn", name:"Les 2 Alpes", country:"França", air:"Turim (TRN)", time:"~2h45", km:165, mins:165, alt:"1650–3600 m", apres:5, mkt:"fruk",
+   flight:110, car:480, transfer:700, stay:800, pass4:250, pass5:295, rent4:110, rent5:125, passEst:true, lesson:45, close:"2027-05-02", spring:"good", flag:"Poucos voos no inverno"},
+  {id:"morz", name:"Morzine / Avoriaz", country:"França", air:"Genebra (GVA)", time:"~1h30", km:80, mins:90, alt:"1000–2466 m", apres:4, mkt:"fruk",
+   flight:160, car:380, transfer:240, stay:1000, pass4:310, pass5:390, rent4:110, rent5:125, lesson:48, close:"2027-04-18", spring:"ok"},
+  {id:"vt-cmf", name:"Val Thorens", country:"França", air:"Chambéry (CMF)", time:"~1h45", km:122, mins:105, alt:"2300–3230 m", apres:5, mkt:"fruk",
+   flight:180, car:445, transfer:750, stay:1250, pass4:294, pass5:367.5, rent4:120, rent5:135, lesson:45, close:"2027-05-02", spring:"good", flag:"Voo por confirmar"},
+  {id:"vt-lys", name:"Val Thorens", country:"França", air:"Lyon (LYS)", time:"~2h30", km:199, mins:150, alt:"2300–3230 m", apres:5, mkt:"fruk",
+   flight:150, car:515, transfer:420, stay:1250, pass4:294, pass5:367.5, rent4:120, rent5:135, lesson:45, close:"2027-05-02", spring:"good"},
+  {id:"vt-gva", name:"Val Thorens", country:"França", air:"Genebra (GVA)", time:"~2h40", km:202, mins:160, alt:"2300–3230 m", apres:5, mkt:"fruk",
+   flight:160, car:505, transfer:400, stay:1250, pass4:294, pass5:367.5, rent4:120, rent5:135, lesson:45, close:"2027-05-02", spring:"good"},
+  {id:"sau-trn", name:"Sauze d'Oulx", country:"Itália", air:"Turim (TRN)", time:"~1h30", km:97, mins:90, alt:"1509–2823 m", apres:4, mkt:"ituk",
+   flight:110, car:270, transfer:320, stay:600, pass4:226.5, pass5:275, rent4:85, rent5:100, lesson:40, close:"2027-04-18", spring:"ok", flag:"Poucos voos no inverno"},
+  {id:"sau-bgy", name:"Sauze d'Oulx", country:"Itália", air:"Bérgamo (BGY)", time:"~3h", km:260, mins:180, alt:"1509–2823 m", apres:4, mkt:"ituk",
+   flight:100, car:330, transfer:650, stay:600, pass4:226.5, pass5:275, rent4:85, rent5:100, lesson:40, close:"2027-04-18", spring:"ok"},
+  {id:"sau-lys", name:"Sauze d'Oulx", country:"Itália", air:"Lyon (LYS)", time:"~2h45", km:230, mins:165, alt:"1509–2823 m", apres:4, mkt:"ituk",
+   flight:150, car:460, transfer:800, stay:600, pass4:226.5, pass5:275, rent4:85, rent5:100, lesson:40, close:"2027-04-18", spring:"ok", flag:"Portagem do túnel do Fréjus"},
+  {id:"ton", name:"Passo Tonale", country:"Itália", air:"Bérgamo (BGY)", time:"~2h30", km:126, mins:150, alt:"1121–3016 m", apres:2, mkt:"it",
+   flight:100, car:290, transfer:370, stay:650, pass4:210, pass5:255, rent4:90, rent5:105, passEst:true, dynPass:true, lesson:32, close:"2027-05-02", spring:"good"},
+  {id:"pas-tls", name:"Pas de la Casa", country:"Andorra", air:"Toulouse (TLS)", time:"~2h35", km:176, mins:155, alt:"2100–2640 m", apres:5, mkt:"ad",
+   flight:110, car:320, transfer:270, stay:650, pass4:278, pass5:330, rent4:95, rent5:110, lesson:33, close:"2027-04-04", spring:"ok"},
+  {id:"pas-bcn", name:"Pas de la Casa", country:"Andorra", air:"Barcelona (BCN)", time:"~3h", km:200, mins:180, alt:"2100–2640 m", apres:5, mkt:"ad",
+   flight:110, car:340, transfer:280, stay:650, pass4:278, pass5:330, rent4:95, rent5:110, lesson:33, close:"2027-04-04", spring:"ok"},
+  {id:"sol-tls", name:"Soldeu", country:"Andorra", air:"Toulouse (TLS)", time:"~2h45", km:185, mins:165, alt:"1710–2640 m", apres:4, mkt:"aduk",
+   flight:110, car:320, transfer:280, stay:800, pass4:278, pass5:330, rent4:95, rent5:110, lesson:33, close:"2027-04-04", spring:"ok"},
+  {id:"sol-bcn", name:"Soldeu", country:"Andorra", air:"Barcelona (BCN)", time:"~3h", km:200, mins:180, alt:"1710–2640 m", apres:4, mkt:"aduk",
+   flight:110, car:340, transfer:280, stay:800, pass4:278, pass5:330, rent4:95, rent5:110, lesson:33, close:"2027-04-04", spring:"ok"},
+  {id:"baq-tls", name:"Baqueira", country:"Espanha", air:"Toulouse (TLS)", time:"~2h30", km:170, mins:150, alt:"1500–2610 m", apres:3, mkt:"esb",
+   flight:110, car:310, transfer:900, stay:1100, pass4:265, pass5:310, rent4:110, rent5:125, passEst:true, lesson:70, close:"2027-04-05", closeEst:true, spring:"ok"},
+  {id:"baq-bcn", name:"Baqueira", country:"Espanha", air:"Barcelona (BCN)", time:"~3h45", km:330, mins:225, alt:"1500–2610 m", apres:3, mkt:"esb",
+   flight:110, car:320, transfer:300, stay:1100, pass4:265, pass5:310, rent4:110, rent5:125, passEst:true, lesson:70, close:"2027-04-05", closeEst:true, spring:"ok"},
+  {id:"sn-agp", name:"Sierra Nevada", country:"Espanha", air:"Málaga (AGP)", time:"~2h", km:180, mins:120, alt:"2100–3300 m", apres:3, mkt:"es",
+   flight:100, car:270, transfer:160, stay:700, pass4:211, pass5:256.5, rent4:90, rent5:105, passEst:true, lesson:40, close:"2027-05-02", closeEst:true, spring:"ok"},
+  {id:"sn-svq", name:"Sierra Nevada", country:"Espanha", air:"Sevilha (SVQ)", time:"~3h", km:300, mins:180, alt:"2100–3300 m", apres:3, mkt:"es",
+   flight:100, car:300, transfer:240, stay:700, pass4:211, pass5:256.5, rent4:90, rent5:105, passEst:true, lesson:40, close:"2027-05-02", closeEst:true, spring:"ok"}
+];
+
+// Weeks anchored on the Saturday of the weekend inside the stay.
+var WEEKS = [
+  {sat:"2027-01-23"},{sat:"2027-01-30"},{sat:"2027-02-06"},{sat:"2027-02-13"},
+  {sat:"2027-02-20"},{sat:"2027-02-27"},{sat:"2027-03-06"},{sat:"2027-03-13"},
+  {sat:"2027-03-20"},{sat:"2027-03-27"},{sat:"2027-04-03"},{sat:"2027-04-10"}
+];
+// Demand level per market per week (0 baixa, 1 normal, 2 alta, 3 pico), from 2027 school holiday calendars.
+var DEMAND = {
+  fr:    [0,0,2,3,3,2,1,0, 0,1,2,2],   // FR zonas C 6–22 fev, A 13 fev–1 mar, B 20 fev–8 mar; Páscoa: C 3–19 abr, A 10–26 abr
+  fralpe:[0,0,2,3,3,2,1,0, 3,2,2,2],   // Alpe d'Huez: + Tomorrowland Winter 20–27 mar
+  fruk:  [0,0,2,3,3,2,1,0, 0,1,2,2],   // + half-term e Páscoa britânicos
+  at:    [0,1,2,3,2,1,0,0, 0,2,1,1],   // Viena 1–6, Baviera 8–12, Tirol 15–20 fev; Páscoa 28 mar
+  atmayr:[0,1,2,3,2,1,0,0, 0,2,3,2],   // Mayrhofen: + Snowbombing 5–10 abr
+  ad:    [0,0,2,2,2,1,1,0, 1,3,1,1],   // FR + Carnaval 9 fev; Semana Santa 22–29 mar
+  aduk:  [0,0,2,3,2,1,1,0, 1,3,2,1],   // + britânicos (Soldeu)
+  ituk:  [0,0,2,3,1,1,0,0, 0,2,2,1],   // Carnaval + britânicos (Sauze); Páscoa
+  es:    [0,0,1,1,1,2,1,0, 1,3,1,0],   // fins de semana; Dia da Andaluzia 28 fev; Semana Santa
+  esb:   [0,0,1,2,2,2,1,0, 1,3,1,1],   // pontes espanholas + férias francesas; Semana Santa
+  it:    [0,0,2,1,1,1,0,0, 0,2,1,0]    // Carnaval 8–9 fev; Páscoa
+};
+var WHY = [
+  "Sem férias escolares nos principais mercados. Semana tranquila e barata.",
+  "Férias em Viena e na Baixa Áustria (1–6 fev.). Restantes destinos calmos.",
+  "Começam as férias da zona C francesa (Paris, 6 fev.), Faschingsferien na Baviera e Carnaval (9 fev.).",
+  "Semana de pico: zonas C e A francesas, half-term britânico e férias no Tirol e Salzburgo.",
+  "Ainda pico: zonas A e B francesas e fim da zona C (22 fev.).",
+  "Zona B francesa ainda de férias, zona A volta a 1 mar. Dia da Andaluzia (28 fev.) enche Sierra Nevada.",
+  "Últimos dias da zona B francesa (volta a 8 mar.). Fim de época alta.",
+  "Fora das férias escolares. Boa neve em altitude e preços mais baixos.",
+  "Fora das férias escolares, exceto em Alpe d'Huez: o Tomorrowland Winter (20–27 mar.) esgota a estância. Neve de primavera nas estâncias baixas.",
+  "Semana Santa: a Sexta-feira Santa (26 mar.) é feriado em Portugal e poupa um dia de férias. Pico em Espanha, Andorra e Itália; Alpes moderados.",
+  "Férias da Páscoa da zona C francesa (desde 3 abr.) e britânicas. Grandvalira fecha a 4 abr. Snowbombing em Mayrhofen de 5 a 10 abr.",
+  "Zonas C e A francesas de férias. Mayrhofen fecha a 11 abr. Só as estâncias altas têm boa neve até abaixo."
+];
+var MULT = {
+  stay:[0.9,1,1.3,1.6], flight:[0.9,1,1.2,1.35], ground:[1,1,1.1,1.2], dynPass:[0.95,1,1.05,1.1]
+};
+var PATTERNS = { wed:{from:-3,to:2,label:"Qua → Seg"}, thu:{from:-2,to:3,label:"Qui → Ter"}, fri:{from:-1,to:4,label:"Sex → Qua"} };
+var MONTHS = ["jan.","fev.","mar.","abr.","mai."];
+var WDAYS = ["dom","seg","ter","qua","qui","sex","sáb"];
+var LEVELS = ["Procura baixa","Procura normal","Procura alta","Pico"];
+var FOOD_DAYS = 6;
+var FIELDS = ["flight","car","transfer","stay","pass4","pass5","rent4","rent5","lesson"];
+
+var state = {pattern:"thu", week:0, days:4, ground:"car", limit:false, food:40, beg:3, dest:[], edits:{}};
+try { var saved = JSON.parse(localStorage.getItem("neve-sim-v5") || "null"); if (saved) state = Object.assign(state, saved); } catch(e){}
+function save(){ try { localStorage.setItem("neve-sim-v5", JSON.stringify(state)); } catch(e){} }
+
+function addDays(iso, n){ var p = iso.split("-"); var d = new Date(Date.UTC(+p[0], +p[1]-1, +p[2] + n)); return d; }
+function fmt(d){ return d.getUTCDate() + " " + MONTHS[d.getUTCMonth()]; }
+function range(w){
+  var p = PATTERNS[state.pattern];
+  var a = addDays(WEEKS[w].sat, p.from), b = addDays(WEEKS[w].sat, p.to);
+  return {a:a, b:b, text: WDAYS[a.getUTCDay()] + " " + fmt(a) + " → " + WDAYS[b.getUTCDay()] + " " + fmt(b)};
+}
+function closeDate(d){ var p = d.close.split("-"); return Date.UTC(+p[0], +p[1]-1, +p[2]); }
+function isClosed(d, w){ return range(w).b.getTime() > closeDate(d); }
+function closeTxt(d){ var p = d.close.split("-"); return +p[2] + " " + MONTHS[+p[1]-1] + (d.closeEst ? " (estimado)" : ""); }
+function late(w){ return w >= 8; }
+var HOLIDAYS = [Date.UTC(2027,2,26)]; // Sexta-feira Santa
+function leaveDays(w){
+  var r = range(w), n = 0;
+  for (var t = r.a.getTime(); t <= r.b.getTime(); t += 864e5){ var wd = new Date(t).getUTCDay(); if (wd > 0 && wd < 6 && HOLIDAYS.indexOf(t) < 0) n++; }
+  return n;
+}
+function carnaval(w){ var r = range(w); var c = Date.UTC(2027,1,9); return r.a.getTime() <= c && r.b.getTime() >= c; }
+function level(d, w){ return DEMAND[d.mkt][w]; }
+function weekLevel(w){ var m = 0; Object.keys(DEMAND).forEach(function(k){ m = Math.max(m, DEMAND[k][w]); }); return m; }
+
+function baseVal(d, f, w){
+  var L = level(d, w), v = d[f];
+  if (f === "stay") return v * MULT.stay[L];
+  if (f === "flight") return v * MULT.flight[L];
+  if (f === "car" || f === "transfer") return v * MULT.ground[L];
+  if (d.dynPass && (f === "pass4" || f === "pass5")) return v * MULT.dynPass[L];
+  return v;
+}
+function edited(d, f, w){ var e = state.edits[d.id + "@" + w]; return e && e[f] != null ? e[f] : null; }
+function val(d, f, w){ var e = edited(d, f, w); return e != null ? e : Math.round(baseVal(d, f, w)); }
+function euro(n){ return Math.round(n).toLocaleString("pt-PT") + " €"; }
+
+function calc(d, w){
+  var g = state.ground === "car" ? val(d,"car",w) : val(d,"transfer",w);
+  var parts = { flight: val(d,"flight",w), ground: g/4, stay: val(d,"stay",w)/4, pass: val(d,"pass"+state.days,w), rent: val(d,"rent"+state.days,w), food: (+state.food || 0) * FOOD_DAYS, lesson: val(d,"lesson",w) * state.days * (+state.beg || 0) / 4 };
+  var pp = parts.flight + parts.ground + parts.stay + parts.pass + parts.rent + parts.food + parts.lesson;
+  return {parts:parts, pp:pp, group:pp*4, stayTotal: val(d,"stay",w)};
+}
+function rkey(name){ return name.split(" (")[0].trim(); }
+var RESORTS = []; BASE.forEach(function(d){ var k = rkey(d.name); if (RESORTS.indexOf(k) < 0) RESORTS.push(k); });
+function picked(d){ return !state.dest || !state.dest.length || state.dest.indexOf(rkey(d.name)) >= 0; }
+function visible(){ return BASE.filter(function(d){ return (!state.limit || d.mins <= 125) && picked(d); }); }
+function renderDests(){
+  var sel = state.dest || [];
+  document.getElementById("dests").innerHTML = '<button type="button" class="chip all" data-r="" aria-pressed="' + (!sel.length) + '">Todos</button>' +
+    RESORTS.map(function(r){
+      var n = BASE.filter(function(d){ return rkey(d.name) === r; }).length;
+      return '<button type="button" class="chip" data-r="' + r + '" aria-pressed="' + (sel.indexOf(r) >= 0) + '">' + r + (n > 1 ? ' <small>' + n + ' aeroportos</small>' : '') + '</button>';
+    }).join("");
+  document.getElementById("destcount").textContent = sel.length ? "· " + sel.length + " de " + RESORTS.length + " escolhidos" : "· todos";
+  document.querySelectorAll(".cmp tbody tr").forEach(function(tr){
+    var k = rkey(tr.cells[0].querySelector("b").textContent);
+    tr.hidden = !!sel.length && sel.indexOf(k) < 0;
+  });
+}
+
+function pills(d, c, w){
+  var h = "", L = level(d, w);
+  h += d.mins <= 125 ? '<span class="pill p-ok">Transfer ≤ 2h</span>' : '<span class="pill ' + (d.mins <= 165 ? "p-warn" : "p-bad") + '">Transfer ' + d.time.replace("~","") + '</span>';
+  h += c.stayTotal <= 1500 ? '<span class="pill p-ok">Alojamento ≤ 1500 €</span>' : '<span class="pill p-bad">Alojamento ' + euro(c.stayTotal) + '</span>';
+  h += '<span class="pill ' + ["p-ok","p-neutral","p-warn","p-bad"][L] + '">' + LEVELS[L] + '</span>';
+  h += '<span class="pill p-neutral">Après ' + "★".repeat(d.apres) + "☆".repeat(5 - d.apres) + '</span>';
+  if (late(w) && d.spring !== "good") h += '<span class="pill ' + (d.spring === "poor" ? "p-bad" : "p-warn") + '">Neve de primavera ' + (d.spring === "poor" ? "fraca" : "incerta") + '</span>';
+  if (d.flag) h += '<span class="pill p-warn">' + d.flag + '</span>';
+  return h;
+}
+
+function renderWeeks(){
+  document.getElementById("weeks").innerHTML = WEEKS.map(function(wk, i){
+    var r = range(i), L = weekLevel(i), ld = leaveDays(i);
+    var shut = BASE.filter(function(d){ return isClosed(d, i); }).length;
+    return '<button type="button" class="wk" data-w="' + i + '" aria-pressed="' + (i === state.week) + '">' +
+      '<b>' + fmt(r.a) + ' – ' + fmt(r.b) + '</b><small>' + WDAYS[r.a.getUTCDay()] + ' → ' + WDAYS[r.b.getUTCDay()] + ' · ' + ld + (carnaval(i) ? '*' : '') + ' dias de férias' + '</small>' +
+      (shut ? '<small class="shut">' + shut + ' opções fechadas</small>' : '') +
+      '<div class="lvl l' + L + '" aria-label="' + LEVELS[L] + '"><i></i><i></i><i></i><i></i></div></button>';
+  }).join("");
+  var r = range(state.week), L = weekLevel(state.week);
+  document.getElementById("weekinfo").innerHTML = '<b>' + r.text + ' 2027 · ' + LEVELS[L] + '</b><span class="foot">' + WHY[state.week] +
+    (carnaval(state.week) ? ' A estadia inclui a terça de Carnaval (9 fev.), que costuma ser tolerância de ponto em Portugal: podem precisar só de 3 dias de férias.' : '') +
+    (leaveDays(state.week) < 4 ? ' Com o feriado, esta estadia gasta só ' + leaveDays(state.week) + ' dias de férias.' : '') + '</span>';
+}
+
+function renderHeat(){
+  var rows = visible();
+  var all = [];
+  rows.forEach(function(d){ WEEKS.forEach(function(_, w){ if (!isClosed(d, w)) all.push(calc(d, w).pp); }); });
+  var mn = Math.min.apply(null, all), mx = Math.max.apply(null, all);
+  function bucket(v){ if (mx === mn) return 0; var t = (v - mn) / (mx - mn); return t < .25 ? 0 : t < .5 ? 1 : t < .75 ? 2 : 3; }
+  document.getElementById("heathead").innerHTML = '<tr><th>' + sortBtn("Destino") + '</th>' + WEEKS.map(function(_, w){
+    var r = range(w); return '<th class="' + (w === state.week ? "sel" : "") + '" style="text-align:center">' + sortBtn(fmt(r.a) + '<br>' + fmt(r.b)) + '</th>'; }).join("") + '</tr>';
+  document.getElementById("heatbody").innerHTML = rows.map(function(d){
+    var vals = WEEKS.map(function(_, w){ return isClosed(d, w) ? null : calc(d, w).pp; });
+    var open = vals.filter(function(v){ return v != null; });
+    var best = open.length ? vals.indexOf(Math.min.apply(null, open)) : -1;
+    return '<tr><td class="dest" data-v="' + d.name + ' ' + d.air + '"><b>' + d.name + '</b><small>' + d.air + ' · ' + d.km + ' km</small></td>' + vals.map(function(v, w){
+      if (v == null) return '<td class="cell closed' + (w === state.week ? " selcol" : "") + '" tabindex="0" data-w="' + w + '" data-v="closed" title="' + d.name + ' fecha a ' + closeTxt(d) + '">Fechada</td>';
+      return '<td class="cell h' + bucket(v) + (w === best ? " best" : "") + (w === state.week ? " selcol" : "") + (late(w) && d.spring === "poor" ? " thin" : "") + '" tabindex="0" data-w="' + w + '" data-v="' + v.toFixed(2) + '" title="' + d.name + ' via ' + d.air + ', ' + range(w).text + ': ' + euro(v) + ' por pessoa">' + euro(v) + '</td>';
+    }).join("") + '</tr>';
+  }).join("");
+  applySort("heat");
+}
+
+function renderRank(){
+  var w = state.week;
+  document.getElementById("rankTitle").textContent = "Ranking · " + range(w).text;
+  var shut = visible().filter(function(d){ return isClosed(d, w); });
+  var rows = visible().filter(function(d){ return !isClosed(d, w); }).map(function(d){ return {d:d, c:calc(d, w)}; }).sort(function(a, b){ return a.c.pp - b.c.pp; });
+  var max = Math.max.apply(null, rows.map(function(r){ return r.c.pp; }).concat([1]));
+  var colors = {flight:"var(--c-flight)", ground:"var(--c-ground)", stay:"var(--c-stay)", pass:"var(--c-pass)", rent:"var(--c-rent)", food:"var(--c-food)", lesson:"var(--c-lesson)"};
+  var labels = {flight:"Voo", ground: state.ground === "car" ? "Carro" : "Transfer", stay:"Alojamento", pass:"Forfait", rent:"Material", food:"Alimentação", lesson:"Aulas (média do grupo)"};
+  document.getElementById("rank").innerHTML = rows.map(function(r){
+    var segs = Object.keys(r.c.parts).map(function(k){
+      var v = r.c.parts[k];
+      return '<span title="' + labels[k] + ': ' + euro(v) + '" style="width:' + (v / max * 100).toFixed(2) + '%;background:' + colors[k] + '"></span>';
+    }).join("");
+    return '<div class="row"><div class="who"><b>' + r.d.name + '</b><small>via ' + r.d.air + ' · ' + r.d.km + ' km · ' + r.d.time.replace("~","") + ' · ' + r.d.alt + '</small><div class="tags">' + pills(r.d, r.c, w) + '</div></div>' +
+      '<div class="bar" role="img" aria-label="' + r.d.name + ' via ' + r.d.air + ': ' + euro(r.c.pp) + ' por pessoa">' + segs + '</div>' +
+      '<div class="tot num"><b>' + euro(r.c.pp) + '</b><small>' + euro(r.c.group) + ' grupo</small></div></div>';
+  }).join("") || '<p class="foot">Nenhum destino cumpre o filtro.</p>';
+  if (shut.length) document.getElementById("rank").insertAdjacentHTML("beforeend", '<p class="foot" style="padding-top:10px">Fechadas nesta semana: ' + shut.map(function(d){ return d.name + ' via ' + d.air + ' (fecha a ' + closeTxt(d) + ')'; }).join(", ") + '.</p>');
+}
+
+function renderTable(){
+  var w = state.week;
+  document.getElementById("tbody").innerHTML = BASE.filter(picked).map(function(d){
+    var c = calc(d, w);
+    function inp(f){
+      var isEd = edited(d, f, w) != null;
+      return '<input type="number" min="0" step="5" id="in-' + d.id + '-' + f + '" data-id="' + d.id + '" data-f="' + f + '" value="' + val(d, f, w) + '"' + (isEd ? ' class="edited" title="Valor teu para esta semana"' : '') + ' aria-label="' + f + ' ' + d.name + ' ' + d.air + '">';
+    }
+    var pf = "pass" + state.days, rf = "rent" + state.days;
+    var shut = isClosed(d, w);
+    var dim = (state.limit && d.mins > 125) || shut ? ' class="dimrow"' : '';
+    return '<tr' + dim + '><td class="dest" data-v="' + d.name + ' ' + d.air + '"><b>' + d.name + '</b><small>' + d.country + ' · ' + d.air + (shut ? ' · <span style="color:var(--bad)">fechada (fecha a ' + closeTxt(d) + ')</span>' : '') + '</small></td><td data-v="' + d.km + '">' + d.time + '<br><small class="foot">' + d.km + ' km</small></td>' +
+      '<td class="r">' + inp("flight") + '</td><td class="r">' + inp("car") + '</td><td class="r">' + inp("transfer") + '</td><td class="r">' + inp("stay") + '</td>' +
+      '<td class="r">' + inp(pf) + (d.passEst ? '<br><small class="foot">estimado</small>' : '') + '</td><td class="r">' + inp(rf) + '</td>' +
+      '<td class="r num" data-v="' + c.parts.food + '">' + euro(c.parts.food) + '<br><small class="foot">' + (+state.food || 0) + ' € × ' + FOOD_DAYS + ' dias</small></td>' +
+      '<td class="r">' + inp("lesson") + '<br><small class="foot">' + euro(val(d,"lesson",w) * state.days * (+state.beg || 0)) + ' grupo</small></td>' +
+      '<td class="r num total" data-v="' + (shut ? "closed" : c.pp) + '">' + (shut ? "Fechada" : euro(c.pp)) + '</td><td class="r num" data-v="' + (shut ? "closed" : c.group) + '">' + (shut ? "–" : euro(c.group)) + '</td></tr>';
+  }).join("");
+  applySort("detail");
+}
+
+// ---- sorting for all tables
+var SORT_TABLES = { heat: ".heat", detail: ".detail", cmp: ".cmp" };
+state.sort = state.sort || {};
+function sortBtn(label){ return '<button type="button" class="sorth">' + label + '</button>'; }
+var WIND = {"Baixo":1, "Médio":2, "Alto":3};
+function cellVal(td){
+  if (!td) return "";
+  var v = td.getAttribute("data-v");
+  if (v === "closed") return null;
+  if (v != null && v !== "" && !isNaN(+v)) return +v;
+  if (v != null && v !== "") return v.toLowerCase();
+  var inp = td.querySelector("input"); if (inp) return +inp.value;
+  var stars = td.querySelector(".stars"); if (stars) return parseInt(stars.getAttribute("aria-label"), 10);
+  var risk = td.querySelector(".risk"); if (risk) return WIND[risk.textContent.trim()] || 0;
+  var t = td.textContent.replace(/−/g, "-").replace(/\s/g, " ").trim();
+  var m = t.match(/-?\d+([.,]\d+)?/);
+  if (m && t.indexOf(m[0]) < 4) return parseFloat(m[0].replace(",", "."));
+  return t.toLowerCase();
+}
+function applySort(key){
+  var table = document.querySelector(SORT_TABLES[key]); if (!table) return;
+  var ths = table.querySelectorAll("thead th");
+  ths.forEach(function(th, i){ th.setAttribute("aria-sort", "none"); });
+  var cfg = state.sort[key]; if (!cfg) return;
+  var th = ths[cfg.col]; if (!th) return;
+  th.setAttribute("aria-sort", cfg.dir > 0 ? "ascending" : "descending");
+  var tb = table.tBodies[0];
+  var rows = Array.prototype.slice.call(tb.rows);
+  rows.sort(function(a, b){
+    var x = cellVal(a.cells[cfg.col]), y = cellVal(b.cells[cfg.col]);
+    if (x === null && y === null) return 0; if (x === null) return 1; if (y === null) return -1;
+    if (typeof x === "number" && typeof y === "number") return (x - y) * cfg.dir;
+    return String(x).localeCompare(String(y), "pt") * cfg.dir;
+  });
+  rows.forEach(function(r){ tb.appendChild(r); });
+}
+function initSort(key){
+  var table = document.querySelector(SORT_TABLES[key]);
+  table.querySelector("thead").addEventListener("click", function(ev){
+    var b = ev.target.closest(".sorth"); if (!b) return;
+    var th = b.closest("th"); var col = Array.prototype.indexOf.call(th.parentNode.children, th);
+    var cur = state.sort[key];
+    state.sort[key] = {col: col, dir: cur && cur.col === col ? -cur.dir : 1};
+    save(); applySort(key);
+  });
+}
+function wrapHeaders(sel){
+  document.querySelectorAll(sel + " thead th").forEach(function(th){ if (!th.querySelector(".sorth")) th.innerHTML = sortBtn(th.innerHTML); });
+}
+
+function render(){
+  [["pattern", state.pattern], ["days", String(state.days)], ["ground", state.ground]].forEach(function(p){
+    document.querySelectorAll("#" + p[0] + " button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.v === p[1])); });
+  });
+  document.getElementById("limit").checked = state.limit;
+  document.getElementById("food").value = state.food;
+  document.getElementById("beg").value = state.beg;
+  renderDests(); renderWeeks(); renderHeat(); renderRank(); renderTable();
+}
+
+function seg(id, key, cast){ document.getElementById(id).addEventListener("click", function(ev){ var b = ev.target.closest("button"); if (!b || !b.dataset.v) return; state[key] = cast ? cast(b.dataset.v) : b.dataset.v; save(); render(); }); }
+seg("pattern", "pattern"); seg("days", "days", Number); seg("ground", "ground");
+document.getElementById("weeks").addEventListener("click", function(ev){ var b = ev.target.closest(".wk"); if (!b) return; state.week = +b.dataset.w; save(); render(); });
+function pickCell(ev){ var c = ev.target.closest("td.cell"); if (!c) return; state.week = +c.dataset.w; save(); render(); }
+document.getElementById("heatbody").addEventListener("click", pickCell);
+document.getElementById("heatbody").addEventListener("keydown", function(ev){ if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pickCell(ev); } });
+document.getElementById("limit").addEventListener("change", function(ev){ state.limit = ev.target.checked; save(); render(); });
+document.getElementById("food").addEventListener("input", function(ev){ var v = +ev.target.value; if (!isFinite(v) || v < 0) return; state.food = v; save(); renderHeat(); renderRank(); renderTable(); });
+document.getElementById("tbody").addEventListener("change", function(ev){
+  var t = ev.target; if (!t.dataset || !t.dataset.f) return;
+  var v = +t.value; if (!isFinite(v) || v < 0) return;
+  var k = t.dataset.id + "@" + state.week;
+  state.edits[k] = state.edits[k] || {};
+  state.edits[k][t.dataset.f] = v; save(); render();
+  var again = document.getElementById(t.id); if (again) again.focus();
+});
+document.getElementById("beg").addEventListener("input", function(ev){ var v = Math.round(+ev.target.value); if (!isFinite(v) || v < 0 || v > 4) return; state.beg = v; save(); renderHeat(); renderRank(); renderTable(); });
+document.getElementById("dests").addEventListener("click", function(ev){
+  var b = ev.target.closest(".chip"); if (!b) return;
+  var r = b.dataset.r, sel = (state.dest || []).slice();
+  if (!r) sel = []; else { var i = sel.indexOf(r); if (i >= 0) sel.splice(i, 1); else sel.push(r); }
+  state.dest = sel; save(); render();
+});
+document.getElementById("reset").addEventListener("click", function(){ state.edits = {}; state.food = 40; state.beg = 3; save(); render(); });
+wrapHeaders(".detail"); wrapHeaders(".cmp");
+initSort("heat"); initSort("detail"); initSort("cmp");
+render(); applySort("cmp");
+</script>
+
+</body></html>

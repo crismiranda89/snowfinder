@@ -1,0 +1,244 @@
+{
+ "generated": "2026-10-29T12:36:08+00:00",
+ "count": 10,
+ "listings": [
+  {
+   "id": "4ffbace1fa",
+   "resort": "pas-de-la-casa",
+   "url": "https://www.booking.com/hotel/ad/2-escales-confort.en-gb.html",
+   "title": "Duplex 2Escales by Confortsky",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-01-17",
+     "checkout": "2027-01-22",
+     "nights": 5,
+     "total": 1177
+    },
+    {
+     "checkin": "2027-03-07",
+     "checkout": "2027-03-12",
+     "nights": 5,
+     "total": 1177
+    }
+   ],
+   "rating": 7.9,
+   "toLiftM": 150,
+   "photo": "https://r-xx.bstatic.com/xdata/images/hotel/1200x630/690456623.jpg?k=c114783d4b87322035e135dec659691d4b0d223a24a4c1986856a534b2f15121&o=",
+   "addedBy": "cristiano",
+   "notes": "2 bathrooms, 4 real beds"
+  },
+  {
+   "id": "acfd3468db",
+   "resort": "pas-de-la-casa",
+   "url": "https://www.booking.com/hotel/ad/kione-sapporo.en-gb.html",
+   "title": "Kione Sapporo",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-07",
+     "checkout": "2027-03-12",
+     "nights": 5,
+     "total": 731
+    }
+   ],
+   "rating": 7.2,
+   "toLiftM": 40,
+   "photo": "https://r-xx.bstatic.com/xdata/images/hotel/1200x630/166213884.jpg?k=397cbccc3e96e9c1cf04743230066eefdda0fab17d105c39bec950dd38540147&o=",
+   "addedBy": "cristiano",
+   "notes": "2 separate units, ski-to-door"
+  },
+  {
+   "id": "95cd518bcd",
+   "resort": "pas-de-la-casa",
+   "url": "https://www.booking.com/hotel/ad/apartaments-turistics-manzano-pas-de-la-casa1.en-gb.html",
+   "title": "Natural Suites Manzano 3000",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-07",
+     "checkout": "2027-03-12",
+     "nights": 5,
+     "total": 882
+    }
+   ],
+   "rating": 7.2,
+   "toLiftM": 150,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/411713454.jpg?k=57f28995ab639a6bd39fe0e93e058c225ec4a19c86eff13196759ee842a84966&o=",
+   "addedBy": "cristiano",
+   "notes": "56 m², ski-to-door"
+  },
+  {
+   "id": "f0916b0626",
+   "resort": "pas-de-la-casa",
+   "url": "https://www.booking.com/hotel/ad/apartamentos-princesa-park-3000.en-gb.html",
+   "title": "Princesa Park 3000",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-01-24",
+     "checkout": "2027-01-29",
+     "nights": 5,
+     "total": 1460
+    },
+    {
+     "checkin": "2027-02-21",
+     "checkout": "2027-02-26",
+     "nights": 5,
+     "total": 2426
+    },
+    {
+     "checkin": "2027-03-07",
+     "checkout": "2027-03-12",
+     "nights": 5,
+     "total": 785
+    }
+   ],
+   "rating": 7.2,
+   "toLiftM": 250,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/926131328.jpg?k=a351c5b6bf544907bf6dd6c7861d28d456c51074fd1e1db1d755d5a5f231512b&o=",
+   "addedBy": "cristiano",
+   "notes": "48 m², ski-to-door"
+  },
+  {
+   "id": "d31e982f4c",
+   "resort": "pas-de-la-casa",
+   "url": "https://www.booking.com/hotel/ad/prober-chamoix.en-gb.html",
+   "title": "PROBER Chamoix penthouse",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-07",
+     "checkout": "2027-03-12",
+     "nights": 5,
+     "total": 2232
+    }
+   ],
+   "rating": 8.7,
+   "toLiftM": 40,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/176004313.jpg?k=b032759e4ec0eb0f4c71c422fe4548ef22b8bff50648ccc1d400e09d605be5cf&o=",
+   "addedBy": "cristiano",
+   "notes": "69 m², 2 bathrooms, ski-to-door; bedroom count not confirmed"
+  },
+  {
+   "id": "ae227d9224",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/apartamentos-superior-el-tarter.en-gb.html",
+   "title": "Apartaments Superior El Tarter",
+   "source": "booking",
+   "bedrooms": 5,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-03",
+     "checkout": "2027-03-08",
+     "nights": 5,
+     "total": 3932
+    }
+   ],
+   "rating": null,
+   "toLiftM": 200,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/604623855.jpg?k=c266614e0305fe691670a9f180390701da8481b67c87776f1ee19477260af9cf&o=",
+   "addedBy": "cristiano",
+   "notes": "El Tarter; 2 adjoining apartments"
+  },
+  {
+   "id": "d842ae5f1f",
+   "resort": "soldeu",
+   "url": "https://www.estiber.com/en_US/apartment/la-pleta-del-tarter-apartments-el-tarter",
+   "title": "La Pleta del Tarter",
+   "source": "estiber.com",
+   "bedrooms": 5,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-03",
+     "checkout": "2027-03-08",
+     "nights": 5,
+     "total": 4323
+    }
+   ],
+   "rating": null,
+   "toLiftM": 200,
+   "photo": "https://www.estiber.com/v4/hotels/images/apt-big-1993_1.jpg",
+   "addedBy": "cristiano",
+   "notes": "El Tarter"
+  },
+  {
+   "id": "5b8314676c",
+   "resort": "soldeu",
+   "url": "https://www.airbnb.com/rooms/776648113915565528",
+   "title": "S Valle de Incles – Grandvalira",
+   "source": "airbnb",
+   "bedrooms": 2,
+   "sleeps": 6,
+   "quotes": [
+    {
+     "checkin": "2027-03-07",
+     "checkout": "2027-03-12",
+     "nights": 5,
+     "total": 1169
+    }
+   ],
+   "rating": 9.9,
+   "toLiftM": null,
+   "photo": "https://a0.muscache.com/im/pictures/miso/Hosting-776648113915565528/original/d1befcab-9592-4e24-92ec-8bc41bfda62a.jpeg?im_w=720",
+   "addedBy": "cristiano",
+   "notes": "Free parking; Incles valley, drive to the lifts"
+  },
+  {
+   "id": "96f38aa158",
+   "resort": "soldeu",
+   "url": "https://www.airbnb.com/rooms/39173169",
+   "title": "Spacious Stay w/ Views & Parking",
+   "source": "airbnb",
+   "bedrooms": 5,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-03",
+     "checkout": "2027-03-08",
+     "nights": 5,
+     "total": 3443
+    }
+   ],
+   "rating": 9.7,
+   "toLiftM": 900,
+   "photo": "https://a0.muscache.com/im/pictures/hosting/Hosting-39173169/original/22b7ff69-7fec-4305-88a0-c7e633a44ee4.png?im_w=720",
+   "addedBy": "cristiano",
+   "notes": "About a 12-minute walk to the lifts"
+  },
+  {
+   "id": "671e019590",
+   "resort": "soldeu",
+   "url": "https://www.estiber.com/en_US/apartment/tarter-chalets-apartaments-el-tarter",
+   "title": "Tarter Chalets",
+   "source": "estiber.com",
+   "bedrooms": 4,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-03",
+     "checkout": "2027-03-08",
+     "nights": 5,
+     "total": 4560
+    }
+   ],
+   "rating": null,
+   "toLiftM": 250,
+   "photo": "https://www.estiber.com/v4/hotels/images/apt-big-2257_1.jpg",
+   "addedBy": "cristiano",
+   "notes": "El Tarter"
+  }
+ ]
+}

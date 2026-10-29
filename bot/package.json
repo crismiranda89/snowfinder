@@ -1,0 +1,16 @@
+{
+  "name": "snowfinder-bot",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy",
+    "db:init": "wrangler d1 execute snowfinder-bot --remote --file=schema.sql"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^6.0.3",
+    "wrangler": "^4.40.0"
+  }
+}

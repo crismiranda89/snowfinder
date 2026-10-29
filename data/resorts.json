@@ -1,0 +1,803 @@
+{
+  "_about": "Stable facts about each resort. Prices, closing dates and events live in the season file (data/season-2027.json). Ratings are 1-5 stars from resort guides; temperatures are approximate February averages (high / low), not a forecast.",
+  "resorts": [
+    {
+      "id": "mayrhofen",
+      "name": "Mayrhofen",
+      "country": "Austria",
+      "area": "Zillertal",
+      "altitude": "630–3250 m",
+      "market": "atmayr",
+      "spring": "good",
+      "airports": [
+        {
+          "id": "mayr",
+          "airport": "Munich (MUC)",
+          "code": "MUC",
+          "time": "~2h",
+          "km": 197,
+          "mins": 120
+        },
+        {
+          "id": "mayr-fmm",
+          "airport": "Memmingen (FMM)",
+          "code": "FMM",
+          "time": "~3h",
+          "km": 268,
+          "mins": 180
+        }
+      ],
+      "compare": {
+        "snow": [
+          4,
+          "630 m in the village, 2,000 m+ on the Penken; Hintertux glacier included in the pass"
+        ],
+        "temp": [
+          "3° / −7°",
+          "in the village; around −4° high on the Penken"
+        ],
+        "area": [
+          "546 km",
+          "Superskipass, whole valley (Mayrhofen alone ~140 km)"
+        ],
+        "beginners": [
+          3,
+          "Beginner area on the Ahorn; many runs are red"
+        ],
+        "snowboard": [
+          5,
+          "Vans Penken Park, one of the best parks in the Alps"
+        ],
+        "expert": [
+          5,
+          "Harakiri (78%) and lots of red"
+        ],
+        "apres": [
+          5,
+          "Ice Bar, Brück'n Stadl, big late-afternoon parties"
+        ],
+        "beer": "~€5–6",
+        "wind": [
+          "low",
+          "Runs partly among trees"
+        ],
+        "insurance": "No insurance sold with the pass; mountain rescue is billed separately. The EHIC covers healthcare, not rescue."
+      }
+    },
+    {
+      "id": "skiwelt",
+      "name": "SkiWelt (Söll)",
+      "compareName": "SkiWelt (Söll / Ellmau)",
+      "country": "Austria",
+      "area": "Tyrol",
+      "altitude": "620–1957 m",
+      "market": "at",
+      "spring": "poor",
+      "airports": [
+        {
+          "id": "skiw",
+          "airport": "Munich (MUC)",
+          "code": "MUC",
+          "time": "~1h30",
+          "km": 130,
+          "mins": 90
+        },
+        {
+          "id": "skiw-fmm",
+          "airport": "Memmingen (FMM)",
+          "code": "FMM",
+          "time": "~2h45",
+          "km": 235,
+          "mins": 165
+        }
+      ],
+      "compare": {
+        "snow": [
+          2,
+          "Low area (620–1957 m); relies heavily on snowmaking, especially in March"
+        ],
+        "temp": [
+          "3° / −6°",
+          "in the village"
+        ],
+        "area": [
+          "~270 km",
+          "SkiWelt Wilder Kaiser – Brixental"
+        ],
+        "beginners": [
+          4,
+          "Lots of wide, easy blues, good for progressing"
+        ],
+        "snowboard": [
+          4,
+          "Several parks; wide runs with few flats"
+        ],
+        "expert": [
+          3,
+          "Plenty of easy and intermediate terrain, little that is hard"
+        ],
+        "apres": [
+          5,
+          "Söll and Ellmau have lively Austrian après-ski"
+        ],
+        "beer": "~€5–6",
+        "wind": [
+          "low",
+          "Runs among trees"
+        ],
+        "insurance": "No insurance sold with the pass; mountain rescue is billed separately. The EHIC covers healthcare, not rescue."
+      },
+      "searchName": "Söll, Austria"
+    },
+    {
+      "id": "alpe-dhuez",
+      "name": "Alpe d'Huez",
+      "country": "France",
+      "area": "Oisans",
+      "altitude": "1860–3330 m",
+      "market": "fralpe",
+      "spring": "ok",
+      "airports": [
+        {
+          "id": "alpe",
+          "airport": "Lyon (LYS)",
+          "code": "LYS",
+          "time": "~2h",
+          "km": 150,
+          "mins": 120
+        }
+      ],
+      "compare": {
+        "snow": [
+          4,
+          "1,860 m in the village, Pic Blanc at 3,330 m"
+        ],
+        "temp": [
+          "1° / −8°",
+          "in the village; very sunny resort"
+        ],
+        "area": [
+          "250 km",
+          "Espace Alpe d'Huez"
+        ],
+        "beginners": [
+          5,
+          "Lots of greens, beginner zones and a beginner pass (€26/day)"
+        ],
+        "snowboard": [
+          4,
+          "Snowpark and wide terrain; a few flat paths"
+        ],
+        "expert": [
+          4,
+          "Sarenne, the 16 km black run"
+        ],
+        "apres": [
+          4,
+          "La Folie Douce, Smithy's Tavern"
+        ],
+        "beer": "~€6–8",
+        "wind": [
+          "mid",
+          "Exposed summit on windy days"
+        ],
+        "insurance": "Carré Neige ~€3.50/day with the pass: covers rescue and unused lessons."
+      }
+    },
+    {
+      "id": "les-2-alpes",
+      "name": "Les 2 Alpes",
+      "country": "France",
+      "area": "Oisans",
+      "altitude": "1650–3600 m",
+      "market": "fruk",
+      "spring": "good",
+      "airports": [
+        {
+          "id": "l2a-lys",
+          "airport": "Lyon (LYS)",
+          "code": "LYS",
+          "time": "~2h15",
+          "km": 165,
+          "mins": 135
+        },
+        {
+          "id": "l2a-cmf",
+          "airport": "Chambéry (CMF)",
+          "code": "CMF",
+          "time": "~2h",
+          "km": 140,
+          "mins": 120
+        },
+        {
+          "id": "l2a-trn",
+          "airport": "Turin (TRN)",
+          "code": "TRN",
+          "time": "~2h45",
+          "km": 165,
+          "mins": 165
+        }
+      ],
+      "compare": {
+        "snow": [
+          5,
+          "Glacier at 3,600 m; snow guaranteed up top"
+        ],
+        "temp": [
+          "0° / −8°",
+          "in the village (1,650 m)"
+        ],
+        "area": [
+          "~200 km",
+          "Grand Domaine; the Supernova link reaches Alpe d'Huez"
+        ],
+        "beginners": [
+          3,
+          "Easy runs up high; the run back to the village is hard, so beginners ride the gondola down. Beginner pass €26"
+        ],
+        "snowboard": [
+          5,
+          "One of the best-known snowparks in France"
+        ],
+        "expert": [
+          4,
+          "Big vertical and off-piste"
+        ],
+        "apres": [
+          5,
+          "Very young crowd, bars all along the main street"
+        ],
+        "beer": "~€6–7",
+        "wind": [
+          "mid",
+          "Exposed glacier"
+        ],
+        "insurance": "Optional insurance with the pass (~€3–4/day). The EHIC covers healthcare, not rescue."
+      }
+    },
+    {
+      "id": "morzine",
+      "name": "Morzine / Avoriaz",
+      "country": "France",
+      "area": "Portes du Soleil",
+      "altitude": "1000–2466 m",
+      "market": "fruk",
+      "spring": "ok",
+      "airports": [
+        {
+          "id": "morz",
+          "airport": "Geneva (GVA)",
+          "code": "GVA",
+          "time": "~1h30",
+          "km": 80,
+          "mins": 90
+        }
+      ],
+      "compare": {
+        "snow": [
+          3,
+          "Morzine at 1,000 m (rain risk in the village); Avoriaz at 1,800 m"
+        ],
+        "temp": [
+          "4° / −5°",
+          "in Morzine; Avoriaz ~ −1° / −8°"
+        ],
+        "area": [
+          "600 km",
+          "Portes du Soleil, France and Switzerland"
+        ],
+        "beginners": [
+          3,
+          "Better for beginners in Avoriaz than in Morzine"
+        ],
+        "snowboard": [
+          4,
+          "Avoriaz has a freestyle tradition; lots of drag lifts and flats across the area"
+        ],
+        "expert": [
+          4,
+          "Le Mur Suisse and varied terrain"
+        ],
+        "apres": [
+          4,
+          "Morzine: Tibetan Café, Le Ridge; Avoriaz is quieter"
+        ],
+        "beer": "~€6–8",
+        "wind": [
+          "low",
+          "Many runs among trees; frequent fog"
+        ],
+        "insurance": "Carré Neige with the pass. On the Swiss side the EHIC applies, rescue cover does not."
+      },
+      "searchName": "Morzine, France"
+    },
+    {
+      "id": "val-thorens",
+      "name": "Val Thorens",
+      "country": "France",
+      "area": "3 Vallées",
+      "altitude": "2300–3230 m",
+      "market": "fruk",
+      "spring": "good",
+      "airports": [
+        {
+          "id": "vt-cmf",
+          "airport": "Chambéry (CMF)",
+          "code": "CMF",
+          "time": "~1h45",
+          "km": 122,
+          "mins": 105
+        },
+        {
+          "id": "vt-lys",
+          "airport": "Lyon (LYS)",
+          "code": "LYS",
+          "time": "~2h30",
+          "km": 199,
+          "mins": 150
+        },
+        {
+          "id": "vt-gva",
+          "airport": "Geneva (GVA)",
+          "code": "GVA",
+          "time": "~2h40",
+          "km": 202,
+          "mins": 160
+        }
+      ],
+      "compare": {
+        "snow": [
+          5,
+          "Village at 2,300 m, the highest in Europe; snow into May"
+        ],
+        "temp": [
+          "−3° / −11°",
+          "in the village; the coldest resort on the list"
+        ],
+        "area": [
+          "150 km",
+          "Val Thorens–Orelle (600 km with the 3 Vallées)"
+        ],
+        "beginners": [
+          4,
+          "Free beginner lifts and wide blues; cold and wind make it harder"
+        ],
+        "snowboard": [
+          5,
+          "VT Park and wide runs with few flats"
+        ],
+        "expert": [
+          5,
+          "Cime Caron and access to all of the 3 Vallées"
+        ],
+        "apres": [
+          5,
+          "La Folie Douce, Malaysia, Frog & Roastbeef"
+        ],
+        "beer": "~€7–9",
+        "wind": [
+          "high",
+          "Above the tree line: lifts close in high wind"
+        ],
+        "insurance": "Carré Neige ~€3.50/day with the pass: covers rescue and unused lessons."
+      }
+    },
+    {
+      "id": "sauze",
+      "name": "Sauze d'Oulx",
+      "country": "Italy",
+      "area": "Via Lattea",
+      "altitude": "1509–2823 m",
+      "market": "ituk",
+      "spring": "ok",
+      "airports": [
+        {
+          "id": "sau-trn",
+          "airport": "Turin (TRN)",
+          "code": "TRN",
+          "time": "~1h30",
+          "km": 97,
+          "mins": 90
+        },
+        {
+          "id": "sau-bgy",
+          "airport": "Bergamo (BGY)",
+          "code": "BGY",
+          "time": "~3h",
+          "km": 260,
+          "mins": 180
+        },
+        {
+          "id": "sau-lys",
+          "airport": "Lyon (LYS)",
+          "code": "LYS",
+          "time": "~2h45",
+          "km": 230,
+          "mins": 165
+        }
+      ],
+      "compare": {
+        "snow": [
+          3,
+          "Village at 1,500 m, top at 2,823 m; good snowmaking"
+        ],
+        "temp": [
+          "2° / −6°",
+          "in the village"
+        ],
+        "area": [
+          "400 km",
+          "Via Lattea, with Sestriere and Montgenèvre"
+        ],
+        "beginners": [
+          4,
+          "Beginner area on the Sportinia plateau; cheap lessons"
+        ],
+        "snowboard": [
+          3,
+          "Park in Sestriere; some flat links"
+        ],
+        "expert": [
+          4,
+          "Huge area with lots of varied terrain"
+        ],
+        "apres": [
+          4,
+          "Known for lively après-ski, popular with British skiers"
+        ],
+        "beer": "~€4–5",
+        "wind": [
+          "mid",
+          "Some high links close in wind"
+        ],
+        "insurance": "Third-party liability insurance is mandatory in Italy since 2022 (a few euros a day with the pass)."
+      }
+    },
+    {
+      "id": "tonale",
+      "name": "Passo Tonale",
+      "country": "Italy",
+      "area": "Pontedilegno-Tonale",
+      "altitude": "1121–3016 m",
+      "market": "it",
+      "spring": "good",
+      "airports": [
+        {
+          "id": "ton",
+          "airport": "Bergamo (BGY)",
+          "code": "BGY",
+          "time": "~2h30",
+          "km": 126,
+          "mins": 150
+        }
+      ],
+      "compare": {
+        "snow": [
+          4,
+          "Pass at 1,883 m and the Presena glacier at 3,016 m"
+        ],
+        "temp": [
+          "1° / −8°",
+          "on the pass; very windy"
+        ],
+        "area": [
+          "100 km",
+          "Pontedilegno-Tonale"
+        ],
+        "beginners": [
+          5,
+          "Wide, easy runs; some of the cheapest group lessons"
+        ],
+        "snowboard": [
+          3,
+          "Small snowpark; flat areas on the pass"
+        ],
+        "expert": [
+          2,
+          "Little challenge away from the glacier"
+        ],
+        "apres": [
+          2,
+          "Few bars; Paradice Music parties on some dates"
+        ],
+        "beer": "~€4–5",
+        "wind": [
+          "high",
+          "Very exposed mountain pass"
+        ],
+        "insurance": "Third-party liability insurance is mandatory in Italy since 2022 (a few euros a day with the pass)."
+      }
+    },
+    {
+      "id": "pas-de-la-casa",
+      "name": "Pas de la Casa",
+      "country": "Andorra",
+      "area": "Grandvalira",
+      "altitude": "2100–2640 m",
+      "market": "ad",
+      "spring": "ok",
+      "airports": [
+        {
+          "id": "pas-tls",
+          "airport": "Toulouse (TLS)",
+          "code": "TLS",
+          "time": "~2h35",
+          "km": 176,
+          "mins": 155
+        },
+        {
+          "id": "pas-bcn",
+          "airport": "Barcelona (BCN)",
+          "code": "BCN",
+          "time": "~3h",
+          "km": 200,
+          "mins": 180
+        }
+      ],
+      "compare": {
+        "snow": [
+          3,
+          "Village at 2,100 m, but Pyrenees snow varies a lot from year to year"
+        ],
+        "temp": [
+          "1° / −7°",
+          "in the village"
+        ],
+        "area": [
+          "210 km",
+          "All of Grandvalira"
+        ],
+        "beginners": [
+          4,
+          "Wide runs and cheap ski schools; beginner pass €45.50"
+        ],
+        "snowboard": [
+          4,
+          "Grandvalira snowparks; some flat links"
+        ],
+        "expert": [
+          3,
+          "Good for a day or two of challenge"
+        ],
+        "apres": [
+          5,
+          "Main street packed with bars and clubs until late"
+        ],
+        "beer": "~€3–4",
+        "wind": [
+          "mid",
+          "Port d'Envalira is exposed; the road can close in snow"
+        ],
+        "insurance": "The EHIC is not valid in Andorra (outside the EU). Buy the pass insurance or travel insurance with winter sports."
+      }
+    },
+    {
+      "id": "soldeu",
+      "name": "Soldeu",
+      "country": "Andorra",
+      "area": "Grandvalira",
+      "altitude": "1710–2640 m",
+      "market": "aduk",
+      "spring": "ok",
+      "airports": [
+        {
+          "id": "sol-tls",
+          "airport": "Toulouse (TLS)",
+          "code": "TLS",
+          "time": "~2h45",
+          "km": 185,
+          "mins": 165
+        },
+        {
+          "id": "sol-bcn",
+          "airport": "Barcelona (BCN)",
+          "code": "BCN",
+          "time": "~3h",
+          "km": 200,
+          "mins": 180
+        }
+      ],
+      "compare": {
+        "snow": [
+          3,
+          "Village at 1,710 m, runs up to 2,640 m; Pyrenees snow varies"
+        ],
+        "temp": [
+          "2° / −7°",
+          "in the village"
+        ],
+        "area": [
+          "210 km",
+          "All of Grandvalira (same area as Pas de la Casa)"
+        ],
+        "beginners": [
+          5,
+          "One of the best schools for learning in English; easy zones up high"
+        ],
+        "snowboard": [
+          4,
+          "Grandvalira snowparks nearby"
+        ],
+        "expert": [
+          3,
+          "Same as Pas de la Casa"
+        ],
+        "apres": [
+          4,
+          "Fat Albert and Aspen Bar; lively but calmer than Pas de la Casa"
+        ],
+        "beer": "~€4–5",
+        "wind": [
+          "mid",
+          "Exposed summit on windy days"
+        ],
+        "insurance": "The EHIC is not valid in Andorra (outside the EU). Buy the pass insurance or travel insurance with winter sports."
+      }
+    },
+    {
+      "id": "baqueira",
+      "name": "Baqueira",
+      "country": "Spain",
+      "area": "Val d'Aran",
+      "altitude": "1500–2610 m",
+      "market": "esb",
+      "spring": "ok",
+      "airports": [
+        {
+          "id": "baq-tls",
+          "airport": "Toulouse (TLS)",
+          "code": "TLS",
+          "time": "~2h30",
+          "km": 170,
+          "mins": 150
+        },
+        {
+          "id": "baq-bcn",
+          "airport": "Barcelona (BCN)",
+          "code": "BCN",
+          "time": "~3h45",
+          "km": 330,
+          "mins": 225
+        }
+      ],
+      "compare": {
+        "snow": [
+          4,
+          "The best snow in the Pyrenees, thanks to Atlantic weather"
+        ],
+        "temp": [
+          "1° / −7°",
+          "at Baqueira 1500"
+        ],
+        "area": [
+          "~170 km",
+          "Baqueira, Beret, Bonaigua"
+        ],
+        "beginners": [
+          4,
+          "The Beret plateau is great for learning; lessons are expensive"
+        ],
+        "snowboard": [
+          4,
+          "Wide runs and a snowpark"
+        ],
+        "expert": [
+          5,
+          "Lots of off-piste and quality blacks"
+        ],
+        "apres": [
+          3,
+          "More upmarket; late dinners in Vielha and Baqueira"
+        ],
+        "beer": "~€5–7",
+        "wind": [
+          "mid",
+          "Some wind up top"
+        ],
+        "insurance": "The EHIC covers healthcare in Spain, not rescue. Optional insurance with the pass."
+      }
+    },
+    {
+      "id": "sierra-nevada",
+      "name": "Sierra Nevada",
+      "country": "Spain",
+      "area": "Granada",
+      "altitude": "2100–3300 m",
+      "market": "es",
+      "spring": "ok",
+      "airports": [
+        {
+          "id": "sn-agp",
+          "airport": "Málaga (AGP)",
+          "code": "AGP",
+          "time": "~2h",
+          "km": 180,
+          "mins": 120
+        },
+        {
+          "id": "sn-svq",
+          "airport": "Seville (SVQ)",
+          "code": "SVQ",
+          "time": "~3h",
+          "km": 300,
+          "mins": 180
+        }
+      ],
+      "compare": {
+        "snow": [
+          2,
+          "High (2,100–3,300 m), but a southern climate: snow varies a lot from year to year"
+        ],
+        "temp": [
+          "4° / −4°",
+          "in Pradollano; very sunny"
+        ],
+        "area": [
+          "~110 km",
+          "Single area"
+        ],
+        "beginners": [
+          4,
+          "Borreguiles area is good for learning; cheap lessons"
+        ],
+        "snowboard": [
+          3,
+          "Snowpark; few trees"
+        ],
+        "expert": [
+          3,
+          "Intermediate terrain"
+        ],
+        "apres": [
+          3,
+          "Bars in Pradollano, busy at weekends"
+        ],
+        "beer": "~€3–4",
+        "wind": [
+          "high",
+          "Strong wind often closes the top lifts"
+        ],
+        "insurance": "The EHIC covers healthcare in Spain, not rescue. Optional insurance with the pass."
+      }
+    }
+  ],
+  "fit": [
+    {
+      "resort": "alpe-dhuez",
+      "tag": "Best all-rounder",
+      "tone": "ok",
+      "text": "The best learning area on the list, lots of sun, lively après-ski and a 16 km black for experienced skiers. Mid-range price."
+    },
+    {
+      "resort": "val-thorens",
+      "tag": "Best snow and nightlife",
+      "tone": "accent",
+      "text": "Guaranteed snow, top après-ski, great for skiing and snowboarding. Cold and wind can make beginners' first days hard, and it's one of the priciest."
+    },
+    {
+      "resort": "soldeu",
+      "tag": "Learn and party on a budget",
+      "tone": "ok",
+      "text": "Excellent ski school, Andorra prices and lively après-ski without the excess of Pas de la Casa. The transfer is over 2h45."
+    },
+    {
+      "resort": "skiwelt",
+      "tag": "Cheapest Austrian après-ski",
+      "tone": "warn",
+      "text": "Wide blues to learn on, big parties and a short transfer from Munich. The risk is snow, as it's low; best in late January and February."
+    },
+    {
+      "resort": "pas-de-la-casa",
+      "tag": "Cheapest party",
+      "tone": "warn",
+      "text": "Cheap lessons and drinks and very lively nights. Snow is less reliable than in the high Alps, and experienced skiers run out of terrain faster."
+    },
+    {
+      "resort": "tonale",
+      "tag": "Cheapest place to learn",
+      "tone": "muted",
+      "text": "Great for beginners and one of the cheapest, but little nightlife and not much challenge for experienced skiers."
+    }
+  ],
+  "fitFootnote": "Les 2 Alpes is great for snowboarding and nightlife, but beginners ride the gondola back to the village. Sauze d'Oulx is a strong option if there's a flight to Turin on your dates. Baqueira has the best snow in the Pyrenees but is expensive and less lively. Sierra Nevada is the closest to Portugal but has the least reliable snow."
+}

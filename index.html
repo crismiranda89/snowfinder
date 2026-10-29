@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Snowfinder · ski trip costs, week by week</title>
+<meta name="description" content="Compare what a ski trip costs at 12 resorts in the Alps, Pyrenees and Sierra Nevada, week by week, for your group of couples and friends. Houses by budget, mid and luxury. Free and open source.">
+<meta name="theme-color" content="#1d5dbf">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Snowfinder · ski trip costs, week by week">
+<meta property="og:description" content="Which resort and which week is cheapest for your group? Flights, car, house, lift pass, rental, food and lessons, all in one grid.">
+<meta property="og:image" content="%SITE_URL%og.png">
+<meta property="og:url" content="%SITE_URL%">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <a class="logo" href="./" aria-label="Snowfinder home">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 26 12 11l5 8 4-6 8 13z" fill="var(--accent)"/><path d="m12 11 2.6 4.2-2.6 1.6-2.4-1.5z M21 13l2 3-2 1.2-1.6-1z" fill="var(--surface)"/></svg>
+        Snowfinder
+      </a>
+      <div class="brand-actions">
+        <button type="button" class="btn" id="share">Share this plan</button>
+        <a class="btn secondary" href="https://github.com/%REPO%" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+    <div class="eyebrow" id="eyebrow"></div>
+    <h1>What each ski resort costs, week by week</h1>
+    <p class="lede">Set your group, pick a stay pattern and a week. The grid shows the cost per person at every resort in every week, so you can find the cheapest combination. Prices rise in French, German, Austrian and British school-holiday weeks, when resorts fill up.</p>
+  </header>
+
+  <div class="controls" role="group" aria-label="Trip settings">
+    <div class="groupctl" role="group" aria-label="Your group">
+      <div class="ctl extra"><span>Couples</span>
+        <input id="couples" type="number" min="0" max="20" step="1" inputmode="numeric">
+      </div>
+      <div class="ctl extra"><span>Solo friends</span>
+        <input id="solo" type="number" min="0" max="20" step="1" inputmode="numeric">
+      </div>
+      <div class="ctl"><span>Solo friends sleep</span>
+        <div class="seg" id="soloRooms"><button type="button" data-v="shared">Twin rooms</button><button type="button" data-v="own">Own room</button></div>
+      </div>
+      <div class="ctl extra"><span>Beginners with lessons</span>
+        <input id="beg" type="number" min="0" step="1" inputmode="numeric" aria-describedby="beghint">
+        <small class="foot" id="beghint">group lessons every ski day</small>
+      </div>
+      <div class="groupsum" id="groupsum" aria-live="polite"></div>
+    </div>
+    <div class="ctl"><span>Stay pattern</span>
+      <div class="seg" id="pattern"></div>
+    </div>
+    <div class="ctl"><span>Ski days</span>
+      <div class="seg" id="days"><button type="button" data-v="4">4 days</button><button type="button" data-v="5">5 days</button></div>
+    </div>
+    <div class="ctl"><span>Airport → resort</span>
+      <div class="seg" id="ground"><button type="button" data-v="car">Rental car</button><button type="button" data-v="transfer">Transfer</button></div>
+    </div>
+    <div class="ctl"><span>House level</span>
+      <div class="seg" id="house"><button type="button" data-v="budget">Budget</button><button type="button" data-v="mid">Mid</button><button type="button" data-v="lux">Luxury</button></div>
+    </div>
+    <div class="ctl extra"><span>Food (€/person/day)</span>
+      <input id="food" type="number" min="0" step="5" inputmode="numeric" aria-describedby="foodhint">
+      <small class="foot" id="foodhint"></small>
+    </div>
+    <label class="check"><input id="limit" type="checkbox"> Transfers up to ~2h only</label>
+    <button type="button" class="ghost" id="reset">Reset prices</button>
+    <div class="ctl destctl"><span>Resorts <em id="destcount" class="foot" style="font-style:normal;text-transform:none;letter-spacing:0"></em></span>
+      <div class="chips" id="dests" role="group" aria-label="Choose resorts"></div>
+    </div>
+  </div>
+
+  <section class="block">
+    <div class="head"><h2>Pick a week</h2>
+      <div class="hl"><span>Expected demand:</span><span style="color:var(--ok)">low</span><span style="color:var(--c-pass)">normal</span><span style="color:var(--warn)">high</span><span style="color:var(--bad)">peak</span></div>
+    </div>
+    <div class="weeks" id="weeks"></div>
+    <div class="weekinfo" id="weekinfo"></div>
+  </section>
+
+  <section class="block">
+    <div class="head"><h2>Resort × week grid (per person)</h2>
+      <div class="hl"><span><i style="background:var(--h0)"></i>cheapest</span><span><i style="background:var(--h1)"></i></span><span><i style="background:var(--h2)"></i></span><span><i style="background:var(--h3)"></i>priciest</span><span><i style="background:transparent;box-shadow:inset 0 0 0 2px var(--ok)"></i>resort's best week</span><span><i style="background:repeating-linear-gradient(45deg,var(--soft) 0 3px,var(--surface) 3px 6px);border:1px solid var(--line)"></i>resort closed</span><span><i style="background:transparent;box-shadow:inset 0 -3px 0 var(--bad)"></i>weak spring snow</span></div>
+    </div>
+    <div class="gridbox"><table class="heat"><thead id="heathead"></thead><tbody id="heatbody"></tbody></table></div>
+    <p class="foot">Tap a cell to pick that week. Tap a column header to sort by that week or by resort. Colours compare all open cells with each other. A resort shows as closed when its expected closing date is before your return day.</p>
+  </section>
+
+  <section class="block">
+    <div class="head"><h2 id="rankTitle">This week's ranking</h2>
+      <div class="legend">
+        <span><i style="background:var(--c-flight)"></i>Flight</span>
+        <span><i style="background:var(--c-ground)"></i>Car / transfer</span>
+        <span><i style="background:var(--c-stay)"></i>House</span>
+        <span><i style="background:var(--c-pass)"></i>Lift pass</span>
+        <span><i style="background:var(--c-rent)"></i>Rental</span>
+        <span><i style="background:var(--c-food)"></i>Food</span>
+        <span><i style="background:var(--c-lesson)"></i>Lessons</span>
+      </div>
+    </div>
+    <div class="rank" id="rank"></div>
+  </section>
+
+  <section class="block" id="houses-section">
+    <div class="head"><h2>Houses for your group</h2></div>
+    <p class="foot" id="houseslede"></p>
+    <div id="houses"></div>
+  </section>
+
+  <section class="block">
+    <h2>Which resort suits whom</h2>
+    <p class="foot">Beginners need wide green and blue runs, good schools and bearable cold; the size of the area barely matters. Experienced skiers care about terrain. These picks weigh both against après-ski and price.</p>
+    <div class="fit" id="fit"></div>
+    <p class="foot" id="fitfoot"></p>
+  </section>
+
+  <section class="block">
+    <h2>Resort comparison</h2>
+    <p class="foot">Ratings from 1 to 5 based on resort guides and the research below. Temperatures are approximate February averages (high / low), not a forecast. Beer is a rough price in a resort bar. Distances by airport are on each resort's row.</p>
+    <div class="gridbox">
+      <table class="cmp">
+        <thead><tr><th>Resort and airports</th><th>Snow and altitude</th><th>Feb temp.</th><th>Ski area</th><th>Beginners</th><th>Snowboard</th><th>Expert skiing</th><th>Après-ski</th><th>Beer</th><th>Wind and closures</th><th>Insurance and rescue</th><th>Events</th></tr></thead>
+        <tbody id="cmpbody"></tbody>
+      </table>
+    </div>
+    <p class="foot" id="cmpsources"></p>
+  </section>
+
+  <section class="block">
+    <h2>Week detail and editable prices</h2>
+    <p class="foot">Flight, lift pass, rental and lesson (per day) are per person. Car is per car and transfer per vehicle; the group total is underneath. House is the whole group's stay. The per-person total is the group average: only beginners pay for lessons. Any value you change is saved for the selected week only, so you can enter real quotes week by week, and it travels with the share link.</p>
+    <div class="gridbox">
+      <table class="detail">
+        <thead><tr>
+          <th>Resort and airport</th><th>Travel and distance</th>
+          <th class="r"><span class="sw" style="background:var(--c-flight)"></span>Flight pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-ground)"></span>Car, per car</th>
+          <th class="r"><span class="sw" style="background:var(--c-ground)"></span>Transfer, per vehicle</th>
+          <th class="r"><span class="sw" style="background:var(--c-stay)"></span>House, group</th>
+          <th class="r"><span class="sw" style="background:var(--c-pass)"></span>Lift pass pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-rent)"></span>Rental pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-food)"></span>Food pp</th>
+          <th class="r"><span class="sw" style="background:var(--c-lesson)"></span>Lesson €/day</th>
+          <th class="r">Total pp</th><th class="r">Total group</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="notes">
+    <section>
+      <h3>How prices change by week</h3>
+      <ul>
+        <li>Each resort has a demand level per week (low, normal, high, peak), based on the school holidays of the countries that ski there.</li>
+        <li>Houses: −10% at low demand, +30% at high, +60% at peak, versus a normal week. Flights: −10%, +20%, +35%. Car and transfer: +10% at high, +20% at peak.</li>
+        <li>Lift passes and ski rental have fixed high-season prices (19 Dec to April), so they don't change by week. The exception is Passo Tonale, which has dynamic pricing.</li>
+        <li>The Wed→Mon, Thu→Tue and Fri→Wed patterns use 4 days of leave. In Easter week Good Friday (26 Mar) is a public holiday in Portugal, which brings it down to 3. Weeks marked * include Carnival Tuesday, which many employers in Portugal give off.</li>
+        <li>From 20 March, low resorts show a spring-snow warning. Closing dates for SkiWelt, Baqueira and Sierra Nevada are estimated from past seasons.</li>
+        <li>Every table sorts when you tap a column header; tap again to reverse. The resort filter applies to the grid, ranking, houses, detail and comparison.</li>
+        <li>Many apartments in France rent Saturday to Saturday. Mid-week 5-night stays are easier to find outside the holiday weeks.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>How your group changes the price</h3>
+      <ul>
+        <li>People = 2 × couples + solo friends. Bedrooms = one per couple, plus one per two solo friends (twin rooms) or one each (own room).</li>
+        <li>House: the median price of the houses in the chosen level that fit your group (enough bedrooms and beds). Houses are split into the cheapest, middle and priciest third. With no fitting houses listed, the price is estimated from a 2-bedroom flat, scaled by bedrooms<sup>0.9</sup>.</li>
+        <li>Rental car: one car per 5 people. Transfer: one vehicle per 8 people, and a 5–8 seat van costs about 40% more than a car transfer.</li>
+        <li>Food: your daily amount × <span id="fooddays">6</span> days (5 nights are 6 calendar days, arrival to departure). Change it depending on whether you count après-ski.</li>
+        <li>Lessons: adult group-lesson price per ski day × number of beginners, shared out over the group. Many group courses run Sunday or Monday to Friday; on a Thursday to Tuesday stay you may need to book day by day or share a private instructor (about €75–85 an hour in France).</li>
+        <li>Flights are from <span id="origin">Porto</span>, direct with one checked bag. Unconfirmed: Porto–Chambéry; Porto–Memmingen (Ryanair, ~5 a week) and Porto–Turin (Ryanair) exist but may not fly on winter dates.</li>
+        <li>Distances are by road from the airport to the resort, without traffic; Saturdays can be much slower.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Sources</h3>
+      <ul id="sources"></ul>
+    </section>
+  </div>
+
+  <footer class="sitefoot">
+    <p class="foot" id="collected"></p>
+    <p class="foot">Not affiliated with Airbnb, Booking.com or any resort. House photos are shown from each listing and belong to their owners. <a href="https://github.com/%REPO%/blob/main/CONTRIBUTING.md#add-a-house">Add a house</a> · <a href="https://github.com/%REPO%">Source code (MIT)</a></p>
+  </footer>
+</div>
+<script type="module" src="app.js"></script>
+</body>
+</html>

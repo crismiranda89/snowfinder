@@ -1,0 +1,10 @@
+[project]
+name = "snowfinder-pipeline"
+version = "0.1.0"
+description = "Builds Snowfinder's house listings from a curated CSV / Google Sheet"
+requires-python = ">=3.11"
+dependencies = ["pydantic>=2.6,<3"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["pipeline/tests"]

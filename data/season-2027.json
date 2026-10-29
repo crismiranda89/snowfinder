@@ -1,0 +1,169 @@
+{
+  "_about": "Season-specific inputs for winter 2026/27: prices at a normal-demand week, the demand calendar, closing dates and holidays. Copy this file to start a new season. Flight, pass, rental and lesson prices are per person; car is per car and transfer per vehicle (up to 4 passengers); stay is a 2-bedroom flat for the whole stay.",
+  "season": "2026/27",
+  "collected": "2026-10-29",
+  "origin": { "city": "Porto", "code": "OPO", "country": "Portugal" },
+  "nights": 5,
+  "foodDays": 6,
+  "baseBedrooms": 2,
+  "springFromWeek": 8,
+  "weeks": ["2027-01-23", "2027-01-30", "2027-02-06", "2027-02-13", "2027-02-20", "2027-02-27", "2027-03-06", "2027-03-13", "2027-03-20", "2027-03-27", "2027-04-03", "2027-04-10"],
+  "patterns": {
+    "wed": { "from": -3, "to": 2, "label": "Wed → Mon" },
+    "thu": { "from": -2, "to": 3, "label": "Thu → Tue" },
+    "fri": { "from": -1, "to": 4, "label": "Fri → Wed" }
+  },
+  "multipliers": {
+    "stay": [0.9, 1, 1.3, 1.6],
+    "flight": [0.9, 1, 1.2, 1.35],
+    "ground": [1, 1, 1.1, 1.2],
+    "dynPass": [0.95, 1, 1.05, 1.1]
+  },
+  "demandLegend": "0 low, 1 normal, 2 high, 3 peak — one value per week, from 2027 school-holiday calendars of the markets that ski there.",
+  "demand": {
+    "fr":     [0, 0, 2, 3, 3, 2, 1, 0, 0, 1, 2, 2],
+    "fralpe": [0, 0, 2, 3, 3, 2, 1, 0, 3, 2, 2, 2],
+    "fruk":   [0, 0, 2, 3, 3, 2, 1, 0, 0, 1, 2, 2],
+    "at":     [0, 1, 2, 3, 2, 1, 0, 0, 0, 2, 1, 1],
+    "atmayr": [0, 1, 2, 3, 2, 1, 0, 0, 0, 2, 3, 2],
+    "ad":     [0, 0, 2, 2, 2, 1, 1, 0, 1, 3, 1, 1],
+    "aduk":   [0, 0, 2, 3, 2, 1, 1, 0, 1, 3, 2, 1],
+    "ituk":   [0, 0, 2, 3, 1, 1, 0, 0, 0, 2, 2, 1],
+    "es":     [0, 0, 1, 1, 1, 2, 1, 0, 1, 3, 1, 0],
+    "esb":    [0, 0, 1, 2, 2, 2, 1, 0, 1, 3, 1, 1],
+    "it":     [0, 0, 2, 1, 1, 1, 0, 0, 0, 2, 1, 0]
+  },
+  "weekNotes": [
+    "No school holidays in the main markets. A quiet, cheap week.",
+    "Holidays in Vienna and Lower Austria (1–6 Feb). Everywhere else is quiet.",
+    "French zone C holidays start (Paris, 6 Feb), Bavarian Faschingsferien and Carnival (9 Feb).",
+    "Peak week: French zones C and A, UK half-term, and holidays in Tyrol and Salzburg.",
+    "Still peak: French zones A and B, and the end of zone C (22 Feb).",
+    "French zone B still on holiday, zone A back on 1 Mar. Andalusia Day (28 Feb) fills Sierra Nevada.",
+    "Last days of French zone B (back on 8 Mar). End of high season.",
+    "Outside school holidays. Good snow up high and lower prices.",
+    "Outside school holidays, except in Alpe d'Huez: Tomorrowland Winter (20–27 Mar) sells out the resort. Spring snow at the low resorts.",
+    "Holy Week: Good Friday (26 Mar) is a public holiday in Portugal and saves a day of leave. Peak in Spain, Andorra and Italy; moderate in the Alps.",
+    "French zone C Easter holidays (from 3 Apr) and UK Easter. Grandvalira closes on 4 Apr. Snowbombing in Mayrhofen 5–10 Apr.",
+    "French zones C and A on holiday. Mayrhofen closes on 11 Apr. Only the high resorts have good snow down low."
+  ],
+  "holidays": [
+    { "date": "2027-03-26", "name": "Good Friday" }
+  ],
+  "softHolidays": [
+    { "date": "2027-02-09", "name": "Carnival Tuesday", "note": "The stay includes Carnival Tuesday (9 Feb), usually a day off in Portugal (tolerância de ponto), so you may only need 3 days of leave." }
+  ],
+  "resorts": {
+    "mayrhofen":      { "stay": 950,  "pass4": 305.5, "pass5": 372.5, "rent4": 120, "rent5": 135, "lesson": 60, "close": "2027-04-11", "events": "Snowbombing 5–10 Apr" },
+    "skiwelt":        { "stay": 750,  "pass4": 300,   "pass5": 360.5, "rent4": 110, "rent5": 125, "lesson": 70, "close": "2027-04-05", "closeEst": true, "events": "No major events" },
+    "alpe-dhuez":     { "stay": 850,  "pass4": 250,   "pass5": 295,   "rent4": 110, "rent5": 125, "lesson": 45, "passEst": true, "close": "2027-04-25", "events": "Tomorrowland Winter 20–27 Mar" },
+    "les-2-alpes":    { "stay": 800,  "pass4": 250,   "pass5": 295,   "rent4": 110, "rent5": 125, "lesson": 45, "passEst": true, "close": "2027-05-02", "events": "No major events" },
+    "morzine":        { "stay": 1000, "pass4": 310,   "pass5": 390,   "rent4": 110, "rent5": 125, "lesson": 48, "close": "2027-04-18", "events": "No major events" },
+    "val-thorens":    { "stay": 1250, "pass4": 294,   "pass5": 367.5, "rent4": 120, "rent5": 135, "lesson": 45, "close": "2027-05-02", "events": "No major events" },
+    "sauze":          { "stay": 600,  "pass4": 226.5, "pass5": 275,   "rent4": 85,  "rent5": 100, "lesson": 40, "close": "2027-04-18", "events": "UK half-term (15–19 Feb) fills the village" },
+    "tonale":         { "stay": 650,  "pass4": 210,   "pass5": 255,   "rent4": 90,  "rent5": 105, "lesson": 32, "passEst": true, "dynPass": true, "close": "2027-05-02", "events": "Carnival 8–9 Feb raises demand" },
+    "pas-de-la-casa": { "stay": 650,  "pass4": 278,   "pass5": 330,   "rent4": 95,  "rent5": 110, "lesson": 33, "close": "2027-04-04", "events": "Carnival (9 Feb) raises demand" },
+    "soldeu":         { "stay": 800,  "pass4": 278,   "pass5": 330,   "rent4": 95,  "rent5": 110, "lesson": 33, "close": "2027-04-04", "events": "UK half-term and Carnival fill the village" },
+    "baqueira":       { "stay": 1100, "pass4": 265,   "pass5": 310,   "rent4": 110, "rent5": 125, "lesson": 70, "passEst": true, "close": "2027-04-05", "closeEst": true, "events": "Spanish weekends and long weekends are very busy" },
+    "sierra-nevada":  { "stay": 700,  "pass4": 211,   "pass5": 256.5, "rent4": 90,  "rent5": 105, "lesson": 40, "passEst": true, "close": "2027-05-02", "closeEst": true, "events": "Andalusia Day (28 Feb) and weekends are very busy" }
+  },
+  "options": {
+    "mayr":     { "flight": 230, "car": 380, "transfer": 550 },
+    "mayr-fmm": { "flight": 110, "car": 420, "transfer": 650, "flag": "Ryanair winter flights unconfirmed" },
+    "skiw":     { "flight": 230, "car": 360, "transfer": 480 },
+    "skiw-fmm": { "flight": 110, "car": 400, "transfer": 600, "flag": "Ryanair winter flights unconfirmed" },
+    "alpe":     { "flight": 150, "car": 450, "transfer": 500 },
+    "l2a-lys":  { "flight": 150, "car": 470, "transfer": 440 },
+    "l2a-cmf":  { "flight": 180, "car": 440, "transfer": 650, "flag": "Flight unconfirmed" },
+    "l2a-trn":  { "flight": 110, "car": 480, "transfer": 700, "flag": "Few winter flights" },
+    "morz":     { "flight": 160, "car": 380, "transfer": 240 },
+    "vt-cmf":   { "flight": 180, "car": 445, "transfer": 750, "flag": "Flight unconfirmed" },
+    "vt-lys":   { "flight": 150, "car": 515, "transfer": 420 },
+    "vt-gva":   { "flight": 160, "car": 505, "transfer": 400 },
+    "sau-trn":  { "flight": 110, "car": 270, "transfer": 320, "flag": "Few winter flights" },
+    "sau-bgy":  { "flight": 100, "car": 330, "transfer": 650 },
+    "sau-lys":  { "flight": 150, "car": 460, "transfer": 800, "flag": "Fréjus tunnel toll" },
+    "ton":      { "flight": 100, "car": 290, "transfer": 370 },
+    "pas-tls":  { "flight": 110, "car": 320, "transfer": 270 },
+    "pas-bcn":  { "flight": 110, "car": 340, "transfer": 280 },
+    "sol-tls":  { "flight": 110, "car": 320, "transfer": 280 },
+    "sol-bcn":  { "flight": 110, "car": 340, "transfer": 280 },
+    "baq-tls":  { "flight": 110, "car": 310, "transfer": 900 },
+    "baq-bcn":  { "flight": 110, "car": 320, "transfer": 300 },
+    "sn-agp":   { "flight": 100, "car": 270, "transfer": 160 },
+    "sn-svq":   { "flight": 100, "car": 300, "transfer": 240 }
+  },
+  "sources": {
+    "calendars": [
+      { "label": "French winter holidays 2027", "url": "https://icalendrier.fr/vacances/hiver", "note": "zone C 6–22 Feb, zone A 13 Feb–1 Mar, zone B 20 Feb–8 Mar" },
+      { "label": "Austrian Semesterferien 2027", "url": "https://www.oesterreich.gv.at/de/themen/bildung_und_ausbildung/schulen/Seite.1100114", "note": "Vienna 1–6 Feb, Carinthia 8–13 Feb, Tyrol and Salzburg 15–20 Feb" },
+      { "label": "Bavarian Faschingsferien 2027", "url": "https://www.muenchen.de/aktuell/schulferien-bayern-2026-2027-alle-termine-im-ueberblick", "note": "8–12 Feb" },
+      { "label": "UK February half-term 2027", "url": "https://www.snowthere.com/guides/february-half-term-ski-2027", "note": "mostly 15–19 Feb" },
+      { "label": "Carnival in Italy 2027", "url": "https://www.newsistruzione.it/2026/06/30/calendario-scolastico-lombardia-2026-2027-date/amp", "note": "8–9 Feb" },
+      { "label": "French Easter holidays 2027", "url": "https://icalendrier.fr/vacances/paques", "note": "zone C 3–19 Apr, zone A 10–26 Apr, zone B 17 Apr–3 May. Easter is 28 Mar" }
+    ],
+    "closures": [
+      { "label": "Val Thorens", "url": "https://guide-ski.fr/?p=274" },
+      { "label": "Alpe d'Huez", "url": "https://guide-ski.fr/?p=602" },
+      { "label": "Les 2 Alpes", "url": "https://guide-ski.fr/?p=379" },
+      { "label": "Avoriaz", "url": "https://guide-ski.fr/?p=6821" },
+      { "label": "Mayrhofen", "url": "https://www.skiinfo.fr/tyrol/mayrhofen/forfaits-de-ski-saison.html" },
+      { "label": "Via Lattea", "url": "https://www.skiresort.com/en/ski-resort/via-lattea-sestriere-sauze-doulx-san-sicario-claviere-montgenevre/" },
+      { "label": "Grandvalira", "url": "https://pixidia.com/?p=92203" },
+      { "label": "Spain 2025/26", "url": "https://www.estiber.com/blog/cierre-de-estaciones-de-esqui-fechas/" },
+      { "label": "Austria", "url": "https://www.schneehoehen.de/saisonkalender/oesterreich" }
+    ],
+    "events": [
+      { "label": "Tomorrowland Winter (Alpe d'Huez, 20–27 Mar)", "url": "https://weraveyou.com/2026/09/tomorrowland-winter-2027-alpe-dhuez/" },
+      { "label": "Snowbombing (Mayrhofen, 5–10 Apr)", "url": "https://a.storyblok.com/f/303949/x/0a94fc1e2d/zillertal_pressetext_winter-26-27.pdf" }
+    ],
+    "passes": [
+      { "label": "Zillertal Superskipass 2026/27", "url": "https://www.schneehoehen.de/skigebiete/preise/mayrhofen" },
+      { "label": "Val Thorens", "url": "https://guide-ski.fr/?p=626" },
+      { "label": "Alpe d'Huez", "url": "https://guide-ski.fr/?p=682" },
+      { "label": "Grandvalira", "url": "https://www.estiber.com/blog/?p=10154" },
+      { "label": "Portes du Soleil", "url": "https://www.schneehoehen.de/skigebiete/preise/chatel" },
+      { "label": "SkiWelt", "url": "https://www.kitzbueheler-alpen.com/de/kam/wi/ski/preise.html" },
+      { "label": "Les 2 Alpes", "url": "https://guide-ski.fr/?p=379" },
+      { "label": "Via Lattea", "url": "https://www.schneehoehen.de/skigebiete/preise/sestriere-via-lattea" },
+      { "label": "Sierra Nevada", "url": "https://web.sierranevada.es/en/invierno/forfaits/compra-presencial/tarifas-compra-presencial/" },
+      { "label": "Baqueira (2025/26)", "url": "https://www.nevasport.com/noticias/art/69396/baqueira-supera-la-barrera-de-los-70-euros-por-su-forfait-de-esqui/" },
+      { "label": "Ski rental in Mayrhofen", "url": "https://www.manawa.com/de-DE/aktivitat/osterreich/mayrhofen/skiverleih/skiverleih-in-mayrhofen-osterreich/16905" }
+    ],
+    "transport": [
+      { "label": "Chambéry–Val Thorens transfer", "url": "https://airportstaxitransfers.com/transportation/taxibookings/Transfer-from-Chambery-Airport-to-Val-Thorens" },
+      { "label": "Geneva–Morzine", "url": "https://www.alps2alps.com/geneva-airport/geneva-to-morzine-transfer/" },
+      { "label": "Bergamo–Tonale", "url": "https://en.satoorday.com/tickets-dolomites-flyski-shuttle-from-passo-del-tonale-to-bergamo-airport" },
+      { "label": "Toulouse–Pas de la Casa", "url": "https://www.rome2rio.com/s/L-Hospitalet-pr%C3%A8s-l-Andorre/Toulouse-Airport-TLS" },
+      { "label": "Val Thorens parking", "url": "https://parkto.fr/villes/val-thorens" },
+      { "label": "Porto–Memmingen", "url": "https://www.flightconnections.com/flights-from-opo-to-fmm" },
+      { "label": "Porto–Turin", "url": "https://www.momondo.pt/voos/porto/turim" },
+      { "label": "Porto–Seville", "url": "https://www.omio.com.br/voos/porto/sevilha-plzwf" },
+      { "label": "Turin–Sauze", "url": "https://www.ski-lifts.com/?p=5425" },
+      { "label": "Granada–Sierra Nevada", "url": "https://www.granadadirect.com/sierra-nevada/como-llegar/" }
+    ],
+    "lessons": [
+      { "label": "Val Thorens", "url": "https://www.checkyeti.com/fr/winter/france/val-thorens/cours-de-ski-pour-debutants" },
+      { "label": "Mayrhofen", "url": "https://www.checkyeti.com/de/winter/oesterreich/mayrhofen/zertifizierte-skischulen-skilehrer" },
+      { "label": "Avoriaz", "url": "https://evolution2.com/en/avoriaz/adult-ski-group-lessons" },
+      { "label": "Grandvalira", "url": "https://www.estiber.com/blog/clases-de-esqui-en-grandvalira/" },
+      { "label": "Passo Tonale", "url": "https://freedome.it/attivita/corso-sci-gruppo-adulti-passo-tonale/" },
+      { "label": "Söll", "url": "https://www.checkyeti.com/de/winter/oesterreich/soell/erwachsenen-skikurse" },
+      { "label": "Sauze d'Oulx", "url": "https://freedome.it/attivita/corso-collettivo-sci-adulti-sauze-oulx/" },
+      { "label": "Sierra Nevada", "url": "https://www.checkyeti.com/es/p/1318/escuela-espanola-de-esqui-y-snowboard-sierra-nevada" },
+      { "label": "Baqueira", "url": "https://www.checkyeti.com/es/winter/espana/baqueira-beret/clases-de-esqui" }
+    ],
+    "compare": [
+      { "label": "Val Thorens for beginners", "url": "https://www.skiweather.eu/profile/val-thorens/1266" },
+      { "label": "Pas de la Casa February climate", "url": "https://www.easeweather.com/europe/andorra/encamp/pas-de-la-casa/february" },
+      { "label": "Pas de la Casa snow history", "url": "https://www.sno.co.uk/ski/andorra/pas-de-la-casa/snow-history" },
+      { "label": "Carré Neige", "url": "https://www.skiinfo.fr/news/carre-neige-bien-plus-quune-simple-assurance-ski-un-pilier-du-ski-savoyard/" },
+      { "label": "Mandatory ski insurance in Italy", "url": "https://hellosafe.com/it/travel-insurance/ski-insurance" },
+      { "label": "EHIC countries", "url": "https://seg-social.pt/documents/10152/14911/N39_cartao_europeu_seguro_doenca/3cd10933-cab7-420d-a234-6fa1792cf3aa" },
+      { "label": "Alpe d'Huez beginner pass", "url": "https://guide-ski.fr/?p=682" },
+      { "label": "Grandvalira beginner pass", "url": "https://www.estiber.com/blog/?p=10154" },
+      { "label": "Post Office Ski Report 2026", "url": "https://www.postoffice.co.uk/skireport2026" },
+      { "label": "Getting to Sierra Nevada", "url": "https://www.granadadirect.com/sierra-nevada/como-llegar/" }
+    ]
+  }
+}

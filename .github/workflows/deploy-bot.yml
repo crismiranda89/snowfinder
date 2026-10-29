@@ -1,0 +1,28 @@
+# Deploys the Telegram vote bot to Cloudflare Workers when bot/ changes on main.
+# Off until you set the repository variable DEPLOY_BOT=true and the secrets
+# CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID (so forks don't fail).
+name: Deploy bot
+on:
+  push:
+    branches: [main]
+    paths: ["bot/**"]
+  workflow_dispatch:
+jobs:
+  deploy:
+    if: ${{ vars.DEPLOY_BOT == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bot
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: bot
