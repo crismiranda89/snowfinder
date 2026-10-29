@@ -1,7 +1,205 @@
 {
- "generated": "2026-10-29T12:36:08+00:00",
- "count": 10,
+ "generated": "2026-10-29T16:35:43+00:00",
+ "count": 27,
  "listings": [
+  {
+   "id": "68b19f100b",
+   "resort": "les-2-alpes",
+   "url": "https://www.booking.com/hotel/fr/chalet-les-deux-alpes1.en-gb.html",
+   "title": "Superbe Chalet 250m2 Luxe Vue panoramique",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 10,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 7335
+    }
+   ],
+   "rating": 7.5,
+   "toLiftM": 250,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/696215793.jpg?k=7d422ef1de4eefdeafee05b930d15c2ac9dd802818fc8c20496ca715e60d73a2&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 250 m², 3 doubles + 2 bunk beds; the only 4-bedroom house in the village on Booking for these dates"
+  },
+  {
+   "id": "dd9da47cef",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/beautiful-ski-in-ski-out-magnificent-view.en-gb.html",
+   "title": "Beautiful ski-in ski-out, magnificent view",
+   "source": "booking",
+   "bedrooms": 5,
+   "sleeps": 12,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 15721
+    }
+   ],
+   "rating": null,
+   "toLiftM": 200,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/918443885.jpg?k=7c53ebbda98da4ff7cc033374a8716c9e8b5ee00a7dc2be3c6314af30054a88a&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 177 m², 5 bathrooms, ski-in/ski-out"
+  },
+  {
+   "id": "fd8505c56c",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/chalet-aspen-morzine.en-gb.html",
+   "title": "Chalet Aspen",
+   "source": "booking",
+   "bedrooms": 6,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 10896
+    }
+   ],
+   "rating": null,
+   "toLiftM": 1100,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/931128022.jpg?k=a1ce602e07d0f4dc0a4d3b0d8aaa03a0956ba7fbf75700d4882ad4fded7a3f24&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 150 m², 6 bathrooms"
+  },
+  {
+   "id": "5a6e5288be",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/chocolate-moose-chalet.en-gb.html",
+   "title": "Chocolate Moose Chalet",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 6628
+    }
+   ],
+   "rating": null,
+   "toLiftM": 400,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/768494404.jpg?k=04679c35f1ef181ab33da2bdab47df1a9f19693d2f5fabb528fb37f8d9e3d3d1&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 100 m², 4 bathrooms, 8 singles + bunk; sleeps 8 (not offered for 9)"
+  },
+  {
+   "id": "cadf55aa4e",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/gervonne-1-le-pied-de-la-plagne.en-gb.html",
+   "title": "Gervonne 1",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 6747
+    }
+   ],
+   "rating": null,
+   "toLiftM": 1400,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/931862449.jpg?k=2db6bdb27312db02e047b7edc91e91bd7f49e35091497d3aa12b464e4d53a3f7&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 110 m², 3 bathrooms; sleeps 8"
+  },
+  {
+   "id": "ce04e71712",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/gervonne-3.en-gb.html",
+   "title": "Gervonne 3",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 6511
+    }
+   ],
+   "rating": null,
+   "toLiftM": 1400,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/872811593.jpg?k=06485ae6887c7c110882309512f07a06c5500a0bc5305f5fc84b688196661dee&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 120 m², 3 bathrooms, 8 singles + 1 double"
+  },
+  {
+   "id": "9b47faf100",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/le-tremplin-morzine.en-gb.html",
+   "title": "Hotel Le Tremplin (5-bedroom apartment)",
+   "source": "booking",
+   "bedrooms": 5,
+   "sleeps": 10,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 10527
+    }
+   ],
+   "rating": 7.1,
+   "toLiftM": 20,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/923072389.jpg?k=1a4f1629850d319543e7cd9c5d392783818ee4f9169447b72489d14917a9b7b6&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 173 m², 5 bathrooms, at the Pleney lift"
+  },
+  {
+   "id": "60918c5af0",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/le-grand-nant-morzine.en-gb.html",
+   "title": "Le Grand Nant",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4179
+    }
+   ],
+   "rating": null,
+   "toLiftM": 1000,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/901262297.jpg?k=a47fd82f1932e386800e0fbbc8d5d043edf8e7443c47226a52c8997396bee670&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 85 m², 2 bathrooms; sleeps 8"
+  },
+  {
+   "id": "786f258553",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/morzine-barn.en-gb.html",
+   "title": "Morzine Barn",
+   "source": "booking",
+   "bedrooms": 6,
+   "sleeps": 16,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 15073
+    }
+   ],
+   "rating": null,
+   "toLiftM": 250,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/588066657.jpg?k=f05fa88bbd1b01212c0169faa1fef47c71f6262f9fd933d5fa543498cf0de3ab&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 6 bedrooms, 6 bathrooms, 8 singles + 4 doubles"
+  },
   {
    "id": "4ffbace1fa",
    "resort": "pas-de-la-casa",
@@ -153,6 +351,28 @@
    "notes": "El Tarter; 2 adjoining apartments"
   },
   {
+   "id": "09186f656b",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/jacuzzi-terraza-vistas-panoramicas-a-grandvalira-andbnb.en-gb.html",
+   "title": "Jacuzzi and panoramic views of Grandvalira (AndStay)",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 3522
+    }
+   ],
+   "rating": 9.4,
+   "toLiftM": 350,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/898103386.jpg?k=6cd75a2c597ff1730599c7d9bab6ff3438bf287130c25e53ea6fa8a4e35c73d5&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, Bordes d'Envalira, 90 m², 2 bathrooms, hot tub"
+  },
+  {
    "id": "d842ae5f1f",
    "resort": "soldeu",
    "url": "https://www.estiber.com/en_US/apartment/la-pleta-del-tarter-apartments-el-tarter",
@@ -173,6 +393,72 @@
    "photo": "https://www.estiber.com/v4/hotels/images/apt-big-1993_1.jpg",
    "addedBy": "cristiano",
    "notes": "El Tarter"
+  },
+  {
+   "id": "e4293cd31e",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/luderna-casa-mas-de-la-costa.en-gb.html",
+   "title": "Luderna – Casa Mas de la Costa",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 12306
+    }
+   ],
+   "rating": 9.7,
+   "toLiftM": 250,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/670633511.jpg?k=5975b6929a276391e04b605152d0a001187cca43df45fc0e4d74a349fea6d050&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, El Tarter, 360 m² house, 4 bathrooms; sleeps 8"
+  },
+  {
+   "id": "2f7fb4932b",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/ski-chalet-penthouse-180m2-soldeu-centre.en-gb.html",
+   "title": "Luxury Summit Penthouse, Soldeu",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 10,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 10982
+    }
+   ],
+   "rating": null,
+   "toLiftM": 300,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/690146183.jpg?k=3f48395d85481913300f82afb7cb5562c9bd6740586c03e8dcd36da1eaf92ab9&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 180 m², 4 bathrooms"
+  },
+  {
+   "id": "e6f022b529",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/apartamento-eslalom.en-gb.html",
+   "title": "Refugio Amplio con Vistas y Parking (Eslalom)",
+   "source": "booking",
+   "bedrooms": 5,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 3895
+    }
+   ],
+   "rating": null,
+   "toLiftM": 400,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/766261799.jpg?k=8998b88f919c5e71cb06aba24859822f6417d9ac1f96aac50ba560435992c6b7&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 110 m², 3 bathrooms; sleeps 8"
   },
   {
    "id": "5b8314676c",
@@ -197,6 +483,28 @@
    "notes": "Free parking; Incles valley, drive to the lifts"
   },
   {
+   "id": "5ad4d9689e",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/soldeu-amplio-apartamento-con-vistas-a-pistas-de-esqui.en-gb.html",
+   "title": "Soldeu apartment 130 m² for up to 10, piste views",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 10,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4094
+    }
+   ],
+   "rating": 9.5,
+   "toLiftM": 300,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/488493952.jpg?k=a694e27268678360c895cfa3334c4db863c6c48c1bbdf46169d680c8f072c2e4&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bathrooms, 8 singles + 1 double"
+  },
+  {
    "id": "96f38aa158",
    "resort": "soldeu",
    "url": "https://www.airbnb.com/rooms/39173169",
@@ -219,6 +527,28 @@
    "notes": "About a 12-minute walk to the lifts"
   },
   {
+   "id": "dbee63e522",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/sport-hermitage-spa.en-gb.html",
+   "title": "Sport Hotel Hermitage & Spa (4-bedroom apartment)",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 18490
+    }
+   ],
+   "rating": 9.5,
+   "toLiftM": 200,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/189125772.jpg?k=356224fa669e7430fa8bcff669d87242f1ab180dcb049cf3bfb2b69a7c598e85&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 180 m², hotel spa; sleeps 8"
+  },
+  {
    "id": "671e019590",
    "resort": "soldeu",
    "url": "https://www.estiber.com/en_US/apartment/tarter-chalets-apartaments-el-tarter",
@@ -239,6 +569,50 @@
    "photo": "https://www.estiber.com/v4/hotels/images/apt-big-2257_1.jpg",
    "addedBy": "cristiano",
    "notes": "El Tarter"
+  },
+  {
+   "id": "8b53d84dd6",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/tarter-chalets-apartaments.en-gb.html",
+   "title": "Tarter Chalets Apartaments",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 9,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4515
+    }
+   ],
+   "rating": 8.9,
+   "toLiftM": 250,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/134549744.jpg?k=9b628d2b1e7135ae9289eeb54fa42be5f86a1516050d38ef76c2ee7bbf42d6a4&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, El Tarter, 120 m², 2 bathrooms"
+  },
+  {
+   "id": "82870b1ac3",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/apartament-terrasses-f.en-gb.html",
+   "title": "Terrasses del Tarter F",
+   "source": "booking",
+   "bedrooms": 4,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 2819
+    }
+   ],
+   "rating": 9.0,
+   "toLiftM": 500,
+   "photo": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/933738986.jpg?k=145f31b463bcb4e2e7af2204f9a290234842d7400c26dd44320bb39d72e7ecdf&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, El Tarter, 130 m², 2 bathrooms; sleeps 8"
   }
  ]
 }
