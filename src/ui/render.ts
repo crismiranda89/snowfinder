@@ -35,11 +35,20 @@ export function resetCache() { cache = new Map(); }
 function c(s: State, d: Option, w: number): Calc {
   const k = d.id + "@" + w;
   let r = cache.get(k);
-  if (!r) { r = calc(SEASON, s, d, w, LISTINGS_BY_RESORT[d.resort] || []); cache.set(k, r); }
+  if (!r) { r = withPick(s, d, w, calc(SEASON, s, d, w, LISTINGS_BY_RESORT[d.resort] || [])); cache.set(k, r); }
   return r;
 }
 
 export function picked(s: State, resortId: string) { return !s.dest.length || s.dest.includes(resortId); }
+/** At the resort of the house you picked, the trip is priced with that house, not the tier's typical one
+ *  (a price you typed in the table still wins). */
+function withPick(s: State, d: Option, w: number, k: Calc): Calc {
+  const l = s.pick ? LISTINGS.find((x) => x.id === s.pick) : undefined;
+  if (!l || l.resort !== d.resort || k.stay.source === "edited") return k;
+  const total = priceFor(SEASON, d.mkt, l, w, nights(SEASON, s.days)).total;
+  const stay = total / k.people, pp = k.pp - k.parts.stay + stay;
+  return { ...k, parts: { ...k.parts, stay }, pp, group: pp * k.people, stayTotal: total };
+}
 export function visible(s: State) { return OPTIONS.filter((d) => (!s.limit || d.mins <= 125) && picked(s, d.resort)); }
 /** The stay's dates for the chosen pattern and number of ski days. */
 const dates = (s: State, w: number) => seasonRange(SEASON, s.pattern, w, s.days);
@@ -288,7 +297,7 @@ function sourceName(l: Listing) {
 }
 /** week: set in the all-dates view, the week this price is for (shown, and used when the house is chosen). */
 function card(s: State, x: Priced, label: string, selected: boolean, week?: number) {
-  const l = x.l, src = sourceName(l);
+  const l = x.l, src = sourceName(l), trip = allIn(s, l, week ?? s.week);
   const qa = new Date(x.quote.checkin), qb = new Date(x.quote.checkout);
   const dates = qa.getUTCMonth() === qb.getUTCMonth() ? `${qa.getUTCDate()}–${fmt(qb)}` : `${fmt(qa)} – ${fmt(qb)}`;
   const nq = l.quotes.length;
@@ -314,10 +323,11 @@ function card(s: State, x: Priced, label: string, selected: boolean, week?: numb
     `<a class="hphoto" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${photo}<span class="tier">${esc(label)}</span></a>` +
     `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
     (week != null ? `<span class="cheapwk">📅 Cheapest week: ${esc(seasonRange(SEASON, s.pattern, week, s.days).text)}</span>` : "") +
-    `<div class="hprice"><b>${euro(x.pp)}</b><small>per person · ${euro(x.total)} total</small></div>` +
+    `<div class="hprice"><b>${euro(x.pp)}</b><small>per person, house only · ${euro(x.total)} for the house</small></div>` +
+    (trip ? `<small class="allin">≈ <b>${euro(trip.best.pp)}</b> per person all in, flying to ${esc(trip.best.d.code)} (flight, ${s.ground === "car" ? "car" : "transfer"}, house, pass, rental, food)</small>` : "") +
     `<small>Quote for ${dates}${nq > 1 ? ` (+${nq - 1} more)` : ""}${x.exact ? "" : ", adjusted to this week's demand"}${l.notes ? " · " + esc(l.notes) : ""}</small>` +
     `<div class="hacts"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a>` +
-    `<button type="button" class="choose" data-pick="${esc(l.id)}"${week != null ? ` data-week="${week}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div></div></article>`;
+    `<button type="button" class="choose" data-pick="${esc(l.id)}" data-week="${week ?? s.week}"${x.exact ? ` data-checkin="${esc(x.quote.checkin)}" data-nights="${x.quote.nights}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div></div></article>`;
 }
 function searchLinks(r: Resort, s: State) {
   const rg = dates(s, s.week), ci = isoOf(rg.a), co = isoOf(rg.b), p = people(s.group), b = bedrooms(s.group);
@@ -455,16 +465,24 @@ export function renderHouseSection(s: State, view: HouseView, repo: string, allD
 export interface PickSummary {
   listing: Listing; resort: Resort; option: Option; when: string; people: number;
   housePP: number; houseTotal: number; pp: number; group: number; walk: string;
+  /** Every open way to fly there this week, cheapest first, priced all in with this house. */
+  flights: { d: Option; pp: number }[];
+}
+/** The trip all in with house l in week w: the flight you chose (s.air) if it flies there, else the cheapest. */
+export function allIn(s: State, l: Listing, w: number) {
+  const opts = OPTIONS.filter((d) => d.resort === l.resort && !shut(s, d, w));
+  if (!opts.length) return null;
+  const p = people(s.group);
+  const house = priceFor(SEASON, opts[0].mkt, l, w, nights(SEASON, s.days)).total;
+  const flights = opts.map((d) => { const k = c(s, d, w); return { d, pp: k.pp - k.parts.stay + house / p }; }).sort((a, b) => a.pp - b.pp);
+  return { house, flights, best: flights.find((f) => f.d.id === s.air) || flights[0] };
 }
 export function pickSummary(s: State): PickSummary | null {
   const l = s.pick ? LISTINGS.find((x) => x.id === s.pick) : undefined;
   const r = l && RESORT_BY_ID[l.resort];
-  if (!l || !r) return null;
-  const opts = OPTIONS.filter((d) => d.resort === r.id && !shut(s, d, s.week));
-  if (!opts.length) return null;
-  const p = people(s.group);
-  const house = priceFor(SEASON, opts[0].mkt, l, s.week, nights(SEASON, s.days)).total;
-  const best = opts.map((d) => ({ d, k: c(s, d, s.week) })).map(({ d, k }) => ({ d, pp: k.pp - k.parts.stay + house / p })).sort((a, b) => a.pp - b.pp)[0];
+  const a = l && allIn(s, l, s.week);
+  if (!l || !r || !a) return null;
+  const p = people(s.group), house = a.house, best = a.best;
   const walk = l.toLiftM == null ? "distance to lifts not stated" : l.toLiftM <= 100 ? "ski in / ski out" : `${walkMins(l.toLiftM)} min walk to the lifts`;
-  return { listing: l, resort: r, option: best.d, when: dates(s, s.week).text, people: p, housePP: house / p, houseTotal: house, pp: best.pp, group: best.pp * p, walk };
+  return { listing: l, resort: r, option: best.d, when: dates(s, s.week).text, people: p, housePP: house / p, houseTotal: house, pp: best.pp, group: best.pp * p, walk, flights: a.flights };
 }

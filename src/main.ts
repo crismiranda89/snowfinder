@@ -1,5 +1,5 @@
 // Boot: restore state (a share link wins over this browser's saved state), render, wire up controls.
-import { SEASON } from "./data.ts";
+import { LISTINGS, OPTIONS, SEASON } from "./data.ts";
 import { GROUPS, decodeShare, encodeShare, load, save, type State } from "./state.ts";
 import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
@@ -91,8 +91,14 @@ $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInput
 $("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); } });
 function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; update((s) => { s.week = +cell.dataset.w!; }); } }
 $("houseslede").addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest("[data-act='all-dates']")) { weekChosen = false; render(); } });
-// Choosing a house in the all-dates view also picks its cheapest week (trip.ts sets the week).
-document.addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest(".choose[data-week]")) weekChosen = true; }, true);
+// Choosing a house sets its week, and its quote's start day and length when it has one (trip.ts), so the
+// houses, grid and ranking all show those dates; its resort opens in the ranking.
+document.addEventListener("click", (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLElement>(".choose"); if (!b) return;
+  weekChosen = true;
+  const l = LISTINGS.find((x) => x.id === b.dataset.pick), d = l && OPTIONS.find((o) => o.resort === l.resort);
+  if (d) { rankOpen.add("a:" + d.region); rankOpen.add("r:" + d.resort); }
+}, true);
 $("heatbody").addEventListener("click", pickCell);
 $("heatbody").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pickCell(ev); } });
 $("tbody").addEventListener("change", (ev) => {

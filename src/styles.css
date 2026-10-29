@@ -330,3 +330,6 @@ tr.dimrow td{opacity:.45}
 .tmsg-acts{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .tchallenge{display:grid;gap:6px;background:var(--ok-bg);border:1px solid var(--ok);border-radius:12px;padding:12px}
 .tchallenge>b{color:var(--ink)}
+.hcard .allin{color:var(--ink)}
+.mp-air{display:grid;gap:4px;font-size:.9rem;margin-top:4px;min-width:0}
+.mp-air select{width:100%;min-width:0;max-width:100%}

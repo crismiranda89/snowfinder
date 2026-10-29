@@ -7,6 +7,7 @@ export interface State extends Settings {
   limit: boolean;
   dest: string[]; // resort ids; empty = all
   pick?: string;  // listing id of the house this person picks for the group
+  air?: string;   // option id (resort + airport) of the flight chosen for that house; cheapest when unset
   sort: Record<string, { col: number; dir: 1 | -1 }>;
 }
 
@@ -68,6 +69,7 @@ export function sanitize(raw: unknown, weeks: number): State {
     edits,
     sort: r.sort && typeof r.sort === "object" ? r.sort : {},
     pick: typeof r.pick === "string" && /^[\w-]{1,40}$/.test(r.pick) ? r.pick : undefined,
+    air: typeof r.air === "string" && /^[\w-]{1,40}$/.test(r.air) ? r.air : undefined,
   };
 }
 

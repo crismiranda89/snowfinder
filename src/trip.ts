@@ -3,8 +3,9 @@
 // through a small Apps Script web app (sheet/Code.gs); its URL comes from <meta name="snowfinder-api">.
 import { GROUPS, decodeShare, encodeShare, groupId, type State } from "./state.ts";
 import { RESORTS_FILE, SEASON } from "./data.ts";
-import { nights } from "./model/calendar.ts";
-import { esc, euro, fittingHouses, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
+import { addDays, isoOf, nights } from "./model/calendar.ts";
+import type { PatternKey } from "./types.ts";
+import { esc, euro, fittingHouses, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -127,7 +128,11 @@ export function renderMyPick(s: State) {
   box.innerHTML = `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
     `<div class="mp-body"><span class="eyebrow">Your pick</span><b>${esc(p.listing.title)}</b>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
-    `<div class="mp-price"><b>${euro(p.pp)}</b><small>per person all in · ${euro(p.group)} group</small></div></div>` +
+    `<div class="mp-price"><b>${euro(p.pp)}</b><small>per person all in · ${euro(p.group)} group · house ${euro(p.housePP)} pp</small></div>` +
+    `<label class="mp-air">✈ Flight <select id="mp-air">${p.flights.map((f) => {
+      const t = SEASON.flightTimes[f.d.code];
+      return `<option value="${esc(f.d.id)}"${f.d.id === p.option.id ? " selected" : ""}>${esc(f.d.air)}${t ? ` · ${hm(t.mins + f.d.mins)}` : ""} · ${euro(f.pp)} pp</option>`;
+    }).join("")}</select></label></div>` +
     `<div class="mp-acts">${tripsReady()
       ? `<button type="button" class="btn" data-act="${inTrip ? "add-pick" : "create-trip"}">${inTrip ? "Add my pick to the trip" : "Create our trip"}</button>`
       : `<span class="foot">Shared trips aren't set up on this site yet.</span>`}` +
@@ -318,14 +323,24 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     const t = ev.target as HTMLElement;
     const choose = t.closest<HTMLElement>(".choose");
     if (choose) {
-      const id = choose.dataset.pick!, week = choose.dataset.week;
-      update((s) => { s.pick = s.pick === id ? undefined : id; if (s.pick && week != null) s.week = +week; });
+      const { pick: id, week, checkin, nights } = choose.dataset;
+      update((s) => {
+        s.pick = s.pick === id ? undefined : id; s.air = undefined;
+        if (!s.pick) return;
+        if (week != null) s.week = +week;
+        // A real quote for these dates: the dates bar follows it (start day, 4 or 5 ski days).
+        if (!checkin || !nights || (+nights !== 5 && +nights !== 6)) return;
+        for (const pat of Object.keys(SEASON.patterns) as PatternKey[]) {
+          const w = SEASON.weeks.findIndex((sat) => isoOf(addDays(sat, SEASON.patterns[pat].from)) === checkin);
+          if (w >= 0) { s.pattern = pat; s.days = (+nights - 1) as 4 | 5; s.week = w; }
+        }
+      });
       return;
     }
     const act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);
-    else if (act === "clear-pick") update((s) => { s.pick = undefined; });
+    else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
     else if (act === "copy-challenge") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
       navigator.clipboard.writeText(text).then(() => toast("Invite copied: paste it to the other group."), () => window.prompt("Copy this invite:", text));
@@ -336,6 +351,10 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     }
     const v = t.closest<HTMLElement>("[data-vote]");
     if (v) vote(v.dataset.vote!, getState(), toast);
+  });
+  document.addEventListener("change", (ev) => {
+    const t = ev.target as HTMLSelectElement;
+    if (t.id === "mp-air") update((s) => { s.air = t.value; });
   });
   document.addEventListener("submit", async (ev) => {
     const form = ev.target as HTMLFormElement; if (form.id !== "ideaform") return;
