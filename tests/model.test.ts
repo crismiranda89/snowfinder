@@ -109,3 +109,9 @@ test("share link round-trip and sanitising", () => {
   assert.deepEqual(bad.edits, {});
   assert.equal(decodeShare("#s=%%%garbage", 12), null);
 });
+
+test("every option belongs to an area; Andorra groups Soldeu and Pas de la Casa", () => {
+  for (const o of OPTIONS) assert.ok(o.region, `${o.id} has no region`);
+  const andorra = new Set(OPTIONS.filter((o) => o.region === "Andorra").map((o) => o.resort));
+  assert.deepEqual([...andorra].sort(), ["pas-de-la-casa", "soldeu"]);
+});

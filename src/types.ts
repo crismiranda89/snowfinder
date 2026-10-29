@@ -37,6 +37,8 @@ export interface ResortSeason {
 export type Stars = [number, string];
 export interface Resort {
   id: string; name: string; compareName?: string; searchName?: string; country: string; area: string; altitude: string;
+  /** Wider area the grid and ranking group by (e.g. "Andorra"); falls back to the country. */
+  region?: string;
   market: string; spring: "good" | "ok" | "poor";
   airports: { id: string; airport: string; code: string; time: string; km: number; mins: number }[];
   compare: {
@@ -53,7 +55,7 @@ export interface ResortsFile {
 
 /** One resort reached from one airport — the row unit of the grid, ranking and detail table. */
 export interface Option {
-  id: string; resort: string; name: string; country: string; air: string; code: string; time: string;
+  id: string; resort: string; name: string; country: string; region: string; air: string; code: string; time: string;
   km: number; mins: number; alt: string; apres: number; mkt: string;
   flight: number; car: number; transfer: number; stay: number;
   pass4: number; pass5: number; rent4: number; rent5: number; lesson: number;

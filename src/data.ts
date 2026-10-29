@@ -17,7 +17,7 @@ export function buildOptions(resorts: Resort[], season: Season): Option[] {
       const o = season.options[a.id];
       if (!o) throw new Error(`season has no prices for option ${a.id}`);
       out.push({
-        id: a.id, resort: r.id, name: r.name, country: r.country, air: a.airport, code: a.code, time: a.time,
+        id: a.id, resort: r.id, name: r.name, country: r.country, region: r.region || r.country, air: a.airport, code: a.code, time: a.time,
         km: a.km, mins: a.mins, alt: r.altitude, apres: r.compare.apres[0], mkt: r.market,
         flight: o.flight, car: o.car, transfer: o.transfer, stay: rs.stay,
         pass4: rs.pass4, pass5: rs.pass5, rent4: rs.rent4, rent5: rs.rent5, lesson: rs.lesson,

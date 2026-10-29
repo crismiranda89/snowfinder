@@ -2,7 +2,7 @@
 import { SEASON } from "./data.ts";
 import { people } from "./model/group.ts";
 import { decodeShare, encodeShare, load, save, type State } from "./state.ts";
-import { renderControls, renderDests, renderHeat, renderHouses, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
+import { rankOpen, renderControls, renderDests, renderHeat, renderHouses, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
 
 const REPO = (document.querySelector('a.btn.secondary') as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
@@ -78,7 +78,12 @@ $("dests").addEventListener("click", (ev) => {
     const i = s.dest.indexOf(r); if (i >= 0) s.dest.splice(i, 1); else s.dest.push(r);
   });
 });
-$("reset").addEventListener("click", () => update((s) => { s.edits = {}; s.food = 40; }));
+// Remember which area / resort groups are expanded so a re-render keeps them ("toggle" doesn't bubble).
+$("rank").addEventListener("toggle", (ev) => {
+  const d = ev.target as HTMLDetailsElement; const k = d.dataset?.k; if (!k) return;
+  if (d.open) rankOpen.add(k); else rankOpen.delete(k);
+}, true);
+$("reset").addEventListener("click",() => update((s) => { s.edits = {}; s.food = 40; }));
 
 // Photos that fail to load (moved listing, hotlink blocked) fall back to the placeholder.
 $("houses").addEventListener("error", (ev) => {

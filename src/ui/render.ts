@@ -111,24 +111,41 @@ export function renderWeeks(s: State) {
     (soft ? " " + esc(soft.note) : "") + (ld < 4 ? ` With the public holiday, this stay only uses ${ld} days of leave.` : "") + `</span>`;
 }
 
+/** Groups items by key, keeping the order in which keys first appear. */
+function groupBy<T>(xs: T[], key: (x: T) => string): [string, T[]][] {
+  const m = new Map<string, T[]>();
+  for (const x of xs) { const k = key(x); m.set(k, [...(m.get(k) || []), x]); }
+  return [...m];
+}
+
 export function renderHeat(s: State) {
-  const rows = visible(s);
-  const all: number[] = [];
-  rows.forEach((d) => SEASON.weeks.forEach((_, w) => { if (!shut(s, d, w)) all.push(c(s, d, w).pp); }));
+  const areas = groupBy(visible(s), (d) => d.region).map(([name, opts]) => {
+    const weeks = SEASON.weeks.map((_, w) => {
+      const open = opts.filter((d) => !shut(s, d, w)).map((d) => ({ d, pp: c(s, d, w).pp })).sort((a, b) => a.pp - b.pp);
+      return open.length ? { lo: open[0], hi: open[open.length - 1], n: open.length, closed: opts.length - open.length } : null;
+    });
+    return { name, opts, weeks };
+  });
+  const all = areas.flatMap((a) => a.weeks.flatMap((x) => (x ? [x.lo.pp] : [])));
   const mn = Math.min(...all), mx = Math.max(...all);
   const bucket = (v: number) => { if (mx === mn) return 0; const t = (v - mn) / (mx - mn); return t < .25 ? 0 : t < .5 ? 1 : t < .75 ? 2 : 3; };
-  $("heathead").innerHTML = `<tr><th>${sortBtn("Resort")}</th>` + SEASON.weeks.map((_, w) => {
+  $("heathead").innerHTML = `<tr><th>${sortBtn("Area")}</th>` + SEASON.weeks.map((_, w) => {
     const r = range(SEASON, s.pattern, w);
     return `<th class="${w === s.week ? "sel" : ""}" style="text-align:center">${sortBtn(fmt(r.a) + "<br>" + fmt(r.b))}</th>`;
   }).join("") + "</tr>";
-  $("heatbody").innerHTML = rows.map((d) => {
-    const vals = SEASON.weeks.map((_, w) => (shut(s, d, w) ? null : c(s, d, w).pp));
-    const open = vals.filter((v): v is number => v != null);
-    const best = open.length ? vals.indexOf(Math.min(...open)) : -1;
-    return `<tr><td class="dest" data-v="${esc(d.name + " " + d.air)}"><b>${esc(d.name)}</b><small>${esc(d.air)} · ${d.km} km</small></td>` + vals.map((v, w) => {
+  $("heatbody").innerHTML = areas.map(({ name, opts, weeks }) => {
+    const open = weeks.filter((x) => x != null).map((x) => x!.lo.pp);
+    const best = open.length ? weeks.findIndex((x) => x?.lo.pp === Math.min(...open)) : -1;
+    const nResorts = new Set(opts.map((d) => d.resort)).size;
+    return `<tr><td class="dest" data-v="${esc(name)}"><b>${esc(name)}</b><small>${nResorts} resort${nResorts > 1 ? "s" : ""} · ${opts.length} flight option${opts.length > 1 ? "s" : ""}</small></td>` + weeks.map((x, w) => {
       const sel = w === s.week ? " selcol" : "";
-      if (v == null) return `<td class="cell closed${sel}" tabindex="0" data-w="${w}" data-v="closed" title="${esc(d.name)} closes on ${esc(closeTxt(d))}">Closed</td>`;
-      return `<td class="cell h${bucket(v)}${w === best ? " best" : ""}${sel}${late(SEASON, w) && d.spring === "poor" ? " thin" : ""}" tabindex="0" data-w="${w}" data-v="${v.toFixed(2)}" title="${esc(d.name)} via ${esc(d.air)}, ${esc(range(SEASON, s.pattern, w).text)}: ${euro(v)} per person">${euro(v)}</td>`;
+      const when = range(SEASON, s.pattern, w).text;
+      if (!x) return `<td class="cell closed${sel}" tabindex="0" data-w="${w}" data-v="closed" title="${esc(name)}: every resort is closed for ${esc(when)}">Closed</td>`;
+      const thin = late(SEASON, w) && opts.some((d) => !shut(s, d, w) && d.spring === "poor");
+      const tip = `${name}, ${when}: from ${euro(x.lo.pp)} (${x.lo.d.name} via ${x.lo.d.code}) to ${euro(x.hi.pp)} (${x.hi.d.name} via ${x.hi.d.code}) per person` +
+        (x.closed ? `. ${x.closed} option${x.closed > 1 ? "s" : ""} closed` : "");
+      return `<td class="cell h${bucket(x.lo.pp)}${w === best ? " best" : ""}${sel}${thin ? " thin" : ""}" tabindex="0" data-w="${w}" data-v="${x.lo.pp.toFixed(2)}" title="${esc(tip)}">` +
+        `<b>${euro(x.lo.pp)}</b>${Math.round(x.hi.pp) > Math.round(x.lo.pp) ? `<small>to ${euro(x.hi.pp)}</small>` : ""}</td>`;
     }).join("") + "</tr>";
   }).join("");
   applySort(s, "heat");
@@ -157,6 +174,10 @@ function tierLine(s: State, h: HouseResult) {
     `<span class="${t.tier === s.house ? "on" : ""}">${TIER_LABEL[t.tier]} <b>${euro(t.medianPP)}</b></span>`).join("") + "</div>";
 }
 
+// Which ranking groups are expanded ("a:<area>", "r:<resort id>"). Kept across re-renders, not saved.
+export const rankOpen = new Set<string>();
+let rankSeeded = false;
+
 export function renderRank(s: State) {
   const w = s.week;
   $("rankTitle").textContent = "Ranking · " + range(SEASON, s.pattern, w).text;
@@ -165,12 +186,36 @@ export function renderRank(s: State) {
   const max = Math.max(...rows.map((r) => r.k.pp), 1);
   const colors: Record<string, string> = { flight: "var(--c-flight)", ground: "var(--c-ground)", stay: "var(--c-stay)", pass: "var(--c-pass)", rent: "var(--c-rent)", food: "var(--c-food)", lesson: "var(--c-lesson)" };
   const labels: Record<string, string> = { flight: "Flight", ground: s.ground === "car" ? "Car" : "Transfer", stay: "House", pass: "Lift pass", rent: "Rental", food: "Food", lesson: "Lessons (group average)" };
-  $("rank").innerHTML = rows.map(({ d, k }) => {
-    const segs = (Object.keys(k.parts) as (keyof typeof k.parts)[]).map((p) =>
-      `<span title="${labels[p]}: ${euro(k.parts[p])}" style="width:${((k.parts[p] / max) * 100).toFixed(2)}%;background:${colors[p]}"></span>`).join("");
-    return `<div class="row"><div class="who"><b>${esc(d.name)}</b><small>via ${esc(d.air)} · ${d.km} km · ${esc(d.time.replace("~", ""))} · ${esc(d.alt)}</small><div class="tags">${pills(s, d, k, w)}</div>${tierLine(s, k.stay.houses)}</div>` +
-      `<div class="bar" role="img" aria-label="${esc(d.name)} via ${esc(d.air)}: ${euro(k.pp)} per person">${segs}</div>` +
-      `<div class="tot num"><b>${euro(k.pp)}</b><small>${euro(k.group)} group</small></div></div>`;
+  type R = (typeof rows)[number];
+  const bar = ({ d, k }: R, label: string) => `<div class="bar" role="img" aria-label="${esc(label)}: ${euro(k.pp)} per person">` +
+    (Object.keys(k.parts) as (keyof typeof k.parts)[]).map((p) =>
+      `<span title="${labels[p]}: ${euro(k.parts[p])}" style="width:${((k.parts[p] / max) * 100).toFixed(2)}%;background:${colors[p]}"></span>`).join("") + "</div>";
+  const tot = (xs: R[]) => {
+    const lo = xs[0].k, hi = xs[xs.length - 1].k;
+    return `<div class="tot num">${xs.length > 1 ? "<small>from</small>" : ""}<b>${euro(lo.pp)}</b><small>${xs.length > 1 && Math.round(hi.pp) > Math.round(lo.pp) ? `to ${euro(hi.pp)}` : `${euro(lo.group)} group`}</small></div>`;
+  };
+  // Under its resort a flight row is named by airport; on its own (one-airport resort) by resort.
+  const flight = (x: R, underResort = false) => `<div class="row opt"><div class="who">` +
+    (underResort ? `<b>✈ ${esc(x.d.air)}</b><small>${x.d.km} km · ${esc(x.d.time.replace("~", ""))} to ${esc(x.d.name)}</small>`
+      : `<b>${esc(x.d.name)}</b><small>via ${esc(x.d.air)} · ${x.d.km} km · ${esc(x.d.time.replace("~", ""))} · ${esc(x.d.alt)}</small>`) +
+    `<div class="tags">${pills(s, x.d, x.k, w)}</div>${tierLine(s, x.k.stay.houses)}</div>` +
+    bar(x, `${x.d.name} via ${x.d.air}`) + tot([x]) + "</div>";
+  const group = (key: string, cls: string, who: string, xs: R[], label: string, kids: string) =>
+    `<details class="grp ${cls}" data-k="${esc(key)}"${rankOpen.has(key) ? " open" : ""}><summary class="row"><div class="who">${who}</div>${bar(xs[0], label)}${tot(xs)}</summary><div class="kids">${kids}</div></details>`;
+
+  const areas = groupBy(rows, (x) => x.d.region);
+  if (!rankSeeded && areas.length) { rankOpen.add("a:" + areas[0][0]); rankSeeded = true; }
+  $("rank").innerHTML = areas.map(([area, xs]) => {
+    const resorts = groupBy(xs, (x) => x.d.resort);
+    const best = xs[0].d;
+    const who = `<b>${esc(area)}</b><small>${resorts.length} resort${resorts.length > 1 ? "s" : ""} · ${xs.length} flight option${xs.length > 1 ? "s" : ""} · cheapest: ${esc(best.name)} via ${esc(best.code)}</small>`;
+    const kids = resorts.map(([id, ys]) => {
+      if (ys.length === 1) return flight(ys[0]);
+      const r = RESORT_BY_ID[id], b = ys[0].d;
+      const rwho = `<b>${esc(r.name)}</b><small>${esc(r.area)} · ${esc(b.alt)} · ${ys.length} airports, cheapest via ${esc(b.air)}</small>`;
+      return group("r:" + id, "g-resort", rwho, ys, `${r.name}, cheapest via ${b.air}`, ys.map((y) => flight(y, true)).join(""));
+    }).join("");
+    return group("a:" + area, "g-area", who, xs, `${area}, cheapest ${best.name} via ${best.air}`, kids);
   }).join("") || `<p class="foot">No resort matches the filter.</p>`;
   if (closed.length) $("rank").insertAdjacentHTML("beforeend", `<p class="foot" style="padding-top:10px">Closed this week: ${closed.map((d) => `${esc(d.name)} via ${esc(d.air)} (closes ${esc(closeTxt(d))})`).join(", ")}.</p>`);
 }
