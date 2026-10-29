@@ -28,7 +28,7 @@ img{max-width:100%}
   color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
-.wrap{max-width:1160px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:30px}
+.wrap{max-width:1160px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:minmax(0,1fr);gap:30px}
 h1,h2{font-family:var(--f-display);font-weight:700;letter-spacing:.01em;text-wrap:balance;margin:0;line-height:1.05}
 h1{font-size:clamp(2rem,5vw,3rem)}
 h2{font-size:1.6rem}
@@ -242,3 +242,14 @@ tr.dimrow td{opacity:.45}
 .hgroup>h3{font-family:var(--f-display);font-size:1.15rem;font-weight:600;margin:0 0 8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .hgroup>h3 small{font-family:var(--f-body,inherit);font-size:.8rem;font-weight:500;color:var(--muted)}
 .hempty-big{display:grid;gap:4px;padding:16px;border:1px dashed var(--line);border-radius:10px}
+
+/* every section folds: tap its heading */
+.block{min-width:0}
+.block>*,.hgroup,.hres,.kids{min-width:0}
+.block h2.fold{cursor:pointer;user-select:none;display:flex;align-items:center;gap:.4em}
+.block h2.fold::before{content:"";flex:none;width:.4em;height:.4em;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .15s;margin:0 .15em .2em 0}
+.block.collapsed h2.fold::before{transform:rotate(-45deg);margin-bottom:0}
+.block h2.fold:hover{color:var(--accent)}
+.block h2.fold:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.block.collapsed>:not(.sechead){display:none}
+.block.collapsed .head>:not(h2){display:none}

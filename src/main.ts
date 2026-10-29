@@ -50,6 +50,26 @@ function num(id: string, lo: number, hi: number, set: (s: State, v: number) => v
 }
 
 renderStatic();
+// Every section folds when you tap its heading; which ones are folded is remembered (this browser only).
+const FOLD_KEY = "snowfinder-folded";
+let folded: string[] = [];
+try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || "[]"); } catch { /* private mode */ }
+document.querySelectorAll<HTMLElement>("section.block").forEach((sec, i) => {
+  const h2 = sec.querySelector<HTMLElement>(":scope > h2, :scope > .head > h2"); if (!h2) return;
+  const key = sec.id || `section-${i}`;
+  (h2.parentElement === sec ? h2 : h2.parentElement!).classList.add("sechead");
+  h2.classList.add("fold"); h2.tabIndex = 0; h2.setAttribute("role", "button");
+  const set = (closed: boolean) => { sec.classList.toggle("collapsed", closed); h2.setAttribute("aria-expanded", String(!closed)); };
+  set(folded.includes(key));
+  const toggle = () => {
+    const closed = !sec.classList.contains("collapsed"); set(closed);
+    folded = closed ? [...new Set([...folded, key])] : folded.filter((k) => k !== key);
+    try { localStorage.setItem(FOLD_KEY, JSON.stringify(folded)); } catch { /* ignore */ }
+  };
+  h2.addEventListener("click", toggle);
+  h2.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
+});
+
 // The filters panel remembers whether it was open (this browser only); closed by default so the grid is in view.
 const filters = $("filters") as HTMLDetailsElement;
 try { filters.open = localStorage.getItem("snowfinder-filters-open") === "1"; } catch { /* private mode */ }
