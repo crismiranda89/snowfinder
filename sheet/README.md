@@ -13,9 +13,9 @@ need no account: they open the trip link and type their name. Screenshots go to 
    - Who has access: **Anyone**
    Click **Deploy**, allow the permissions it asks for (Sheets and Drive), and copy the **Web app URL**
    (`https://script.google.com/macros/s/…/exec`).
-4. **Checker key:** in Apps Script, **Project Settings (gear) → Script properties → Add script property**,
-   name `CHECKER_KEY`, value a long random string (Claude gives you one). Only the 30-minute checker
-   ([CHECKER.md](CHECKER.md)) knows it; it is what lets it approve or reject proposals.
+4. **Review key:** in Apps Script, **Project Settings (gear) → Script properties → Add script property**,
+   name `CHECKER_KEY`, value the key in `~/.snowfinder/checker.json`. Only your review sessions
+   ([CHECKER.md](CHECKER.md)) use it; it is what lets a review approve or reject proposals.
 5. In the GitHub repo: **Settings → Secrets and variables → Actions → Variables → New repository
    variable**, name `SHEET_API`, value the URL from step 3.
 6. Re-run the **Deploy site** workflow (or push anything). "Create our trip" appears once a house is chosen.
@@ -29,19 +29,21 @@ The tabs (`trips`, `picks`, `votes`, `ideas`) are created on first use.
 - **Friends** vote (one vote per name, changeable), or choose their own house and "Add my pick".
 - **You approve everything from the forms.** A friend's pick or "better option" post shows "Waiting for
   <you>'s OK" until you type `yes` (or `no`) in its `approved` cell in the `picks` or `ideas` tab. Only then
-  does the checker look at it. Your own pick is approved automatically. The checker sends you a phone
-  notification when something is waiting or anything changes (votes, picks, availability).
+  can it be reviewed. Your own pick is approved automatically. Until then the group only sees "N picks
+  waiting for <you>'s OK": the details stay hidden, so spam never reaches them.
+- **Rules against abuse:** a name belongs to the browser that used it first on a trip (nobody can vote or
+  post as you); 2 picks and 3 suggested places per person; 15 picks, 20 places and 30 photos per trip;
+  only Airbnb / Booking.com links; text is stored as plain text (no spreadsheet formulas).
 - **Limits:** at most 4 trips and 10 people per trip. Change them in **Project Settings → Script
   properties** with `MAX_TRIPS` and `MAX_PEOPLE`.
 - **Challenge another group:** after you confirm your pick, the trip offers to send Snowfinder to another
   group of friends. Their trip remembers who challenged them (the `parent` column).
-- **I have a better option:** text, links and up to 3 screenshots land in the `ideas` tab with status
-  `new`. Every 30 minutes the checker opens the links for the trip's dates: not bookable, or not better
-  than the picks, sets `not approved` with the reason in `reply`; better adds it to the site and to
-  `picks` with `"foundBy": "<name>"`, pinned on the trip as "Found by <name>".
-- **Picks are re-checked about every 2 hours.** A house that's gone or no longer free shows "No longer
-  available for these dates", and the checker searches the same house across the season and notes the
-  free weeks.
+- **I have a better option:** an Airbnb or Booking.com link (required), text and up to 3 screenshots
+  land in the `ideas` tab. You review them yourself in a Claude Code session ([CHECKER.md](CHECKER.md)):
+  nothing reads or acts on submissions automatically, so a post can't trick an AI into doing anything.
+  A better place is added to the site and pinned as "Found by <name>"; otherwise the post gets a reply.
+- **Availability:** you re-check picks when you want, in the same session; a house that's gone shows
+  "No longer available for these dates" with the weeks it's free.
 
 ## Changing the script later
 

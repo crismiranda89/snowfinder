@@ -5,6 +5,7 @@ import { GROUPS, decodeShare, encodeShare, groupId, type State } from "./state.t
 import { RESORTS_FILE, SEASON } from "./data.ts";
 import { nights } from "./model/calendar.ts";
 import { esc, euro, fittingHouses, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
+import { LISTINGS } from "./data.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -42,7 +43,7 @@ function pickStatus(p: Pick, organizer: string) {
   if (p.status === "available") return `<p class="pstat ok">✓ Still available${at ? ` · checked ${at}` : ""}${note ? ` ·${note}` : ""}</p>`;
   if (p.status === "unavailable") return `<p class="pstat bad">✕ No longer available for these dates${at ? ` · checked ${at}` : ""}.${note}</p>`;
   if (p.status === "changed") return `<p class="pstat warn">Price changed${at ? ` · checked ${at}` : ""}.${note}</p>`;
-  return `<p class="pstat">Availability not checked yet · first check within 30 min</p>`;
+  return `<p class="pstat">Availability not checked yet</p>`;
 }
 interface TripView {
   trip: { id: string; organizer: string; title: string; parent?: string };
@@ -51,6 +52,13 @@ interface TripView {
 }
 
 const NAME_KEY = "snowfinder-name";
+/** A secret kept in this browser: the sheet locks a name to the browser that used it first. */
+const BROWSER_KEY = (() => {
+  const make = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => b.toString(16).padStart(2, "0")).join("");
+  try { let k = localStorage.getItem("snowfinder-key"); if (!k) { k = make(); localStorage.setItem("snowfinder-key", k); } return k; } catch { return make(); }
+})();
+/** Only https links are opened or shown as images (never javascript: or data:). */
+const safeUrl = (u?: string | null) => (u && /^https:\/\//i.test(u) ? u : "");
 const myName = () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } };
 const setName = (n: string) => { try { localStorage.setItem(NAME_KEY, n); } catch { /* private mode */ } };
 
@@ -62,7 +70,7 @@ async function get(id: string): Promise<TripView> {
 }
 async function post(body: object): Promise<any> {
   // text/plain keeps this a "simple" request, so Apps Script needs no CORS preflight
-  const r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) });
+  const r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ ...body, key: BROWSER_KEY }) });
   const j = await r.json();
   if (j.error) throw new Error(j.error);
   return j;
@@ -106,7 +114,7 @@ export function whatsappText(d: PickData, link: string): string {
     `👉 Vote, pick your own or take the challenge:`,
     link,
     ``,
-    `⏳ Places go fast: availability is re-checked every 2 hours.`,
+    `⏳ Places go fast: let's decide soon.`,
   ].join("\n");
 }
 
@@ -200,20 +208,30 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
   catch (e) { $("trip-body").innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
 }
 
+/** Prices on a pick card come from the site's own data (the house and the pick's settings), never from what
+ *  was posted, so nobody can show a fake "€1 per person". A house the site doesn't know isn't priced. */
+function verified(d: PickData): { pp: number; group: number; known: boolean } {
+  const s = d.share ? decodeShare("#" + d.share, SEASON.weeks.length) : null;
+  if (!s || !LISTINGS.some((l) => l.id === d.listingId)) return { pp: 0, group: 0, known: false };
+  resetCache(); const p = pickSummary({ ...s, pick: d.listingId }); resetCache();
+  return p ? { pp: p.pp, group: p.group, known: true } : { pp: 0, group: 0, known: false };
+}
+
 function pickCard(p: Pick, votes: string[], mine: string, flag: string) {
-  const d = p.data;
+  const d = p.data, v = verified(d);
   return `<article class="tpick${flag ? " pinned" : ""}">` +
     (flag ? `<div class="tflag">${flag}</div>` : "") +
-    `<div class="tp-main"><a class="tp-photo" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">${d.photo ? `<img src="${esc(d.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</a>` +
+    `<div class="tp-main"><a class="tp-photo" href="${esc(safeUrl(d.url) || "#")}" target="_blank" rel="noopener noreferrer">${safeUrl(d.photo) ? `<img src="${esc(safeUrl(d.photo))}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</a>` +
     `<div class="tp-body"><b>${esc(d.title)}</b><small>${esc(d.resort)} · ${esc(d.walk)} · ${d.bedrooms} bedrooms, sleeps ${d.sleeps}</small>` +
     `<small>${esc(d.when)} · flying to ${esc(d.airport)}</small>` +
-    `<div class="mp-price"><b>${euro(d.pp)}</b><small>per person all in · ${euro(d.group)} for ${d.people}</small></div></div></div>` +
+    (v.known ? `<div class="mp-price"><b>${euro(v.pp)}</b><small>per person all in · ${euro(v.group)} for ${d.people}</small></div>`
+      : `<p class="pstat warn">Not one of the site's houses: price not verified</p>`) + `</div></div>` +
     pickStatus(p, last?.trip.organizer || "the organiser") +
     (p.reason ? `<p class="tp-why">“${esc(p.reason)}” <span class="foot">— ${esc(p.name)}</span></p>` : `<p class="foot">Picked by ${esc(p.name)}</p>`) +
     `<div class="tp-acts"><button type="button" class="btn${mine === p.id ? "" : " secondary"}" data-vote="${esc(p.id)}" aria-pressed="${mine === p.id}">${mine === p.id ? "✓ Your vote" : "Vote for this"}</button>` +
     `<span class="tp-votes"><b>${votes.length}</b> vote${votes.length === 1 ? "" : "s"}${votes.length ? `: ${votes.map(esc).join(", ")}` : ""}</span>` +
     `<a class="tp-open" href="?trip=${esc(tripId())}#${esc(d.share)}">Open this plan</a>` +
-    `<a class="tp-open" href="${esc(d.url)}" target="_blank" rel="noopener noreferrer">View listing ↗</a></div></article>`;
+    (safeUrl(d.url) ? `<a class="tp-open" href="${esc(safeUrl(d.url))}" target="_blank" rel="noopener noreferrer">View listing ↗</a>` : "") + `</div></article>`;
 }
 
 function renderTrip(_s: State) {
@@ -223,8 +241,15 @@ function renderTrip(_s: State) {
   const byPick = (id: string) => votes.filter((v) => v.pick === id).map((v) => v.name);
   const mine = votes.find((v) => v.name.toLowerCase() === me)?.pick || "";
   const best = picks.find((p) => p.name === trip.organizer) || picks[0];
-  const found = picks.filter((p) => p !== best && p.data.foundBy);
-  const rest = picks.filter((p) => p !== best && !p.data.foundBy).sort((a, b) => byPick(b.id).length - byPick(a.id).length);
+  // What the organiser hasn't approved stays out of sight: everyone sees how many are waiting, only the
+  // organiser and the person who sent it see the details. Spam and odd text never reach the group.
+  const norm = (s: string) => s.normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
+  const isOrg = !!me && norm(me) === norm(trip.organizer);
+  const shown = (x: { name: string; approved?: string }) => isYes(x.approved) || isOrg || (!!me && norm(x.name) === norm(me));
+  const hiddenPicks = picks.filter((p) => p !== best && !shown(p));
+  const found = picks.filter((p) => p !== best && p.data.foundBy && shown(p));
+  const rest = picks.filter((p) => p !== best && !p.data.foundBy && shown(p)).sort((a, b) => byPick(b.id).length - byPick(a.id).length);
+  const waitingNote = (n: number, what: string) => n ? `<p class="foot">${n} ${what}${n > 1 ? "s" : ""} waiting for ${esc(trip.organizer)}'s OK.</p>` : "";
   const leader = [...picks].sort((a, b) => byPick(b.id).length - byPick(a.id).length)[0];
   $("trip-title").textContent = trip.title ? `Our trip · ${trip.title}` : "Our trip";
   // Keep the pressure visible: how many picks are still bookable, and loudly when the best one is gone.
@@ -234,11 +259,12 @@ function renderTrip(_s: State) {
   const alert = best?.status === "unavailable"
     ? `<div class="talert" role="alert">⚠ <b>${esc(trip.organizer)}'s pick is no longer available</b> for these dates. Vote for another pick below or choose a new one: places are going.</div>`
     : picks.some((p) => p.status === "unavailable") ? `<div class="talert warn" role="status">${picks.filter((p) => p.status === "unavailable").length} pick${picks.filter((p) => p.status === "unavailable").length > 1 ? "s are" : " is"} no longer available. Decide soon.</div>` : "";
-  const pulse = `<p class="tpulse"><span class="dot" aria-hidden="true"></span>Availability re-checked every 2 hours` +
-    (checked.length ? ` · <b>${free} of ${checked.length}</b> pick${checked.length > 1 ? "s" : ""} still free · last check ${when(lastIso)}` : " · first check within 30 min") + `</p>`;
+  const pulse = `<p class="tpulse"><span class="dot" aria-hidden="true"></span>Availability checked by ${esc(trip.organizer)}` +
+    (checked.length ? ` · <b>${free} of ${checked.length}</b> pick${checked.length > 1 ? "s" : ""} still free · last check ${when(lastIso)}` : " · not checked yet") + `</p>`;
   // Free WhatsApp share: opens WhatsApp with the message ready; the sender picks the chat or group.
   const link = `${location.origin}${location.pathname}?trip=${encodeURIComponent(trip.id)}`;
-  const msg = best ? whatsappText(best.data, link) : `⛷️ Our ski trip: vote here ${link}`;
+  const bv = best ? verified(best.data) : null;
+  const msg = best ? whatsappText(bv?.known ? { ...best.data, pp: Math.round(bv.pp) } : best.data, link) : `⛷️ Our ski trip: vote here ${link}`;
   const wa = `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send on WhatsApp</a>`;
   const box = `<div class="tmsg"><label for="tmsg-text">Message for your group chats</label>` +
     `<textarea id="tmsg-text" readonly rows="12">${esc(msg)}</textarea>` +
@@ -250,9 +276,9 @@ function renderTrip(_s: State) {
     (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
     (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +
-    (rest.length ? `<h3 class="tsub">Everyone's picks</h3>` + rest.map((p) => pickCard(p, byPick(p.id), mine, "")).join("") : "") +
+    (rest.length || hiddenPicks.length ? `<h3 class="tsub">Everyone's picks</h3>` + rest.map((p) => pickCard(p, byPick(p.id), mine, "")).join("") + waitingNote(hiddenPicks.length, "pick") : "") +
     `<h3 class="tsub">Pick your own</h3><p class="foot">Choose a house below (“Choose this house”), set your dates and group, then “Add my pick to the trip”.</p>` +
-    ideasHtml(ideas);
+    ideasHtml(ideas.filter(shown)) + waitingNote(ideas.filter((x) => !shown(x)).length, "suggested place");
 }
 
 function ideasHtml(ideas: Idea[]) {
@@ -260,17 +286,17 @@ function ideasHtml(ideas: Idea[]) {
   const label = (x: Idea) => x.status === "approved" ? `<span class="pill p-ok">Approved</span>`
     : x.status === "not approved" || isNo(x.approved) ? `<span class="pill p-bad">Not approved</span>`
     : !isYes(x.approved) ? `<span class="pill p-neutral">Waiting for ${esc(org)}'s OK</span>`
-    : `<span class="pill p-neutral">Approved for checking · within 30 min</span>`;
+    : `<span class="pill p-neutral">${esc(org)} is checking it</span>`;
   const list = ideas.map((x) => `<article class="tidea"><b>${esc(x.name)}</b> ${label(x)}${x.checked ? ` <span class="foot">checked ${when(x.checked)}</span>` : ""}` +
     `<p>${esc(x.text)}</p>` +
-    (x.links.length ? `<p>${x.links.map((l) => `<a href="${esc(l)}" target="_blank" rel="noopener noreferrer">${esc(l.replace(/^https?:\/\/(www\.)?/, "").slice(0, 48))}↗</a>`).join(" ")}</p>` : "") +
-    (x.images.length ? `<div class="tidea-imgs">${x.images.map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer"><img src="${esc(u)}" alt="Screenshot from ${esc(x.name)}" loading="lazy" referrerpolicy="no-referrer"></a>`).join("")}</div>` : "") +
+    (x.links.filter((l) => safeUrl(l)).length ? `<p>${x.links.filter((l) => safeUrl(l)).map((l) => `<a href="${esc(l)}" target="_blank" rel="noopener noreferrer">${esc(l.replace(/^https?:\/\/(www\.)?/, "").slice(0, 48))}↗</a>`).join(" ")}</p>` : "") +
+    (x.images.filter((u) => safeUrl(u)).length ? `<div class="tidea-imgs">${x.images.filter((u) => safeUrl(u)).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener noreferrer"><img src="${esc(u)}" alt="Screenshot from ${esc(x.name)}" loading="lazy" referrerpolicy="no-referrer"></a>`).join("")}</div>` : "") +
     (x.reply ? `<div class="treply"><span class="eyebrow">${x.status === "not approved" ? "Why not" : "Review"}</span><p>${esc(x.reply)}</p></div>` : "") + `</article>`).join("");
   return `<h3 class="tsub">I have a better option</h3>` +
-    `<form id="ideaform" class="ideaform"><p class="foot">Found something better that isn't here? Describe it, paste links and add screenshots. Once the organiser OKs it, it's checked within 30 minutes: does it exist, is it free for these dates, at that price? If not, it's marked not approved. If it is and it beats the picks above, it's added and pinned with your name; otherwise you get a reply saying why.</p>` +
+    `<form id="ideaform" class="ideaform"><p class="foot">Found something better that isn't here? Paste its Airbnb or Booking.com link (needed), say why it's better and add screenshots. ${esc(org)} checks every suggestion himself: does it exist, is it free for these dates, at that price? If it beats the picks above it's pinned with your name; otherwise you get a reply saying why. Up to 3 per person.</p>` +
     `<label>Your name<input name="name" required maxlength="40" value="${esc(myName())}"></label>` +
     `<label>What's better about it?<textarea name="text" required maxlength="4000" rows="3" placeholder="e.g. 5 bedrooms right on the piste in Soldeu, €3,200 for the week"></textarea></label>` +
-    `<label>Links, one per line<textarea name="links" rows="2" placeholder="https://www.airbnb.com/rooms/…"></textarea></label>` +
+    `<label>Airbnb or Booking.com link (one per line)<textarea name="links" rows="2" required placeholder="https://www.airbnb.com/rooms/…"></textarea></label>` +
     `<label>Screenshots (up to 3)<input name="images" type="file" accept="image/*" multiple></label>` +
     `<button type="submit" class="btn">Send for review</button></form>` + (list ? `<div class="tideas">${list}</div>` : "");
 }
