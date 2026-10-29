@@ -13,7 +13,7 @@ export const STORAGE_KEY = "snowfinder-v1";
 
 export function defaults(): State {
   return {
-    v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, nearLifts: true, foodPlan: "home", food: 40, beg: 2,
+    v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, nearLifts: true, foodPlan: "home", food: 40, beg: 0,
     group: { couples: 0, solo: 4, soloRooms: "shared" }, house: "mid", dest: [], edits: {}, sort: {},
   };
 }
@@ -56,7 +56,7 @@ export function sanitize(raw: unknown, weeks: number): State {
     nearLifts: typeof r.nearLifts === "boolean" ? r.nearLifts : !!d.nearLifts,
     foodPlan: oneOf(r.foodPlan, ["home", "one", "both", "custom"] as const, d.foodPlan!) as FoodPlan,
     food: Math.max(0, Number.isFinite(+r.food) ? +r.food : d.food),
-    beg: int(r.beg, 0, people, Math.min(d.beg, people)),
+    beg: 0, // lessons were removed from the site; old links may still carry a number
     group,
     house: oneOf(r.house, ["budget", "mid", "lux"] as const, "mid") as Tier,
     dest: Array.isArray(r.dest) ? r.dest.filter((x: unknown) => typeof x === "string") : [],

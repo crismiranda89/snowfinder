@@ -1,7 +1,7 @@
 // Rendering. Ported from the original simulator's render* functions; text is now English and every
 // "group of 4" is the group's real size. All data strings go through esc() — listings come from people.
 import { LISTINGS, OPTIONS, RESORTS_FILE, RESORT_BY_ID, SEASON } from "../data.ts";
-import { LEVELS, WDAYS, closeTxt, fmt, foodDays, isClosed, isoOf, late, leaveDays, level, nights, patternLabel, range as seasonRange, softHoliday, weekLevel } from "../model/calendar.ts";
+import { LEVELS, MONTHS, closeTxt, extraNights, fmt, foodDays, isClosed, isoOf, late, leaveDays, level, nights, patternLabel, range as seasonRange, softHoliday, weekLevel } from "../model/calendar.ts";
 import { calc, edited, foodPerDay, val, type Calc } from "../model/cost.ts";
 import { bedrooms, cars, describe, people, transferFactor } from "../model/group.ts";
 import { NEAR_LIFT_MIN, TIER_LABEL, nearLifts, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
@@ -63,7 +63,7 @@ export function renderStatic() {
     "Sources: " + links(src.compare || []);
   $("sources").innerHTML = [
     ["School-holiday calendars", src.calendars], ["Closing dates", src.closures], ["Events", src.events],
-    ["Lift passes and rental", src.passes], ["Flights, transfers and parking", src.transport], ["Group lessons", src.lessons],
+    ["Lift passes and rental", src.passes], ["Flights, transfers and parking", src.transport],
   ].map(([t, xs]) => `<li><b>${t}:</b> ${links((xs as any) || [])}</li>`).join("");
   renderCompareBody();
 }
@@ -105,8 +105,7 @@ export function renderControls(s: State) {
   const perDay = OPTIONS.map((d) => foodPerDay(s, d));
   $("foodhint").textContent = plan === "custom" ? `× ${fd} days, arrival to departure`
     : `${euro(Math.min(...perDay))}–${euro(Math.max(...perDay))} per person per day, by resort, × ${fd} days`;
-  setNum("food", s.food); setNum("beg", s.beg); setNum("couples", s.group.couples); setNum("solo", s.group.solo);
-  ($("beg") as HTMLInputElement).max = String(people(s.group));
+  setNum("food", s.food); setNum("couples", s.group.couples); setNum("solo", s.group.solo);
   const p = people(s.group);
   $("groupsum").innerHTML = `<b>${esc(describe(s.group))}</b>` +
     ` · ${cars(p)} ${cars(p) === 1 ? "car" : "cars"} or ${Math.ceil(p / 8)} transfer ${Math.ceil(p / 8) === 1 ? "vehicle" : "vehicles"}`;
@@ -123,18 +122,45 @@ export function renderDests(s: State) {
   document.querySelectorAll<HTMLTableRowElement>("#cmpbody tr").forEach((tr) => { tr.hidden = !picked(s, tr.dataset.resort!); });
 }
 
+/** Resort events written like "Snowbombing 5–10 Apr" or "Carnival (9 Feb)", if their dates touch the stay. */
+function eventsDuring(s: State, w: number): string[] {
+  const r = dates(s, w), out: string[] = [];
+  for (const res of RESORTS_FILE.resorts) {
+    if (!picked(s, res.id)) continue;
+    const ev = SEASON.resorts[res.id]?.events || "";
+    for (const m of ev.matchAll(/(\d{1,2})(?:–(\d{1,2}))? (Jan|Feb|Mar|Apr)/g)) {
+      const mon = MONTHS.indexOf(m[3]), y = r.a.getUTCFullYear();
+      const from = Date.UTC(y, mon, +m[1]), to = Date.UTC(y, mon, +(m[2] || m[1]));
+      if (from <= r.b.getTime() && to >= r.a.getTime()) { out.push(`${res.name}: ${ev}`); break; }
+    }
+  }
+  return out;
+}
+
+/** The selected week, under the grid: demand, leave, and a few tips for the chosen resorts. */
 export function renderWeeks(s: State) {
-  $("weeks").innerHTML = SEASON.weeks.map((_, i) => {
-    const r = dates(s, i), L = weekLevel(SEASON, i), ld = leaveDays(SEASON, s.pattern, i, s.days);
-    const nShut = OPTIONS.filter((d) => shut(s, d, i)).length;
-    return `<button type="button" class="wk" data-w="${i}" aria-pressed="${i === s.week}">` +
-      `<b>${fmt(r.a)} – ${fmt(r.b)}</b><small>${WDAYS[r.a.getUTCDay()]} → ${WDAYS[r.b.getUTCDay()]} · ${ld}${softHoliday(SEASON, s.pattern, i, s.days) ? "*" : ""} days of leave</small>` +
-      (nShut ? `<small class="shut">${nShut} options closed</small>` : "") +
-      `<div class="lvl l${L}" aria-label="${LEVELS[L]}"><i></i><i></i><i></i><i></i></div></button>`;
-  }).join("");
-  const r = dates(s, s.week), L = weekLevel(SEASON, s.week), soft = softHoliday(SEASON, s.pattern, s.week, s.days), ld = leaveDays(SEASON, s.pattern, s.week, s.days);
-  $("weekinfo").innerHTML = `<b>${esc(r.text)} ${r.a.getUTCFullYear()} · ${LEVELS[L]}</b><span class="foot">${esc(SEASON.weekNotes[s.week])}` +
-    (soft ? " " + esc(soft.note) : "") + (ld < 4 ? ` With the public holiday, this stay only uses ${ld} days of leave.` : "") + `</span>`;
+  const w = s.week, r = dates(s, w), L = weekLevel(SEASON, w), soft = softHoliday(SEASON, s.pattern, w, s.days), ld = leaveDays(SEASON, s.pattern, w, s.days);
+  const opts = visible(s);
+  const cheapest = (wk: number) => opts.filter((d) => !shut(s, d, wk)).map((d) => ({ d, pp: c(s, d, wk).pp })).sort((x, y) => x.pp - y.pp)[0];
+  const now = cheapest(w);
+  const tips: string[] = [];
+  if (now) tips.push(`Cheapest this week: <b>${esc(now.d.name)}</b> via ${esc(now.d.code)}, ${euro(now.pp)} per person.`);
+  const better = SEASON.weeks.map((_, i) => ({ i, x: cheapest(i) })).filter((y) => y.x && y.i !== w).sort((p, q) => p.x!.pp - q.x!.pp)[0];
+  if (now && better && now.pp - better.x!.pp >= 20)
+    tips.push(`Cheaper week: <button type="button" class="linkbtn" data-w="${better.i}">${esc(dates(s, better.i).text)}</button> saves ${euro(now.pp - better.x!.pp)} per person (${esc(better.x!.d.name)}).`);
+  else if (now) tips.push("This is the cheapest week for the resorts you chose.");
+  for (const e of eventsDuring(s, w)) tips.push(`Event: ${esc(e)}.`);
+  const closed = opts.filter((d) => shut(s, d, w));
+  const closedResorts = [...new Set(closed.map((d) => d.name))];
+  if (closedResorts.length) tips.push(`Closed by your return day: ${closedResorts.map(esc).join(", ")}.`);
+  if (late(SEASON, w)) {
+    const good = RESORTS_FILE.resorts.filter((x) => picked(s, x.id) && x.spring === "good" && !closedResorts.includes(x.name)).map((x) => x.name);
+    const list = good.length > 1 ? good.slice(0, -1).join(", ") + " and " + good[good.length - 1] : good[0];
+    tips.push(`Late season: the snow can be thin low down${good.length ? `; ${esc(list)} ${good.length > 1 ? "are" : "is"} the safest bet` : ""}.`);
+  }
+  $("weekinfo").innerHTML = `<b>${esc(r.text)} ${r.a.getUTCFullYear()} · ${LEVELS[L]} · ${ld} days of leave</b><span class="foot">${esc(SEASON.weekNotes[w])}` +
+    (soft ? " " + esc(soft.note) : "") + (ld < 4 + extraNights(s.days) ? ` With the public holiday, this stay only uses ${ld} days of leave.` : "") + `</span>` +
+    (tips.length ? `<ul class="tips">${tips.map((x) => `<li>${x}</li>`).join("")}</ul>` : "");
 }
 
 /** Groups items by key, keeping the order in which keys first appear. */
@@ -325,7 +351,6 @@ export function renderTable(s: State) {
       `<td class="r">${inp("stay", k.stayTotal)}<br><small class="foot">${stayNote}</small></td>` +
       `<td class="r">${inp(pf)}${d.passEst ? `<br><small class="foot">estimated</small>` : ""}</td><td class="r">${inp(rf)}</td>` +
       `<td class="r num" data-v="${k.parts.food}">${euro(k.parts.food)}<br><small class="foot">${euro(foodPerDay(s, d))} × ${foodDays(SEASON, s.days)} days</small></td>` +
-      `<td class="r">${inp("lesson")}<br><small class="foot">${euro(val(SEASON, s, d, "lesson", w) * s.days * (+s.beg || 0))} group</small></td>` +
       `<td class="r num total" data-v="${closed ? "closed" : k.pp}">${closed ? "Closed" : euro(k.pp)}</td><td class="r num" data-v="${closed ? "closed" : k.group}">${closed ? "–" : euro(k.group)}</td></tr>`;
   }).join("");
   applySort(s, "detail");

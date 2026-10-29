@@ -1,6 +1,5 @@
 // Boot: restore state (a share link wins over this browser's saved state), render, wire up controls.
 import { SEASON } from "./data.ts";
-import { people } from "./model/group.ts";
 import type { Group } from "./types.ts";
 import { decodeShare, encodeShare, load, save, type State } from "./state.ts";
 import { rankOpen, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
@@ -45,7 +44,6 @@ function num(id: string, lo: number, hi: number, set: (s: State, v: number) => v
     update((s) => set(s, v));
   });
 }
-const clampBeg = (s: State) => { s.beg = Math.min(s.beg, people(s.group)); };
 
 renderStatic();
 wrapHeaders(".detail"); wrapHeaders(".cmp");
@@ -55,14 +53,13 @@ seg("days", (s, v) => { s.days = +v as 4 | 5; });
 seg("ground", (s, v) => { s.ground = v as State["ground"]; });
 seg("house", (s, v) => { s.house = v as State["house"]; });
 seg("soloRooms", (s, v) => { s.group.soloRooms = v as Group["soloRooms"]; });
-num("couples", 0, 20, (s, v) => { s.group.couples = v; if (!s.group.couples && !s.group.solo) s.group.solo = 1; clampBeg(s); });
-num("solo", 0, 20, (s, v) => { s.group.solo = v; if (!s.group.couples && !s.group.solo) s.group.couples = 1; clampBeg(s); });
-num("beg", 0, 40, (s, v) => { s.beg = Math.min(v, people(s.group)); });
+num("couples", 0, 20, (s, v) => { s.group.couples = v; if (!s.group.couples && !s.group.solo) s.group.solo = 1; });
+num("solo", 0, 20, (s, v) => { s.group.solo = v; if (!s.group.couples && !s.group.solo) s.group.couples = 1; });
 $("foodPlan").addEventListener("change", (ev) => update((s) => { s.foodPlan = (ev.target as HTMLSelectElement).value as State["foodPlan"]; }));
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
 ($("nearLifts") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.nearLifts = (ev.target as HTMLInputElement).checked; }));
 ($("limit") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.limit = (ev.target as HTMLInputElement).checked; }));
-$("weeks").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".wk"); if (b) update((s) => { s.week = +b.dataset.w!; }); });
+$("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) update((s) => { s.week = +b.dataset.w!; }); });
 function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) update((s) => { s.week = +cell.dataset.w!; }); }
 $("heatbody").addEventListener("click", pickCell);
 $("heatbody").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pickCell(ev); } });

@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#1d5dbf">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Snowfinder · ski trip costs, week by week">
-<meta property="og:description" content="Which resort and which week is cheapest for your group? Flights, car, house, lift pass, rental, food and lessons, all in one grid.">
+<meta property="og:description" content="Which resort and which week is cheapest for your group? Flights, car, house, lift pass, rental and food, all in one grid.">
 <meta property="og:image" content="%SITE_URL%og.png">
 <meta property="og:url" content="%SITE_URL%">
 <meta name="twitter:card" content="summary_large_image">
@@ -45,10 +45,6 @@
       <div class="ctl"><span>Solo friends sleep</span>
         <div class="seg" id="soloRooms"><button type="button" data-v="shared">Twin rooms</button><button type="button" data-v="own">Own room</button><button type="button" data-v="common">Living room</button></div>
       </div>
-      <div class="ctl extra"><span>Beginners with lessons</span>
-        <input id="beg" type="number" min="0" step="1" inputmode="numeric" aria-describedby="beghint">
-        <small class="foot" id="beghint">group lessons every ski day</small>
-      </div>
       <div class="groupsum" id="groupsum" aria-live="polite"></div>
     </div>
     <div class="ctl"><span>Stay pattern</span>
@@ -82,19 +78,12 @@
   </div>
 
   <section class="block">
-    <div class="head"><h2>Pick a week</h2>
-      <div class="hl"><span>Expected demand:</span><span style="color:var(--ok)">low</span><span style="color:var(--c-pass)">normal</span><span style="color:var(--warn)">high</span><span style="color:var(--bad)">peak</span></div>
-    </div>
-    <div class="weeks" id="weeks"></div>
-    <div class="weekinfo" id="weekinfo"></div>
-  </section>
-
-  <section class="block">
     <div class="head"><h2>Area × week grid (per person)</h2>
       <div class="hl"><span><i style="background:var(--h0)"></i>cheapest</span><span><i style="background:var(--h1)"></i></span><span><i style="background:var(--h2)"></i></span><span><i style="background:var(--h3)"></i>priciest</span><span><i style="background:transparent;box-shadow:inset 0 0 0 2px var(--ok)"></i>area's best week</span><span><i style="background:repeating-linear-gradient(45deg,var(--soft) 0 3px,var(--surface) 3px 6px);border:1px solid var(--line)"></i>all resorts closed</span><span><i style="background:transparent;box-shadow:inset 0 -3px 0 var(--bad)"></i>weak spring snow</span></div>
     </div>
     <div class="gridbox"><table class="heat"><thead id="heathead"></thead><tbody id="heatbody"></tbody></table></div>
-    <p class="foot">Each cell shows the cheapest and priciest resort-and-flight option in that area for the week; hover for which ones. Tap a cell to pick that week, then open an area in the ranking below to see its resorts and flights. Colours compare the cheapest price of every cell. An area shows as closed only when every resort in it closes before your return day.</p>
+    <p class="foot">Tap a cell to pick a week. Each cell runs from the cheapest to the priciest option in that area.</p>
+    <div class="weekinfo" id="weekinfo" aria-live="polite"></div>
   </section>
 
   <section class="block">
@@ -106,7 +95,6 @@
         <span><i style="background:var(--c-pass)"></i>Lift pass</span>
         <span><i style="background:var(--c-rent)"></i>Rental</span>
         <span><i style="background:var(--c-food)"></i>Food</span>
-        <span><i style="background:var(--c-lesson)"></i>Lessons</span>
       </div>
     </div>
     <div class="rank" id="rank"></div>
@@ -133,7 +121,7 @@
 
   <section class="block">
     <h2>Week detail and editable prices</h2>
-    <p class="foot">Flight, lift pass, rental and lesson (per day) are per person. Car is per car and transfer per vehicle; the group total is underneath. House is the whole group's stay. The per-person total is the group average: only beginners pay for lessons. Any value you change is saved for the selected week only, so you can enter real quotes week by week, and it travels with the share link.</p>
+    <p class="foot">Flight, lift pass and rental are per person. Car is per car and transfer per vehicle; the group total is underneath. House is the whole group's stay. Any value you change is saved for the selected week only, so you can enter real quotes week by week, and it travels with the share link.</p>
     <div class="gridbox">
       <table class="detail">
         <thead><tr>
@@ -145,7 +133,6 @@
           <th class="r"><span class="sw" style="background:var(--c-pass)"></span>Lift pass pp</th>
           <th class="r"><span class="sw" style="background:var(--c-rent)"></span>Rental pp</th>
           <th class="r"><span class="sw" style="background:var(--c-food)"></span>Food pp</th>
-          <th class="r"><span class="sw" style="background:var(--c-lesson)"></span>Lesson €/day</th>
           <th class="r">Total pp</th><th class="r">Total group</th>
         </tr></thead>
         <tbody id="tbody"></tbody>
@@ -174,7 +161,6 @@
         <li>Houses are listed inside each resort in the ranking. “Within a 10-min walk of the lifts” keeps only houses whose listed distance is a 10-minute walk or less (at 75 m a minute in ski boots, so about 750 m); houses with no distance listed are left out.</li>
         <li>Rental car: one car per 5 people. Transfer: one vehicle per 8 people, and a 5–8 seat van costs about 40% more than a car transfer.</li>
         <li>Food per person per day × <span id="fooddays">6</span> days (one more than the nights, arrival to departure), priced from each resort’s meal-out cost in the comparison: cooking at home with slope snacks is about 0.6 of a meal out, one meal out a day about 1.4, lunch and dinner out about 2.2 (the rest is groceries and snacks). Or pick Custom and set your own daily amount.</li>
-        <li>Lessons: adult group-lesson price per ski day × number of beginners, shared out over the group. Many group courses run Sunday or Monday to Friday; on a Thursday to Tuesday stay you may need to book day by day or share a private instructor (about €75–85 an hour in France).</li>
         <li>Flights are from <span id="origin">Porto</span>, direct with one checked bag. Unconfirmed: Porto–Chambéry; Porto–Memmingen (Ryanair, ~5 a week) and Porto–Turin (Ryanair) exist but may not fly on winter dates.</li>
         <li>Distances are by road from the airport to the resort, without traffic; Saturdays can be much slower.</li>
       </ul>
