@@ -2,7 +2,7 @@
 // "group of 4" is the group's real size. All data strings go through esc() — listings come from people.
 import { LISTINGS, OPTIONS, RESORTS_FILE, RESORT_BY_ID, SEASON } from "../data.ts";
 import { LEVELS, MONTHS, closeTxt, extraNights, fmt, foodDays, isClosed, isoOf, late, leaveDays, level, nights, patternLabel, range as seasonRange, softHoliday, weekLevel } from "../model/calendar.ts";
-import { calc, edited, foodPerDay, val, type Calc } from "../model/cost.ts";
+import { FOOD_PLANS, calc, edited, foodPerDay, val, type Calc } from "../model/cost.ts";
 import { bedrooms, cars, describe, people, transferFactor } from "../model/group.ts";
 import { NEAR_LIFT_MIN, TIER_LABEL, nearLifts, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
 import type { Field, Listing, Option, Resort, Tier } from "../types.ts";
@@ -107,6 +107,10 @@ export function renderControls(s: State) {
     : `${euro(Math.min(...perDay))}–${euro(Math.max(...perDay))} per person per day, by resort, × ${fd} days`;
   setNum("food", s.food); setNum("couples", s.group.couples); setNum("solo", s.group.solo);
   const p = people(s.group);
+  const food = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan].label : `food ${euro(s.food)}/day`;
+  $("filtersum").textContent = [describe(s.group).replace(" · ", " (").replace(" · ", ", ") + ")", `${TIER_LABEL[s.house]} house`, food.toLowerCase(),
+    s.ground === "car" ? "rental car" : "transfer", s.nearLifts ? "≤ 10 min to lifts" : "", s.limit ? "transfers ≤ 2h" : "",
+    s.dest.length ? `${s.dest.length} of ${RESORTS_FILE.resorts.length} resorts` : ""].filter(Boolean).join(" · ");
   $("groupsum").innerHTML = `<b>${esc(describe(s.group))}</b>` +
     ` · ${cars(p)} ${cars(p) === 1 ? "car" : "cars"} or ${Math.ceil(p / 8)} transfer ${Math.ceil(p / 8) === 1 ? "vehicle" : "vehicles"}`;
 }

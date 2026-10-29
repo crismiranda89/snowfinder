@@ -34,6 +34,17 @@
     <h1>Ski trip cost, week by week</h1>
   </header>
 
+  <div class="quickbar" role="group" aria-label="Dates">
+    <div class="ctl"><span>Stay pattern</span>
+      <div class="seg" id="pattern"></div>
+    </div>
+    <div class="ctl"><span>Ski days</span>
+      <div class="seg" id="days"><button type="button" data-v="4">4 days</button><button type="button" data-v="5">5 days</button></div>
+    </div>
+  </div>
+
+  <details class="filters" id="filters">
+    <summary><b>Filters</b><span class="foot" id="filtersum"></span></summary>
   <div class="controls" role="group" aria-label="Trip settings">
     <div class="groupctl" role="group" aria-label="Your group">
       <div class="ctl extra"><span>Couples</span>
@@ -46,12 +57,6 @@
         <div class="seg" id="soloRooms"><button type="button" data-v="shared">Twin rooms</button><button type="button" data-v="own">Own room</button><button type="button" data-v="common">Living room</button></div>
       </div>
       <div class="groupsum" id="groupsum" aria-live="polite"></div>
-    </div>
-    <div class="ctl"><span>Stay pattern</span>
-      <div class="seg" id="pattern"></div>
-    </div>
-    <div class="ctl"><span>Ski days</span>
-      <div class="seg" id="days"><button type="button" data-v="4">4 days</button><button type="button" data-v="5">5 days</button></div>
     </div>
     <div class="ctl"><span>Airport → resort</span>
       <div class="seg" id="ground"><button type="button" data-v="car">Rental car</button><button type="button" data-v="transfer">Transfer</button></div>
@@ -76,6 +81,7 @@
       <div class="chips" id="dests" role="group" aria-label="Choose resorts"></div>
     </div>
   </div>
+  </details>
 
   <section class="block">
     <div class="head"><h2>Area × week grid (per person)</h2>

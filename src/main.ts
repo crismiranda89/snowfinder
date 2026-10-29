@@ -46,6 +46,10 @@ function num(id: string, lo: number, hi: number, set: (s: State, v: number) => v
 }
 
 renderStatic();
+// The filters panel remembers whether it was open (this browser only); closed by default so the grid is in view.
+const filters = $("filters") as HTMLDetailsElement;
+try { filters.open = localStorage.getItem("snowfinder-filters-open") === "1"; } catch { /* private mode */ }
+filters.addEventListener("toggle", () => { try { localStorage.setItem("snowfinder-filters-open", filters.open ? "1" : "0"); } catch { /* ignore */ } });
 wrapHeaders(".detail"); wrapHeaders(".cmp");
 
 seg("pattern", (s, v) => { s.pattern = v as State["pattern"]; });
