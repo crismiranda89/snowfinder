@@ -1,5 +1,6 @@
 // Boot: restore state (a share link wins over this browser's saved state), render, wire up controls.
 import { LISTINGS, OPTIONS, SEASON } from "./data.ts";
+import { range as seasonRange } from "./model/calendar.ts";
 import { GROUPS, decodeShare, encodeShare, load, save, type State } from "./state.ts";
 import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
@@ -26,6 +27,8 @@ try { if (localStorage.getItem("snowfinder-house-view") === "distance") houseVie
 
 function render() {
   resetCache();
+  // The grid's title shows the week picked in it, or "All dates" until one is tapped.
+  $("gridTitle").textContent = `❄️ Week of your dreams: ${weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "All dates"} 🎿`;
   renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTable(state);
 }
 function update(mut: (s: State) => void) { mut(state); save(state); render(); }
@@ -55,7 +58,8 @@ renderStatic();
 // Every section folds when you tap its heading; which ones are folded is remembered (this browser only).
 const FOLD_KEY = "snowfinder-folded";
 let folded: string[] = [];
-try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || "[]"); } catch { /* private mode */ }
+// The week grid starts folded on a first visit: the houses below already cover every date.
+try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || '["grid-block"]'); } catch { /* private mode */ }
 document.querySelectorAll<HTMLElement>("section.block").forEach((sec, i) => {
   const h2 = sec.querySelector<HTMLElement>(":scope > h2, :scope > .head > h2"); if (!h2) return;
   const key = sec.id || `section-${i}`;

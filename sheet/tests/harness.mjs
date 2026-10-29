@@ -11,6 +11,7 @@ export function boot(props = { CHECKER_KEY: "s3cret-checker-key-0123456789abcdef
       name, rows,
       appendRow: (r) => rows.push(r.map((v) => (v === undefined ? "" : v))),
       setFrozenRows: () => {},
+      deleteRow: (row) => { rows.splice(row - 1, 1); },
       getDataRange: () => ({ getValues: () => rows.map((r) => r.slice()) }),
       getRange: (row, col, nr = 1, nc = 1) => ({
         setValues: (vals) => { for (let i = 0; i < nr; i++) for (let j = 0; j < nc; j++) rows[row - 1 + i][col - 1 + j] = vals[i][j]; },

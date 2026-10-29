@@ -119,7 +119,7 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
-    if (b.action === "review" || b.action === "checkPick" || b.action === "foundPick") return json_(checker_(b));
+    if (["review", "checkPick", "foundPick", "deleteTrip"].includes(b.action)) return json_(checker_(b));
     const name = clip_(b.name, 40).replace(/[\u0000-\u001f]/g, "");
     if (!["createTrip", "addPick", "vote", "idea"].includes(b.action)) return json_({ error: "Unknown action" });
     if (b.action !== "createTrip" && !rows_("trips").some((t) => t.id === b.trip)) return json_({ error: "Trip not found" });
@@ -196,6 +196,16 @@ function checker_(b) {
     if (b.data) { const d = safeParse_(p.data); for (const k of ["pp", "group", "houseTotal"]) if (Number.isFinite(+b.data[k])) d[k] = Math.round(+b.data[k]); sh.getRange(p._row, 6).setValue(JSON.stringify(d)); }
     sh.getRange(p._row, 7, 1, 3).setValues([[b.status, now_(), clip_(b.note, 600)]]);
     return { ok: true };
+  }
+  if (b.action === "deleteTrip") {
+    // Removes a trip and everything on it (picks, votes, posts, names). Only with the checker key.
+    if (!rows_("trips").some((t) => t.id === b.trip)) return { error: "Trip not found" };
+    let n = 0;
+    for (const name of ["trips", "picks", "votes", "ideas", "people"]) {
+      const col = name === "trips" ? "id" : "trip", sh = tab_(name);
+      rows_(name).filter((r) => r[col] === b.trip).map((r) => r._row).sort((a, c) => c - a).forEach((row) => { sh.deleteRow(row); n++; });
+    }
+    return { ok: true, rows: n };
   }
   if (b.action === "foundPick") {
     const x = rows_("ideas").find((r) => r.id === b.idea); if (!x) return { error: "No such post" };

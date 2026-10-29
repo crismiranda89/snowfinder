@@ -97,6 +97,13 @@ check("A post with no checkable link is refused", noLink.error, noLink.error || 
 const keys = JSON.stringify(view());
 check("Name secrets never leave the sheet", !/k-cristiano|key/.test(keys), /key/.test(keys) ? "a key field is visible" : "hidden");
 
+// Deleting a trip needs the checker key, and removes only that trip.
+const del = post({ action: "deleteTrip", trip: t2, key: "wrong-key-0123456789" });
+check("Delete a trip without the checker key", del.error === "Not allowed", del.error || "deleted");
+const before = get({ trip: T }).picks.length;
+const delOk = post({ action: "deleteTrip", trip: t2, key: "s3cret-checker-key-0123456789abcdef" });
+check("Checker can delete a trip, others stay", delOk.ok && get({ trip: t2 }).error === "Trip not found" && get({ trip: T }).picks.length === before, delOk.error || `rows ${delOk.rows}`);
+
 for (const r of results) console.log(`${r.ok ? "PASS" : "FAIL"}  ${r.name}${r.detail ? "  — " + r.detail : ""}`);
 console.log(`\n${results.filter((r) => r.ok).length} blocked, ${results.filter((r) => !r.ok).length} got through`);
 if (results.some((r) => !r.ok)) process.exit(1);
