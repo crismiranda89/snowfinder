@@ -100,7 +100,7 @@ export function whatsappText(d: PickData, link: string): string {
   return [
     `⛷️ *Ski trip – let's decide!*`,
     ``,
-    combos > 1 ? `I compared *${combos.toLocaleString("en-GB")} combinations* of house, week, start day and flight for ${group.toLowerCase()}. The winner:` : `My pick for ${group.toLowerCase()}:`,
+    combos > 1 ? `I compared *${combos.toLocaleString("en-GB")} combinations* of house, week, start day and flight across ${RESORTS_FILE.resorts.length} resorts for ${group.toLowerCase()}. The winner:` : `My pick for ${group.toLowerCase()}:`,
     `🏠 *${d.title}*${country ? ` (${d.resort}, ${country})` : ` (${d.resort})`}`,
     // First link in the message: WhatsApp turns it into a preview with the listing's photo.
     `📸 ${d.url}`,

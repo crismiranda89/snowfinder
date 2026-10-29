@@ -405,14 +405,15 @@ export function fittingHouses(s: State): Found[] {
   }
   return out.sort((a, b) => a.x.pp - b.x.pp);
 }
-/** How many trips the site priced for this group: every fitting house × week × start day × flight there
- *  (closed weeks skipped). The headline number in the WhatsApp message. */
+/** How many trips the site priced for this group across all resorts (the resort and travel-time filters
+ *  are ignored): every fitting house × week × start day × flight there, closed weeks skipped. The headline
+ *  number in the WhatsApp message. */
 export function combinations(s: State): number {
   let n = 0;
   for (const pattern of Object.keys(SEASON.patterns) as PatternKey[]) {
     const t = { ...s, pattern };
     SEASON.weeks.forEach((_, w) => {
-      for (const d of visible(s)) {
+      for (const d of OPTIONS) {
         if (shut(t, d, w)) continue;
         n += houses(SEASON, d.mkt, LISTINGS_BY_RESORT[d.resort] || [], s.group, w, !!s.nearLifts, nights(SEASON, s.days)).eligible.length;
       }
