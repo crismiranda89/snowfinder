@@ -8,12 +8,13 @@ import { weekOfStay } from "../src/model/calendar.ts";
 import { decodeShare, defaults, encodeShare, sanitize } from "../src/state.ts";
 import type { Group, Listing, Settings } from "../src/types.ts";
 
-const G = (couples: number, solo: number, soloRooms: "shared" | "own" = "shared"): Group => ({ couples, solo, soloRooms });
+const G = (couples: number, solo: number, soloRooms: Group["soloRooms"] = "shared"): Group => ({ couples, solo, soloRooms });
 
 test("people and bedrooms", () => {
   assert.equal(people(G(2, 0)), 4); assert.equal(bedrooms(G(2, 0)), 2);
   assert.equal(people(G(4, 1)), 9); assert.equal(bedrooms(G(4, 1)), 5);
   assert.equal(bedrooms(G(0, 3, "shared")), 2); assert.equal(bedrooms(G(0, 3, "own")), 3);
+  assert.equal(bedrooms(G(4, 1, "common")), 4); assert.equal(people(G(4, 1, "common")), 9); assert.equal(bedrooms(G(0, 2, "common")), 1);
   assert.equal(bedrooms(G(1, 0)), 1);
   assert.equal(people(G(0, 0)), 1); // never zero
 });
@@ -114,4 +115,8 @@ test("every option belongs to an area; Andorra groups Soldeu and Pas de la Casa"
   for (const o of OPTIONS) assert.ok(o.region, `${o.id} has no region`);
   const andorra = new Set(OPTIONS.filter((o) => o.region === "Andorra").map((o) => o.resort));
   assert.deepEqual([...andorra].sort(), ["pas-de-la-casa", "soldeu"]);
+});
+
+test("every airport has a flight time from the origin", () => {
+  for (const o of OPTIONS) assert.ok(SEASON.flightTimes[o.code]?.mins > 0, `${o.code} has no flight time`);
 });

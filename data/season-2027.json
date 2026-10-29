@@ -93,6 +93,20 @@
     "sn-agp":   { "flight": 100, "car": 270, "transfer": 160 },
     "sn-svq":   { "flight": 100, "car": 300, "transfer": 240 }
   },
+  "flightTimesNote": "Typical scheduled flight time from the origin in minutes, for the fastest usual option. Approximate: check the real schedule for your dates. stops 1 = no direct flight.",
+  "flightTimes": {
+    "MUC": { "mins": 165, "stops": 0, "airlines": "Lufthansa" },
+    "FMM": { "mins": 155, "stops": 0, "airlines": "Ryanair" },
+    "LYS": { "mins": 125, "stops": 0, "airlines": "easyJet, Volotea" },
+    "CMF": { "mins": 330, "stops": 1, "airlines": "No direct flight; connect via Lisbon or London" },
+    "TRN": { "mins": 135, "stops": 0, "airlines": "Ryanair" },
+    "GVA": { "mins": 135, "stops": 0, "airlines": "easyJet, Swiss, TAP" },
+    "BGY": { "mins": 145, "stops": 0, "airlines": "Ryanair" },
+    "TLS": { "mins": 95, "stops": 0, "airlines": "Ryanair" },
+    "BCN": { "mins": 105, "stops": 0, "airlines": "Ryanair, Vueling" },
+    "AGP": { "mins": 85, "stops": 0, "airlines": "Ryanair" },
+    "SVQ": { "mins": 70, "stops": 0, "airlines": "Ryanair" }
+  },
   "sources": {
     "calendars": [
       { "label": "French winter holidays 2027", "url": "https://icalendrier.fr/vacances/hiver", "note": "zone C 6–22 Feb, zone A 13 Feb–1 Mar, zone B 20 Feb–8 Mar" },

@@ -33,7 +33,7 @@ export function sanitize(raw: unknown, weeks: number): State {
   const group: Group = {
     couples: int(g.couples, 0, 20, d.group.couples),
     solo: int(g.solo, 0, 20, d.group.solo),
-    soloRooms: oneOf(g.soloRooms, ["shared", "own"] as const, "shared"),
+    soloRooms: oneOf(g.soloRooms, ["shared", "own", "common"] as const, "shared"),
   };
   if (group.couples === 0 && group.solo === 0) group.solo = 1;
   const people = 2 * group.couples + group.solo;

@@ -1,6 +1,7 @@
 // Boot: restore state (a share link wins over this browser's saved state), render, wire up controls.
 import { SEASON } from "./data.ts";
 import { people } from "./model/group.ts";
+import type { Group } from "./types.ts";
 import { decodeShare, encodeShare, load, save, type State } from "./state.ts";
 import { rankOpen, renderControls, renderDests, renderHeat, renderHouses, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
@@ -53,7 +54,7 @@ seg("pattern", (s, v) => { s.pattern = v as State["pattern"]; });
 seg("days", (s, v) => { s.days = +v as 4 | 5; });
 seg("ground", (s, v) => { s.ground = v as State["ground"]; });
 seg("house", (s, v) => { s.house = v as State["house"]; });
-seg("soloRooms", (s, v) => { s.group.soloRooms = v as "shared" | "own"; });
+seg("soloRooms", (s, v) => { s.group.soloRooms = v as Group["soloRooms"]; });
 num("couples", 0, 20, (s, v) => { s.group.couples = v; if (!s.group.couples && !s.group.solo) s.group.solo = 1; clampBeg(s); });
 num("solo", 0, 20, (s, v) => { s.group.solo = v; if (!s.group.couples && !s.group.solo) s.group.couples = 1; clampBeg(s); });
 num("beg", 0, 40, (s, v) => { s.beg = Math.min(v, people(s.group)); });

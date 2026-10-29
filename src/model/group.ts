@@ -1,5 +1,6 @@
-// Group size → people, bedrooms and vehicles. Couples always share one bedroom; solo friends either share
-// twin rooms (two per room) or get their own room.
+// Group size → people, bedrooms and vehicles. Couples always share one bedroom; solo friends share
+// twin rooms (two per room), get their own room, or sleep in the living room (no bedroom; the house must
+// still sleep everyone).
 import type { Group } from "../types.ts";
 
 export const SEATS_PER_CAR = 5;
@@ -9,7 +10,7 @@ export const VAN_FACTOR = 1.4; // a 5–8 seat van costs ~40% more than a 1–4 
 export function people(g: Group): number { return Math.max(1, 2 * g.couples + g.solo); }
 
 export function bedrooms(g: Group): number {
-  const solo = g.soloRooms === "own" ? g.solo : Math.ceil(g.solo / 2);
+  const solo = g.soloRooms === "own" ? g.solo : g.soloRooms === "common" ? 0 : Math.ceil(g.solo / 2);
   return Math.max(1, g.couples + solo);
 }
 

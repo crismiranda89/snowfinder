@@ -16,6 +16,15 @@ export function esc(s: unknown): string {
 const EUR = new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
 export const euro = (n: number) => EUR.format(Math.round(n));
 const stars = (n: number) => "★".repeat(n) + "☆".repeat(5 - n);
+export const hm = (mins: number) => `${Math.floor(mins / 60)}h${String(mins % 60).padStart(2, "0")}`;
+
+/** Each way of reaching a resort, fastest first: typical flight from the origin plus the drive or shuttle. */
+export function routes(r: Resort) {
+  return r.airports.map((a) => {
+    const f = SEASON.flightTimes[a.code];
+    return { a, f, total: f ? f.mins + a.mins : Infinity };
+  }).sort((x, y) => x.total - y.total);
+}
 
 export const LISTINGS_BY_RESORT: Record<string, Listing[]> = {};
 for (const l of LISTINGS) (LISTINGS_BY_RESORT[l.resort] ||= []).push(l);
@@ -43,6 +52,7 @@ export function renderStatic() {
   $("foodhint").textContent = `× ${SEASON.foodDays} days, arrival to departure`;
   $("fooddays").textContent = String(SEASON.foodDays);
   $("origin").textContent = `${o.city} (${o.code})`;
+  $("cmporigin").textContent = o.city;
   $("collected").textContent = `Season ${SEASON.season}. Estimates collected on ${fmt(new Date(SEASON.collected))} ${SEASON.collected.slice(0, 4)}. Check flights and houses with real dates before booking.`;
   $("fit").innerHTML = RESORTS_FILE.fit.map((f) =>
     `<div class="fitcard"><span class="tag" style="color:var(--${esc(f.tone)})">${esc(f.tag)}</span><b>${esc(RESORT_BY_ID[f.resort]?.name ?? f.resort)}</b><p>${esc(f.text)}</p></div>`).join("");
@@ -50,7 +60,8 @@ export function renderStatic() {
   const src = SEASON.sources;
   const links = (xs: { label: string; url: string; note?: string }[]) =>
     xs.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.label)}</a>${x.note ? ": " + esc(x.note) : ""}`).join(" · ");
-  $("cmpsources").innerHTML = "Sources: " + links(src.compare || []);
+  $("cmpsources").innerHTML = `Fastest from ${esc(o.city)}: typical scheduled flight time plus the drive or shuttle, not counting check-in or baggage. Check the real schedule for your dates. ` +
+    "Sources: " + links(src.compare || []);
   $("sources").innerHTML = [
     ["School-holiday calendars", src.calendars], ["Closing dates", src.closures], ["Events", src.events],
     ["Lift passes and rental", src.passes], ["Flights, transfers and parking", src.transport], ["Group lessons", src.lessons],
@@ -64,8 +75,13 @@ function renderCompareBody() {
   $("cmpbody").innerHTML = RESORTS_FILE.resorts.map((r) => {
     const cm = r.compare, rs = SEASON.resorts[r.id];
     const air = r.airports.map((a) => `${a.code} ${a.km} km`).join(", ");
+    const [best, ...rest] = routes(r);
+    const fast = best.f
+      ? `<td class="num" data-v="${best.total}"><b>${hm(best.total)}</b><small>${hm(best.f.mins)} flight to ${esc(best.a.code)}${best.f.stops ? " (1 stop)" : ""} + ${hm(best.a.mins)} by road</small>` +
+        (rest.length ? `<small>${rest.map((x) => `${esc(x.a.code)} ${x.f ? hm(x.total) : "?"}`).join(" · ")}</small>` : "") + "</td>"
+      : `<td data-v="">–</td>`;
     const [wl, wc] = WIND[cm.wind[0]];
-    return `<tr data-resort="${esc(r.id)}"><td class="dest" data-v="${esc(r.name)}"><b>${esc(r.compareName || r.name)}</b><small>${esc(r.country)} · ${esc(r.area)} · ${esc(air)}</small></td>` +
+    return `<tr data-resort="${esc(r.id)}"><td class="dest" data-v="${esc(r.name)}"><b>${esc(r.compareName || r.name)}</b><small>${esc(r.country)} · ${esc(r.area)} · ${esc(air)}</small></td>` + fast +
       `<td>${st(cm.snow)}</td><td class="num">${esc(cm.temp[0])}<small>${esc(cm.temp[1])}</small></td>` +
       `<td class="num">${esc(cm.area[0])}<small>${esc(cm.area[1])}</small></td>` +
       `<td>${st(cm.beginners)}</td><td>${st(cm.snowboard)}</td><td>${st(cm.expert)}</td><td>${st(cm.apres)}</td>` +
@@ -187,6 +203,11 @@ export function renderRank(s: State) {
   const colors: Record<string, string> = { flight: "var(--c-flight)", ground: "var(--c-ground)", stay: "var(--c-stay)", pass: "var(--c-pass)", rent: "var(--c-rent)", food: "var(--c-food)", lesson: "var(--c-lesson)" };
   const labels: Record<string, string> = { flight: "Flight", ground: s.ground === "car" ? "Car" : "Transfer", stay: "House", pass: "Lift pass", rent: "Rental", food: "Food", lesson: "Lessons (group average)" };
   type R = (typeof rows)[number];
+  // "4h15 total (2h15 flight + 2h by road)"; road time alone when the flight time is unknown.
+  const trip = (d: Option) => {
+    const f = SEASON.flightTimes[d.code];
+    return f ? `${hm(f.mins + d.mins)} total (${hm(f.mins)} flight${f.stops ? ", 1 stop" : ""} + ${hm(d.mins)} by road)` : `${esc(d.time.replace("~", ""))} by road`;
+  };
   const bar = ({ d, k }: R, label: string) => `<div class="bar" role="img" aria-label="${esc(label)}: ${euro(k.pp)} per person">` +
     (Object.keys(k.parts) as (keyof typeof k.parts)[]).map((p) =>
       `<span title="${labels[p]}: ${euro(k.parts[p])}" style="width:${((k.parts[p] / max) * 100).toFixed(2)}%;background:${colors[p]}"></span>`).join("") + "</div>";
@@ -196,8 +217,8 @@ export function renderRank(s: State) {
   };
   // Under its resort a flight row is named by airport; on its own (one-airport resort) by resort.
   const flight = (x: R, underResort = false) => `<div class="row opt"><div class="who">` +
-    (underResort ? `<b>✈ ${esc(x.d.air)}</b><small>${x.d.km} km · ${esc(x.d.time.replace("~", ""))} to ${esc(x.d.name)}</small>`
-      : `<b>${esc(x.d.name)}</b><small>via ${esc(x.d.air)} · ${x.d.km} km · ${esc(x.d.time.replace("~", ""))} · ${esc(x.d.alt)}</small>`) +
+    (underResort ? `<b>✈ ${esc(x.d.air)}</b><small>${trip(x.d)} to ${esc(x.d.name)} · ${x.d.km} km</small>`
+      : `<b>${esc(x.d.name)}</b><small>via ${esc(x.d.air)} · ${trip(x.d)} · ${x.d.km} km · ${esc(x.d.alt)}</small>`) +
     `<div class="tags">${pills(s, x.d, x.k, w)}</div>${tierLine(s, x.k.stay.houses)}</div>` +
     bar(x, `${x.d.name} via ${x.d.air}`) + tot([x]) + "</div>";
   const group = (key: string, cls: string, who: string, xs: R[], label: string, kids: string) =>

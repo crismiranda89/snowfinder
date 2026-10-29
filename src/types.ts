@@ -26,6 +26,8 @@ export interface Season {
   softHolidays: { date: string; name: string; note: string }[];
   resorts: Record<string, ResortSeason>;
   options: Record<string, { flight: number; car: number; transfer: number; flag?: string }>;
+  /** Typical flight time from the origin, by airport code. stops 1 = no direct flight. */
+  flightTimes: Record<string, { mins: number; stops: number; airlines: string }>;
   sources: Record<string, { label: string; url: string; note?: string }[]>;
 }
 
@@ -63,7 +65,9 @@ export interface Option {
   spring: "good" | "ok" | "poor"; flag?: string;
 }
 
-export interface Group { couples: number; solo: number; soloRooms: "shared" | "own" }
+export interface Group { couples: number; solo: number; soloRooms: SoloRooms }
+/** Where solo friends sleep: twin rooms (two per room), a room each, or the living room (sofa bed, no bedroom). */
+export type SoloRooms = "shared" | "own" | "common";
 
 /** One price quote for a listing: the total for the whole stay, as seen on the listing for those dates. */
 export interface Quote { checkin: string; checkout: string; nights: number; total: number }

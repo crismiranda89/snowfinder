@@ -44,7 +44,7 @@
         <input id="solo" type="number" min="0" max="20" step="1" inputmode="numeric">
       </div>
       <div class="ctl"><span>Solo friends sleep</span>
-        <div class="seg" id="soloRooms"><button type="button" data-v="shared">Twin rooms</button><button type="button" data-v="own">Own room</button></div>
+        <div class="seg" id="soloRooms"><button type="button" data-v="shared">Twin rooms</button><button type="button" data-v="own">Own room</button><button type="button" data-v="common">Living room</button></div>
       </div>
       <div class="ctl extra"><span>Beginners with lessons</span>
         <input id="beg" type="number" min="0" step="1" inputmode="numeric" aria-describedby="beghint">
@@ -124,7 +124,7 @@
     <p class="foot">Ratings from 1 to 5 based on resort guides and the research below. Temperatures are approximate February averages (high / low), not a forecast. Beer is a rough price in a resort bar. Distances by airport are on each resort's row.</p>
     <div class="gridbox">
       <table class="cmp">
-        <thead><tr><th>Resort and airports</th><th>Snow and altitude</th><th>Feb temp.</th><th>Ski area</th><th>Beginners</th><th>Snowboard</th><th>Expert skiing</th><th>Après-ski</th><th>Beer</th><th>Wind and closures</th><th>Insurance and rescue</th><th>Events</th></tr></thead>
+        <thead><tr><th>Resort and airports</th><th>Fastest from <span id="cmporigin">Porto</span></th><th>Snow and altitude</th><th>Feb temp.</th><th>Ski area</th><th>Beginners</th><th>Snowboard</th><th>Expert skiing</th><th>Après-ski</th><th>Beer</th><th>Wind and closures</th><th>Insurance and rescue</th><th>Events</th></tr></thead>
         <tbody id="cmpbody"></tbody>
       </table>
     </div>
@@ -169,7 +169,7 @@
     <section>
       <h3>How your group changes the price</h3>
       <ul>
-        <li>People = 2 × couples + solo friends. Bedrooms = one per couple, plus one per two solo friends (twin rooms) or one each (own room).</li>
+        <li>People = 2 × couples + solo friends. Bedrooms = one per couple, plus one per two solo friends (twin rooms), one each (own room) or none (living room: they sleep on a sofa bed, and the house still has to sleep everyone).</li>
         <li>House: the median price of the houses in the chosen level that fit your group (enough bedrooms and beds). Houses are split into the cheapest, middle and priciest third. With no fitting houses listed, the price is estimated from a 2-bedroom flat, scaled by bedrooms<sup>0.9</sup>.</li>
         <li>Rental car: one car per 5 people. Transfer: one vehicle per 8 people, and a 5–8 seat van costs about 40% more than a car transfer.</li>
         <li>Food: your daily amount × <span id="fooddays">6</span> days (5 nights are 6 calendar days, arrival to departure). Change it depending on whether you count après-ski.</li>
