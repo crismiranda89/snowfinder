@@ -40,14 +40,14 @@ export function fits(l: Listing, g: Group): boolean {
   return l.sleeps >= people(g) && l.bedrooms >= b && l.bedrooms <= b + MAX_EXTRA_BEDROOMS;
 }
 
-export function priceFor(season: Season, market: string, l: Listing, w: number): { total: number; exact: boolean; quote: Quote } {
+export function priceFor(season: Season, market: string, l: Listing, w: number, n = season.nights): { total: number; exact: boolean; quote: Quote } {
   const weeks = l.quotes.map((q) => weekOfStay(season, q.checkin, q.checkout));
-  const hit = l.quotes.findIndex((q, i) => weeks[i] === w && q.nights === season.nights);
+  const hit = l.quotes.findIndex((q, i) => weeks[i] === w && q.nights === n);
   if (hit >= 0) return { total: l.quotes[hit].total, exact: true, quote: l.quotes[hit] };
   const normal = l.quotes.map((q, i) => q.total / q.nights / (weeks[i] >= 0 ? season.multipliers.stay[level(season, market, weeks[i])] : 1));
   const to = season.multipliers.stay[level(season, market, w)];
   const nearest = l.quotes.map((q, i) => ({ q, d: weeks[i] < 0 ? 99 : Math.abs(weeks[i] - w) })).sort((a, b) => a.d - b.d)[0].q;
-  return { total: Math.round(median(normal) * to * season.nights), exact: false, quote: nearest };
+  return { total: Math.round(median(normal) * to * n), exact: false, quote: nearest };
 }
 
 /** Best pick inside a tier: highest rating, then nearest the lifts, then cheapest. */
@@ -58,10 +58,10 @@ export function bestPick(xs: Priced[]): Priced {
     a.total - b.total)[0];
 }
 
-export function houses(season: Season, market: string, listings: Listing[], g: Group, w: number, onlyNearLifts = false): HouseResult {
+export function houses(season: Season, market: string, listings: Listing[], g: Group, w: number, onlyNearLifts = false, nights = season.nights): HouseResult {
   const p = people(g);
   const eligible = listings.filter((l) => fits(l, g) && (!onlyNearLifts || nearLifts(l))).map((l) => {
-    const pr = priceFor(season, market, l, w);
+    const pr = priceFor(season, market, l, w, nights);
     return { l, total: pr.total, pp: pr.total / p, exact: pr.exact, quote: pr.quote };
   }).sort((a, b) => a.total - b.total);
   const base = { eligible, bedrooms: bedrooms(g), people: p, total: listings.length };

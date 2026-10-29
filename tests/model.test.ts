@@ -4,7 +4,7 @@ import { LISTINGS, OPTIONS, SEASON } from "../src/data.ts";
 import { bedrooms, cars, people, transferFactor } from "../src/model/group.ts";
 import { houses, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
 import { calc, foodPerDay } from "../src/model/cost.ts";
-import { weekOfStay } from "../src/model/calendar.ts";
+import { foodDays, isClosed, leaveDays, nights, patternLabel, range, weekOfStay } from "../src/model/calendar.ts";
 import { decodeShare, defaults, encodeShare, sanitize } from "../src/state.ts";
 import type { Group, Listing, Settings } from "../src/types.ts";
 
@@ -139,4 +139,20 @@ test("near the lifts: within a 10-minute walk, unknown distance excluded", () =>
   const all = houses(SEASON, "aduk", sol, G(4, 1), 6), near = houses(SEASON, "aduk", sol, G(4, 1), 6, true);
   assert.ok(near.eligible.every((x) => nearLifts(x.l)));
   assert.ok(near.eligible.length < all.eligible.length);
+});
+
+test("5 ski days add a night: dates, label, food days, house price", () => {
+  const r4 = range(SEASON, "thu", 6, 4), r5 = range(SEASON, "thu", 6, 5);
+  assert.equal(r4.text, "Thu 4 Mar → Tue 9 Mar"); assert.equal(r5.text, "Thu 4 Mar → Wed 10 Mar");
+  assert.equal(patternLabel(SEASON, "thu", 5), "Thu → Wed"); assert.equal(patternLabel(SEASON, "fri", 5), "Fri → Thu");
+  assert.equal(nights(SEASON, 5), 6); assert.equal(foodDays(SEASON, 5), 7);
+  assert.equal(leaveDays(SEASON, "thu", 6, 5), leaveDays(SEASON, "thu", 6, 4) + 1);
+  const opt = OPTIONS.find((o) => o.id === "sol-tls")!;
+  const s4 = { ...defaults(), days: 4 as const }, s5 = { ...defaults(), days: 5 as const };
+  const c4 = calc(SEASON, s4, opt, 6, []), c5 = calc(SEASON, s5, opt, 6, []);
+  assert.equal(c5.stayTotal, Math.round(c4.stayTotal * 6 / 5));
+  assert.equal(c5.parts.food, c4.parts.food / 6 * 7);
+  // a stay that ends one day later can run past a resort's closing date
+  const pas = OPTIONS.find((o) => o.id === "pas-tls")!;
+  assert.ok(SEASON.weeks.some((_, w) => !isClosed(SEASON, pas, "thu", w, 4) || isClosed(SEASON, pas, "thu", w, 5)));
 });

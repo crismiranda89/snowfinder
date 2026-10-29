@@ -2,7 +2,7 @@
 // replaced by the group's size. For 2 couples and no house listings it reproduces the original exactly
 // (tests/golden.test.ts).
 import type { Field, FoodPlan, Listing, Option, Season, Settings } from "../types.ts";
-import { level } from "./calendar.ts";
+import { foodDays, level, nights } from "./calendar.ts";
 import { bedrooms, cars, people, transferFactor } from "./group.ts";
 import { houses, stayFromHouses, type HouseResult } from "./houses.ts";
 
@@ -27,12 +27,13 @@ export function val(season: Season, s: Settings, d: Option, f: Field, w: number)
 }
 
 export function stayEstimate(season: Season, s: Settings, d: Option, w: number): number {
-  return Math.round(baseVal(season, d, "stay", w) * Math.pow(bedrooms(s.group) / season.baseBedrooms, STAY_SCALE));
+  // The seasonal stay price is for season.nights; a 5th ski day adds a night.
+  return Math.round(baseVal(season, d, "stay", w) * Math.pow(bedrooms(s.group) / season.baseBedrooms, STAY_SCALE) * nights(season, s.days) / season.nights);
 }
 
 export interface StayInfo { total: number; source: "edited" | "houses" | "few" | "estimate"; houses: HouseResult }
 export function stay(season: Season, s: Settings, d: Option, w: number, listings: Listing[]): StayInfo {
-  const h = houses(season, d.mkt, listings, s.group, w, !!s.nearLifts);
+  const h = houses(season, d.mkt, listings, s.group, w, !!s.nearLifts, nights(season, s.days));
   const e = edited(s, d, "stay", w);
   if (e != null) return { total: e, source: "edited", houses: h };
   const fromHouses = stayFromHouses(h, s.house);
@@ -65,7 +66,7 @@ export function calc(season: Season, s: Settings, d: Option, w: number, listings
     stay: st.total / p,
     pass: val(season, s, d, ("pass" + s.days) as Field, w),
     rent: val(season, s, d, ("rent" + s.days) as Field, w),
-    food: foodPerDay(s, d) * season.foodDays,
+    food: foodPerDay(s, d) * foodDays(season, s.days),
     lesson: val(season, s, d, "lesson", w) * s.days * (+s.beg || 0) / p,
   };
   const pp = parts.flight + parts.ground + parts.stay + parts.pass + parts.rent + parts.food + parts.lesson;

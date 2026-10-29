@@ -1,5 +1,6 @@
 // Parity with the original single-file simulator: same prices for every option, week, stay pattern,
-// ski-day count, ground transport and two food/beginner settings, for a group of 2 couples and no listings.
+// ground transport and two food/beginner settings, for a group of 2 couples and no listings, with 4 ski days.
+// (The original kept 5 nights for 5 ski days; Snowfinder adds a night, so 5-day cases differ on purpose.)
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -14,7 +15,7 @@ import type { Settings } from "../src/types.ts";
 // Frozen copies of the data as ported, so fixing a price in data/ doesn't break the model check.
 const SEASON = season2027 as unknown as Season;
 const OPTIONS = buildOptions((resorts as unknown as ResortsFile).resorts, SEASON);
-const golden = JSON.parse(readFileSync(new URL("./fixtures/golden.json", import.meta.url), "utf8"));
+const golden = JSON.parse(readFileSync(new URL("./fixtures/golden.json", import.meta.url), "utf8")).filter((g: any) => g.days === 4);
 const byId = Object.fromEntries(OPTIONS.map((o) => [o.id, o]));
 
 test("every original option exists in the new data", () => {
