@@ -200,9 +200,11 @@ wireTrip(() => state, update, toast);
 const onTrip = !!new URLSearchParams(location.search).get("trip");
 if (onTrip) { for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false); fold("trip-block", false, false); }
 // Once it has loaded, jump to it (no animation) unless the visitor has already scrolled.
+// Straight to the trip, where the loading slider shows; once loaded, the slider glides the page down (loader.ts).
+const loading = loadTrip(state, toast);
+if (onTrip) $("trip-block").scrollIntoView({ block: "start" });
 // The trip's group and dates become the visitor's, so "Add my pick" fits the trip (unless they already picked).
-loadTrip(state, toast).then(() => {
+loading.then(() => {
   const t = onTrip && !state.pick ? tripSettings() : null;
   if (t) { weekChosen = true; update((s) => { Object.assign(s, t, { group: { ...t.group } }); }); }
-  if (onTrip && scrollY < 40) $("trip-block").scrollIntoView({ block: "start" });
 });

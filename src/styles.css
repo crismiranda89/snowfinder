@@ -436,3 +436,30 @@ section.block,.mypick{scroll-margin-top:96px}
   .quickbar #pattern button{flex:1 1 0;padding:6px 4px;font-size:.82rem;white-space:nowrap}
   .quickbar #days button{padding:6px 0}
 }
+/* NEW · trip loading slider (loader.ts): three cards side by side, swipe or tap the dots */
+.ld{display:grid;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 0 14px;overflow:hidden}
+.ld-slider{display:grid;grid-auto-flow:column;grid-auto-columns:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.ld-slider::-webkit-scrollbar{display:none}
+.ld-pane{position:relative;overflow:hidden;scroll-snap-align:start;display:grid;gap:10px;justify-items:center;align-content:center;text-align:center;min-height:220px;padding:12px 16px}
+.ld-pane b{font-family:var(--f-display);font-size:1.35rem}
+.ld-line,.ld-q{color:var(--muted);min-height:1.5em}
+.ld-q{color:var(--ink);font-size:1.05rem}
+.ld-dots{display:flex;justify-content:center;gap:8px}
+.ld-dots button{width:9px;height:9px;padding:0;border:0;border-radius:999px;background:var(--line);cursor:pointer}
+.ld-dots button[aria-current="true"]{background:var(--accent);width:22px}
+.ld-bar{justify-self:center;width:min(260px,80%);height:6px;border-radius:999px;background:var(--soft);overflow:hidden}
+.ld-bar span{display:block;height:100%;width:0;background:var(--accent);animation:ld-fill 10s ease-out forwards}
+@keyframes ld-fill{to{width:92%}}
+.ld-flakes{position:absolute;inset:0;pointer-events:none}
+.ld-flakes i{position:absolute;top:-20px;color:var(--accent);opacity:.55;font-style:normal;animation:ld-fall linear infinite}
+@keyframes ld-fall{to{transform:translateY(260px) rotate(180deg)}}
+.ld-acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.ld-acts .btn{font-size:1rem;padding:10px 18px}
+.ld-val{font-family:var(--f-display);font-size:2.2rem;font-weight:700;color:var(--accent)}
+.ld-guess input[type=range]{width:min(300px,90%);accent-color:var(--accent)}
+.ld-result{margin:0;padding:10px 12px;border-radius:10px;background:var(--ok-bg);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.ld-flakes{display:none}.ld-bar span{animation:none;width:60%}}
+.ld-nudge{justify-self:center;font:inherit;font-weight:700;border:0;border-radius:999px;padding:8px 16px;background:var(--ok-bg);color:var(--ok);cursor:pointer;animation:ld-pop .35s ease-out}
+.ld.ready .ld-bar span{animation:none;width:100%}
+@keyframes ld-pop{from{transform:scale(.8);opacity:0}}
+#trip-loader:empty{display:none}

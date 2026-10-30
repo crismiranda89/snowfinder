@@ -8,6 +8,7 @@ import type { PatternKey } from "./types.ts";
 import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
+import { loaderReady, loaderResult, loaderVariant, startLoader } from "./loader.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -281,14 +282,26 @@ function challengeHtml(trip: TripView["trip"]) {
     `<div class="tmsg-acts"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">Challenge a group on WhatsApp</a>` +
     `<button type="button" class="btn secondary" data-act="copy-challenge" data-text="${esc(text)}">Copy the invite</button></div></div>`;
 }
+let stopLoader: (() => void) | null = null;
 export async function loadTrip(s: State, toast: (m: string) => void) {
   const id = tripId(), box = $("trip-block");
   if (!id) { box.hidden = true; return; }
   box.hidden = false;
   if (!tripsReady()) { $("trip-body").innerHTML = `<p class="foot">This trip link needs the shared-trip sheet, which isn't set up on this copy of the site.</p>`; return; }
-  if (!last) $("trip-body").innerHTML = `<p class="foot">Loading the trip…</p>`;
-  try { last = await get(id); renderTrip(s); renderMyPick(s); }
-  catch (e) { $("trip-body").innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
+  // First load: a small widget keeps the visitor busy while the sheet answers (see loader.ts).
+  // It stays above the trip once loaded, still playing, and the page glides down to the trip.
+  const first = !last;
+  if (first) { stopLoader?.(); $("trip-body").innerHTML = ""; stopLoader = startLoader($("trip-loader"), loaderVariant()); }
+  try {
+    const t = await get(id); last = t; renderTrip(s); renderMyPick(s);
+    if (first) {
+      const best = t.picks.find((p) => p.name === t.trip.organizer) || t.picks[0], vb = best ? verified(best.data) : null;
+      const pp = vb?.known ? vb.pp : best?.data.pp ?? null;
+      $("trip-body").insertAdjacentHTML("afterbegin", loaderResult(pp));
+      loaderReady($("trip-loader"), pp, $("trip-body"));
+    }
+  }
+  catch (e) { stopLoader?.(); $("trip-loader").innerHTML = ""; $("trip-body").innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
 }
 
 /** Prices on a pick card come from the site's own data (the house and the pick's settings), never from what
