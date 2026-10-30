@@ -3,12 +3,12 @@
 // through a small Apps Script web app (sheet/Code.gs); its URL comes from <meta name="snowfinder-api">.
 import { GROUPS, decodeShare, encodeShare, groupId, type State } from "./state.ts";
 import { RESORTS_FILE, SEASON } from "./data.ts";
-import { addDays, foodDays, isoOf, nights } from "./model/calendar.ts";
+import { addDays, foodDays, isoOf, nights, range as seasonRange } from "./model/calendar.ts";
 import type { PatternKey } from "./types.ts";
 import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
-import { loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
+import { glide, loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
 import { haptic } from "./ui/haptic.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -88,13 +88,21 @@ const groupLabel = (id: string) => GROUPS.find((g) => g.id === id)?.label || id;
 /** The open trip's group setup, read from its title ("4 couples · Thu 4 Mar → Tue 9 Mar"). */
 const tripGroup = () => GROUPS.find((g) => g.label === (last?.trip.title || "").split(" · ")[0])?.id || "";
 /** The open trip's group and dates (from the organiser's pick), so a visitor's picks fit the trip. */
-export function tripSettings(): Pick_<State, "group" | "pattern" | "week" | "days"> | null {
-  if (!last) return null;
-  const best = last.picks.find((p) => p.name === last!.trip.organizer) || last.picks[0];
+/** The organiser's pick on the open trip and its full plan (dates, group, house, flight, food, filters). */
+function sharedPlan(t = last): { best: Pick; s: State } | null {
+  if (!t) return null;
+  const best = t.picks.find((p) => p.name === t.trip.organizer) || t.picks[0];
   const s = best?.data.share ? decodeShare("#" + best.data.share, SEASON.weeks.length) : null;
-  return s ? { group: s.group, pattern: s.pattern, week: s.week, days: s.days } : null;
+  return best && s ? { best, s: { ...s, pick: best.data.listingId } } : null;
 }
-type Pick_<T, K extends keyof T> = { [P in K]: T[P] };
+/** The shared plan's settings, for the visitor's own plan (their sort order stays theirs). */
+export function tripSettings(): Omit<State, "sort"> | null {
+  const sp = sharedPlan(); if (!sp) return null;
+  const { sort: _sort, ...rest } = sp.s;
+  return rest;
+}
+/** Whether this browser has opened the trip before (a first visit takes on the shared plan). */
+export const tripSeen = (id: string) => !!seenTrips()[id];
 function openTrip(id: string, s: State, toast: (m: string) => void) {
   history.pushState(null, "", `?trip=${encodeURIComponent(id)}`);
   last = null; confirmed = false;
@@ -167,10 +175,36 @@ function priceBreakdown(s: State, p: PickSummary) {
     `<p class="foot">Prices for these dates, checked ${esc(SEASON.collected.slice(0, 10))}. Flights and houses move: check them before booking.</p></details>`;
 }
 
+// ---- the welcome card on a shared trip link: the organiser's pick, laid out like "Your pick", with the
+// exact flight of the shared plan. While the trip loads (and on a first visit until the games are done) the
+// loading games play inside it instead, so the price isn't given away before the guess.
+function renderWelcome(result = "") {
+  const box = $("welcome"), sp = sharedPlan(); if (!sp || !last) return;
+  const { s } = sp;
+  resetCache(); const p = pickSummary(s); resetCache();
+  if (!p) { box.innerHTML = ""; box.hidden = true; return; }
+  const org = last.trip.organizer, who = /^AI pick/i.test(org) ? `🤖 ${esc(org)}` : `👋 ${esc(org.split(/\s+/)[0])} picked this`;
+  const t = SEASON.flightTimes[p.option.code], rg = seasonRange(SEASON, s.pattern, s.week, s.days), o = SEASON.origin;
+  const ci = isoOf(rg.a), co = isoOf(rg.b);
+  const gf = `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${o.code} to ${p.option.code} on ${ci} returning ${co}`)}`;
+  box.hidden = false;
+  box.innerHTML = `<div class="mypick welcomecard">` +
+    `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
+    `<div class="mp-body"><span class="eyebrow">${who}</span><b>${esc(p.listing.title)}</b>` +
+    `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
+    `<div class="mp-price"><b>${euro(p.pp)} pp</b><small>all in · ${euro(p.group)} for ${p.people} · house ${euro(p.housePP)} pp</small></div></div>` +
+    `<div class="wc-flight"><span class="wc-route">✈ ${esc(o.city)} (${esc(o.code)}) → ${esc(p.option.air)}</span>` +
+    `<small>${t ? `${esc(t.airlines)} · ${hm(t.mins)} flight${t.stops ? ", 1 stop" : ", direct"} · ` : ""}${t ? hm(t.mins + p.option.mins) : esc(p.option.time)} door to door · out ${esc(rg.text.split(" → ")[0])}, back ${esc(rg.text.split(" → ")[1])}</small>` +
+    `<a href="${esc(gf)}" target="_blank" rel="noopener noreferrer">See flights and times for these dates ↗</a></div>` +
+    priceBreakdown(s, p) + result +
+    `<div class="mp-acts"><button type="button" class="btn wc-explore" data-act="explore">Explore</button></div></div>`;
+}
+
 // ---- the "Your pick" bar, shown once a house is chosen
 export function renderMyPick(s: State) {
-  const box = $("mypick"), p = pickSummary(s);
-  if (!p) { box.hidden = true; box.innerHTML = ""; return; }
+  const box = $("mypick"), p = pickSummary(s), sp = tripId() ? sharedPlan() : null;
+  // On a trip, the organiser's pick is already the welcome card at the top: no second copy here.
+  if (!p || (sp && sp.best.data.listingId === s.pick && !$("welcome").hidden)) { box.hidden = true; box.innerHTML = ""; return; }
   box.hidden = false;
   // In a trip of the same group you add your pick to it; for another group you start (or open) that group's trip.
   const g = groupId(s.group), inTrip = !!tripId() && (!last || tripGroup() === g || !tripGroup()), own = myTrips()[g];
@@ -291,7 +325,7 @@ const played = (): string[] => { try { return JSON.parse(localStorage.getItem(PL
 const markPlayed = (id: string) => { try { localStorage.setItem(PLAYED_KEY, JSON.stringify([...new Set([...played(), id])].slice(-50))); } catch { /* private mode */ } };
 export async function loadTrip(s: State, toast: (m: string) => void) {
   const id = tripId(), box = $("trip-block");
-  if (!id) { box.hidden = true; return; }
+  if (!id) { box.hidden = true; $("welcome").hidden = true; return; }
   box.hidden = false;
   if (!tripsReady()) { $("trip-body").innerHTML = `<p class="foot">This trip link needs the shared-trip sheet, which isn't set up on this copy of the site.</p>`; return; }
   // First load: a small widget keeps the visitor busy while the sheet answers (see loader.ts).
@@ -300,11 +334,14 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
   const first = !last, body = $("trip-body");
   if (first) {
     loader?.stop(); body.innerHTML = "";
-    const gate = !played().includes(id) && !Object.values(myTrips()).includes(id);
-    body.hidden = gate;
-    loader = startLoader($("trip-loader"), {
-      gate, first: loaderVariant(), target: body,
-      onReveal: (result) => { body.hidden = false; body.insertAdjacentHTML("afterbegin", result); },
+    const gate = !played().includes(id) && !Object.values(myTrips()).includes(id), welcome = $("welcome");
+    body.hidden = gate; welcome.hidden = false;
+    // Until the games are done, prices on the page (the pinned bar) are blurred so the guess stays a guess.
+    document.documentElement.classList.toggle("gated", gate);
+    loader = startLoader(welcome, {
+      gate, first: loaderVariant(), target: welcome,
+      // After the games, the price reveal (and any confetti) plays for a moment before the card turns into the pick.
+      onReveal: (result) => setTimeout(() => { loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated"); renderWelcome(result); renderMyPick(s); }, gate ? 2400 : 0),
       onDone: (answers, guess) => { markPlayed(id); post({ action: "quiz", trip: id, name: myName(), answers, guess }).catch(() => { /* the trip still opens */ }); },
     });
   }
@@ -315,7 +352,7 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
       loader?.ready(vb?.known ? vb.pp : best?.data.pp ?? null);
     }
   }
-  catch (e) { loader?.stop(); body.hidden = false; body.innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
+  catch (e) { loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated"); body.innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
 }
 
 /** Prices on a pick card come from the site's own data (the house and the pick's settings), never from what
@@ -526,6 +563,7 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       }
     }
     else if (act === "open-trip") openTrip(t.closest<HTMLElement>("[data-trip]")!.dataset.trip!, getState(), toast);
+    else if (act === "explore") { const b = $("trip-block"); b.classList.remove("collapsed"); haptic(10); glide(b); }
     else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
     else if (act === "copy-challenge") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;

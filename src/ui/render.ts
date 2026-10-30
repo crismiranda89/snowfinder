@@ -489,11 +489,27 @@ export function renderHouseSection(s: State, view: HouseView, repo: string, allD
 
 /** The pinned bar's summary: your pick's resort and price, or the cheapest resort this week ("from"). */
 export function renderQuickSum(s: State) {
-  const p = pickSummary(s);
-  if (p) { $("qbsum").innerHTML = `<span class="qb-res">📍 ${esc(p.resort.name)}</span><b class="qb-pp num">${euro(p.pp)}</b>`; $("qbsum").className = "qb-sum set"; return; }
-  const best = visible(s).filter((d) => !shut(s, d, s.week)).map((d) => ({ d, pp: c(s, d, s.week).pp })).sort((a, b) => a.pp - b.pp)[0];
-  $("qbsum").innerHTML = best ? `<span class="qb-res">📍 ${esc(best.d.name)}</span><b class="qb-pp num"><small>from</small> ${euro(best.pp)}</b>` : `<span class="qb-res">📍 —</span><b class="qb-pp">€ —</b>`;
-  $("qbsum").className = "qb-sum";
+  const p = pickSummary(s), caret = `<span class="qb-caret" aria-hidden="true">▾</span>`;
+  const best = p ? null : visible(s).filter((d) => !shut(s, d, s.week)).map((d) => ({ d, k: c(s, d, s.week) })).sort((a, b) => a.k.pp - b.k.pp)[0];
+  $("qbsum").innerHTML = p ? `<span class="qb-res">📍 ${esc(p.resort.name)}${caret}</span><b class="qb-pp num">${euro(p.pp)}</b>`
+    : best ? `<span class="qb-res">📍 ${esc(best.d.name)}${caret}</span><b class="qb-pp num"><small>from</small> ${euro(best.k.pp)}</b>`
+    : `<span class="qb-res">📍 —${caret}</span><b class="qb-pp">€ —</b>`;
+  $("qbsum").classList.toggle("set", !!p);
+  // The dropdown: everything chosen so far, top to bottom as the page asks for it.
+  const food = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan].label : `${euro(s.food)} per person a day`;
+  const ground = (k: "car" | "transfer") => k === "car" ? "Rental car" : "Transfer";
+  const t = p ? SEASON.flightTimes[p.option.code] : best ? SEASON.flightTimes[best.d.code] : undefined;
+  const rows: [string, string, string][] = [
+    ["📅", "Dates", `${dates(s, s.week).text} · ${nights(SEASON, s.days)} nights, ${s.days} snow days`],
+    ["👥", "Group", describe(s.group)],
+    ["📍", "Resort", p ? p.resort.name : best ? `${best.d.name} (cheapest this week)` : "—"],
+    ["🏠", "House", p ? `${p.listing.title} · ${p.walk} · ${euro(p.housePP)} pp` : `${LEVEL_LABEL[s.house] === "Any" ? "Any level" : LEVEL_LABEL[s.house]} · ${LIFT_BANDS[s.liftBand || "all"].label.toLowerCase()} to the lifts · not chosen yet`],
+    ["✈", "Flight", p ? `${SEASON.origin.city} → ${p.option.air}${t ? ` · ${hm(t.mins + p.option.mins)} door to door` : ""}` : best ? `${SEASON.origin.city} → ${best.d.air}${t ? ` · ${hm(t.mins + best.d.mins)} door to door` : ""}` : "—"],
+    [ "🚗", "Getting there", s.ground === "all" ? `Cheapest: ${ground(p ? p.groundKind : best ? best.k.groundKind : "car").toLowerCase()}` : ground(s.ground)],
+    ["🍽", "Food", food],
+    ["💶", "Per person, all in", p ? `${euro(p.pp)} · ${euro(p.group)} for ${p.people}` : best ? `from ${euro(best.k.pp)}` : "—"],
+  ];
+  $("qbpanel").innerHTML = `<dl>${rows.map(([i, k, v]) => `<div><dt>${i} ${esc(k)}</dt><dd${/€/.test(v) ? ` class="money"` : ""}>${esc(v)}</dd></div>`).join("")}</dl>`;
 }
 
 // ---- a person's pick: one house, priced with the cheapest way there under the current settings

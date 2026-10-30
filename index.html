@@ -44,8 +44,11 @@
   <div class="quickbar" role="group" aria-label="Dates and your trip">
     <div id="pattern" aria-label="Arrive and leave days"></div>
     <div class="qb-days"><span aria-hidden="true">❄️ days</span><div class="seg" id="days" aria-label="Snow days"><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button></div></div>
-    <div class="qb-sum" id="qbsum" aria-live="polite"></div>
+    <button type="button" class="qb-sum" id="qbsum" aria-expanded="false" aria-controls="qbpanel" aria-live="polite"></button>
+    <div class="qb-panel" id="qbpanel" role="region" aria-label="Your trip so far"></div>
   </div>
+
+  <section class="welcome" id="welcome" hidden aria-live="polite"></section>
 
   <details class="filters" id="filters">
     <summary><b>Filters</b><span class="count" id="housecount"></span><span class="foot" id="filtersum"></span></summary>

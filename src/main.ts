@@ -6,7 +6,7 @@ import { wireDecks } from "./ui/deck.ts";
 import { haptic } from "./ui/haptic.ts";
 import { rankOpen, renderQuickSum, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
-import { loadTrip, renderMyPick, renderTripsByGroup, tripSettings, wireTrip } from "./trip.ts";
+import { loadTrip, renderMyPick, renderTripsByGroup, tripSeen, tripSettings, wireTrip } from "./trip.ts";
 
 const REPO = (document.getElementById("githubLink") as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
 const WEEKS = SEASON.weeks.length;
@@ -106,6 +106,12 @@ const DECKS: Record<string, (s: State, v: string) => void> = {
   foodPlan: (s, v) => { s.foodPlan = v as State["foodPlan"]; },
 };
 wireDecks((id, v) => { const set = DECKS[id]; if (set) update((s) => set(s, v)); });
+// The pinned bar's summary opens a dropdown with everything chosen so far; tap again (or outside) to close.
+document.addEventListener("click", (ev) => {
+  const bar = document.querySelector(".quickbar")!, t = ev.target as HTMLElement;
+  if (t.closest("#qbsum")) { const open = !bar.classList.contains("open"); bar.classList.toggle("open", open); $("qbsum").setAttribute("aria-expanded", String(open)); haptic(8); }
+  else if (!t.closest("#qbpanel")) { bar.classList.remove("open"); $("qbsum").setAttribute("aria-expanded", "false"); }
+});
 $("groupPreset").innerHTML = GROUPS.map((g) => `<option value="${g.id}">${g.label}</option>`).join("");
 $("groupPreset").addEventListener("change", (ev) => { const g = GROUPS.find((x) => x.id === (ev.target as HTMLSelectElement).value); if (g) update((s) => { s.group = { ...g.group }; }); });
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
@@ -209,12 +215,13 @@ const onTrip = !!new URLSearchParams(location.search).get("trip");
 // Coming back with a pick: steps 1–3 fold for this visit so your pick is on the first screen.
 if (!onTrip && state.pick) for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false);
 if (onTrip) { for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false); fold("trip-block", false, false); }
-// Once it has loaded, jump to it (no animation) unless the visitor has already scrolled.
-// Straight to the trip, where the loading slider shows; once loaded, the slider glides the page down (loader.ts).
+// The loading games, then the organiser's pick, show in the welcome card at the top (trip.ts).
+// A first visit to a trip (or no pick of your own yet) takes on the shared plan: dates, group, house, flight,
+// food and filters, so the pinned bar shows exactly what was shared.
+const tripParam = new URLSearchParams(location.search).get("trip") || "";
+const takePlan = onTrip && (!tripSeen(tripParam) || !state.pick);
 const loading = loadTrip(state, toast);
-if (onTrip) $("trip-block").scrollIntoView({ block: "start" });
-// The trip's group and dates become the visitor's, so "Add my pick" fits the trip (unless they already picked).
 loading.then(() => {
-  const t = onTrip && !state.pick ? tripSettings() : null;
-  if (t) { weekChosen = true; update((s) => { Object.assign(s, t, { group: { ...t.group } }); }); }
+  const t = takePlan ? tripSettings() : null;
+  if (t) { weekChosen = true; update((s) => { Object.assign(s, t, { group: { ...t.group }, dest: [...t.dest], edits: { ...t.edits } }); }); }
 });
