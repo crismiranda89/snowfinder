@@ -29,8 +29,8 @@ try { if (localStorage.getItem("snowfinder-house-view") === "distance") houseVie
 
 function render() {
   resetCache();
-  // The grid's title shows the week picked in it, or "All dates" until one is tapped.
-  $("gridTitle").querySelector("b")!.textContent = weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "All weeks";
+  // The grid's title shows the week picked in it, or "I can make it work" (any week) until one is tapped.
+  $("gridTitle").querySelector("b")!.textContent = weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "I can make it work 🎿";
   $("allWeeks").hidden = !weekChosen;
   renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTripsByGroup(state); renderQuickSum(state); renderTable(state);
 }

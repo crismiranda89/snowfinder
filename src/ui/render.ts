@@ -244,7 +244,8 @@ let rankSeeded = false;
 
 export function renderRank(s: State, repo: string) {
   const w = s.week;
-  $("rankTitle").innerHTML = `<span class="step">3</span>Flights and others · ${esc(dates(s, w).text)}`;
+  // The dates are in step 1's title; this one stays short enough for one line on a phone.
+  $("rankTitle").innerHTML = `<span class="step">3</span>Flights and others`;
   const closed = visible(s).filter((d) => shut(s, d, w));
   const rows = visible(s).filter((d) => !shut(s, d, w)).map((d) => ({ d, k: c(s, d, w) })).sort((a, b) => a.k.pp - b.k.pp);
   const max = Math.max(...rows.map((r) => r.k.pp), 1);
