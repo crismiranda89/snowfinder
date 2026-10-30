@@ -43,11 +43,16 @@ export interface LoaderOpts {
   /** Called once both games are done, with what to save. */
   onDone: (answers: string[], guess: number) => void;
 }
-export interface LoaderHandle { ready(realPP: number | null): void; stop(): void }
+export interface LoaderHandle {
+  /** The trip has loaded; `skipGate` opens it without the games (the organiser, or someone who already played). */
+  ready(realPP: number | null, skipGate?: boolean): void;
+  stop(): void;
+}
 
 /** Shows the slider in `el`. Call ready() when the trip has loaded and stop() if it fails. */
 export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
   const answers: string[] = [];
+  let gate = o.gate;
   let guess = 1200, locked = false, loaded = false, real: number | null = null, revealed = false, saved = false;
   const games = o.gate ? `<span class="ld-gate">2 quick games before your trip opens →</span>` : `<span class="foot">Swipe for a quick game →</span>`;
   el.innerHTML = `<div class="ld" role="status" aria-label="Loading the trip">` +
@@ -102,7 +107,7 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
     const done = answers.length === QUESTIONS.length && locked;
     if (done && !saved) { saved = true; o.onDone(answers.slice(), guess); }
     if (!loaded || revealed) return;
-    if (o.gate && !done) {
+    if (gate && !done) {
       foot.innerHTML = `<span class="ld-gate">🔓 Your trip is ready: ${answers.length < QUESTIONS.length ? "answer the questions" : "lock your guess"} to open it</span>`;
       go(answers.length < QUESTIONS.length ? 1 : 2);
       return;
@@ -151,7 +156,7 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
     }
   };
   return {
-    ready(realPP) { loaded = true; real = realPP; revealGuess(); tryOpen(); },
+    ready(realPP, skipGate) { loaded = true; real = realPP; if (skipGate) gate = false; revealGuess(); tryOpen(); },
     stop() { clearInterval(timer); el.onclick = null; el.innerHTML = ""; },
   };
 }
@@ -180,7 +185,7 @@ export function glide(target: HTMLElement) {
 }
 
 /** Lines for the top of the trip once it opens: how close the guess was, and the quick answers. */
-function loaderResult(answers: string[], guess: number | null, real: number | null): string {
+export function loaderResult(answers: string[], guess: number | null, real: number | null): string {
   let out = "";
   if (guess != null && real) out += real < guess
     ? `<p class="ld-result win">🎉 You guessed <b>${euro(guess)}</b> and the top pick is only <b>${euro(real)}</b> per person: ${euro(guess - real)} less. Lock it in before it goes!</p>`

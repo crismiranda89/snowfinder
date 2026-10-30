@@ -126,9 +126,10 @@ function doPost(e) {
   try {
     if (["review", "checkPick", "foundPick", "deleteTrip", "approvePick"].includes(b.action)) return json_(checker_(b));
     const name = clip_(b.name, 40).replace(/[\u0000-\u001f]/g, "");
-    if (!["createTrip", "addPick", "vote", "idea", "quiz"].includes(b.action)) return json_({ error: "Unknown action" });
+    if (!["createTrip", "addPick", "vote", "idea", "quiz", "myQuiz"].includes(b.action)) return json_({ error: "Unknown action" });
     if (b.action !== "createTrip" && !rows_("trips").some((t) => t.id === b.trip)) return json_({ error: "Trip not found" });
     if (b.action === "quiz") return json_(quiz_(b, name));
+    if (b.action === "myQuiz") return json_(myQuiz_(b));
     if (!name) return json_({ error: "Please give your name" });
     if (b.action === "createTrip") {
       // One trip per group setup for each organiser (same name, same browser): the title starts with the group.
@@ -239,6 +240,14 @@ function quiz_(b, name) {
   const row = [b.trip, k, clip_(name, 40), answers.join(" · "), guess, now_()].map(cell_);
   if (hit) sh.getRange(hit._row, 1, 1, row.length).setValues([row]); else sh.appendRow(row);
   return { ok: true };
+}
+/** This browser's own answers and guess for a trip (found by the hash of its secret key), nobody else's. */
+function myQuiz_(b) {
+  if (typeof b.key !== "string" || b.key.length < 16 || b.key.length > 80) return { error: "Please reload the page and try again." };
+  const k = hash_(b.key), row = rows_("quiz").find((r) => r.trip === b.trip && r.key === k);
+  if (!row) return { ok: true, found: false };
+  const answers = String(row.answers || "").split(" · ").filter((a) => QUIZ.includes(a));
+  return { ok: true, found: true, answers, guess: +row.guess || null };
 }
 function vote_(trip, name, pick) {
   const sh = tab_("votes"), hit = rows_("votes").find((v) => v.trip === trip && norm_(v.name) === norm_(name));

@@ -8,7 +8,7 @@ import type { PatternKey } from "./types.ts";
 import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
-import { glide, loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
+import { glide, loaderResult, loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
 import { haptic } from "./ui/haptic.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
@@ -325,39 +325,90 @@ function challengeHtml(trip: TripView["trip"]) {
 }
 let loader: LoaderHandle | null = null;
 // Trips this browser has played the loading games for (or created): those open straight away next time.
-const PLAYED_KEY = "snowfinder-played";
-const played = (): string[] => { try { return JSON.parse(localStorage.getItem(PLAYED_KEY) || "[]"); } catch { return []; } };
-const markPlayed = (id: string) => { try { localStorage.setItem(PLAYED_KEY, JSON.stringify([...new Set([...played(), id])].slice(-50))); } catch { /* private mode */ } };
+// Each trip's answers and guess are kept, so a return visit opens straight on the pick with them.
+const PLAYED_KEY = "snowfinder-played-v2";
+type Played = Record<string, { answers: string[]; guess: number | null; at: number }>;
+const playedAll = (): Played => {
+  try {
+    const v2 = JSON.parse(localStorage.getItem(PLAYED_KEY) || "null") as Played | null;
+    if (v2) return v2;
+    const v1 = JSON.parse(localStorage.getItem("snowfinder-played") || "[]") as string[]; // before answers were kept
+    return Object.fromEntries(v1.map((id) => [id, { answers: [], guess: null, at: 0 }]));
+  } catch { return {}; }
+};
+const markPlayed = (id: string, answers: string[], guess: number | null) => {
+  try {
+    const all = { ...playedAll(), [id]: { answers, guess, at: Date.now() } };
+    const keep = Object.entries(all).sort((a, b) => b[1].at - a[1].at).slice(0, 50);
+    localStorage.setItem(PLAYED_KEY, JSON.stringify(Object.fromEntries(keep)));
+  } catch { /* private mode */ }
+};
+// The last copy of each trip seen on this device, so a return visit shows it at once (then refreshes it).
+const CACHE = (id: string) => `snowfinder-trip-${id}`;
+const readCache = (id: string): TripView | null => { try { return JSON.parse(localStorage.getItem(CACHE(id)) || "null"); } catch { return null; } };
+const writeCache = (id: string, t: TripView) => { try { localStorage.setItem(CACHE(id), JSON.stringify(t)); } catch { /* full or private */ } };
+/** The top pick's price per person, from the site's own data. */
+const topPP = (t: TripView) => {
+  const best = t.picks.find((p) => p.name === t.trip.organizer) || t.picks[0], vb = best ? verified(best.data) : null;
+  return vb?.known ? vb.pp : best?.data.pp ?? null;
+};
+
 export async function loadTrip(s: State, toast: (m: string) => void) {
   const id = tripId(), box = $("trip-block");
   if (!id) { box.hidden = true; $("welcome").hidden = true; return; }
   box.hidden = false;
   if (!tripsReady()) { $("trip-body").innerHTML = `<p class="foot">This trip link needs the shared-trip sheet, which isn't set up on this copy of the site.</p>`; return; }
-  // First load: a small widget keeps the visitor busy while the sheet answers (see loader.ts).
-  // It stays above the trip once loaded, still playing, and the page glides down to the trip.
-  // On a first visit the two games come first: the trip stays hidden until they're done (and it has loaded).
-  const first = !last, body = $("trip-body");
+  // First load. Someone who already played (or made the trip here) goes straight to the pick, from this device's
+  // copy while the sheet answers, with their saved answers and guess. Anyone else gets the loading games in the
+  // welcome card: on a first visit the trip stays hidden (prices blurred) until both games are done.
+  const first = !last, body = $("trip-body"), welcome = $("welcome");
+  const showPick = (t: TripView) => {
+    const saved = playedAll()[id];
+    renderWelcome(saved ? loaderResult(saved.answers, saved.guess, topPP(t)) : ""); renderMyPick(s);
+  };
+  let instant = false;
   if (first) {
-    loader?.stop(); body.innerHTML = "";
-    const gate = !played().includes(id) && !Object.values(myTrips()).includes(id), welcome = $("welcome");
-    body.hidden = gate; welcome.hidden = false;
-    // Until the games are done, prices on the page (the pinned bar) are blurred so the guess stays a guess.
-    document.documentElement.classList.toggle("gated", gate);
-    loader = startLoader(welcome, {
-      gate, first: loaderVariant(), target: welcome,
-      // After the games, the price reveal (and any confetti) plays for a moment before the card turns into the pick.
-      onReveal: (result) => setTimeout(() => { loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated"); renderWelcome(result); renderMyPick(s); }, gate ? 2400 : 0),
-      onDone: (answers, guess) => { markPlayed(id); post({ action: "quiz", trip: id, name: myName(), answers, guess }).catch(() => { /* the trip still opens */ }); },
-    });
-  }
-  try {
-    const t = await get(id); last = t; renderTrip(s); renderMyPick(s);
-    if (first) {
-      const best = t.picks.find((p) => p.name === t.trip.organizer) || t.picks[0], vb = best ? verified(best.data) : null;
-      loader?.ready(vb?.known ? vb.pp : best?.data.pp ?? null);
+    loader?.stop(); body.innerHTML = ""; welcome.hidden = false;
+    const known = !!playedAll()[id] || Object.values(myTrips()).includes(id), cached = known ? readCache(id) : null;
+    if (cached) {
+      instant = true; last = cached; body.hidden = false; document.documentElement.classList.remove("gated");
+      renderTrip(s); showPick(cached);
+    } else {
+      const gate = !known;
+      body.hidden = gate;
+      document.documentElement.classList.toggle("gated", gate);
+      loader = startLoader(welcome, {
+        gate, first: loaderVariant(), target: welcome,
+        // After the games, the price reveal (and any confetti) plays for a moment before the card turns into the pick.
+        onReveal: (result) => setTimeout(() => {
+          loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated");
+          if (result) { renderWelcome(result); renderMyPick(s); } else if (last) showPick(last);
+        }, gate && result ? 2400 : 0),
+        onDone: (answers, guess) => { markPlayed(id, answers, guess); post({ action: "quiz", trip: id, name: myName(), answers, guess }).catch(() => { /* the trip still opens */ }); },
+      });
     }
   }
-  catch (e) { loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated"); body.innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
+  try {
+    const t = await get(id); last = t; writeCache(id, t); renderTrip(s); renderMyPick(s);
+    // Played here before answers were kept on the device: fetch this browser's own answers back from the sheet.
+    if (first && playedAll()[id] && !playedAll()[id].answers.length) {
+      const r = await post({ action: "myQuiz", trip: id }).catch(() => null);
+      if (r?.found) markPlayed(id, r.answers, r.guess);
+    }
+    if (first && instant) showPick(t);
+    else if (first) {
+      // The organiser (by the name saved in this browser) skips the games on their own trip.
+      const norm = (x: string) => x.normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
+      const isOrganiser = !!myName() && norm(myName()) === norm(t.trip.organizer);
+      if (isOrganiser) document.documentElement.classList.remove("gated");
+      loader?.ready(topPP(t), isOrganiser);
+    }
+  }
+  catch (e) {
+    loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated");
+    if (!instant) body.innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`;
+    else toast("Showing the last copy of this trip: couldn't refresh it.");
+  }
 }
 
 /** Prices on a pick card come from the site's own data (the house and the pick's settings), never from what

@@ -105,6 +105,10 @@ check("Quiz keeps only the site's answers", qrows[0][3] === "⛷️ Ski · 🍻 
 const qbad = post({ action: "quiz", trip: "nope", key: "k-quiz-oooooooooooooooo", answers: ["⛷️ Ski"] });
 check("Quiz on a trip that doesn't exist", qbad.error, qbad.error || "accepted");
 check("Quiz rows never show in the public trip view", !("quiz" in view()), "hidden");
+const mine = post({ action: "myQuiz", trip: T, key: "k-quiz-oooooooooooooooo" });
+check("A browser gets back its own answers", mine.found && mine.answers.join(" · ") === "⛷️ Ski · 🍻 Après", JSON.stringify(mine));
+const theirs = post({ action: "myQuiz", trip: T, key: "k-other-browser-xxxxxx" });
+check("Another browser can't read them", theirs.ok && !theirs.found, JSON.stringify(theirs));
 
 // Approving a pick needs the checker key.
 const ev = view().picks.find((p) => p.name === "Bob") || view().picks[1];
