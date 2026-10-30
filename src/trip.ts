@@ -7,6 +7,7 @@ import { addDays, isoOf, nights } from "./model/calendar.ts";
 import type { PatternKey } from "./types.ts";
 import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
+import { walkMins } from "./model/houses.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -244,6 +245,69 @@ function verified(d: PickData): { pp: number; group: number; known: boolean } {
   return p ? { pp: p.pp, group: p.group, known: true } : { pp: 0, group: 0, known: false };
 }
 
+// ---- votes: everyone sees the count for each pick; from 2 votes on, pros and cons for each, worked out
+// by fixed rules from the site's own data (price, walk to the lifts, rating, travel time), never from text
+// people typed.
+interface Facts { pp: number; known: boolean; walkM: number | null; rating: number | null; travel: number | null }
+function facts(d: PickData): Facts {
+  const s = d.share ? decodeShare("#" + d.share, SEASON.weeks.length) : null;
+  const l = LISTINGS.find((x) => x.id === d.listingId);
+  let p: PickSummary | null = null;
+  if (s && l) { resetCache(); p = pickSummary({ ...s, pick: d.listingId }); resetCache(); }
+  const t = p ? SEASON.flightTimes[p.option.code] : undefined;
+  return { pp: p ? p.pp : 0, known: !!p, walkM: l?.toLiftM ?? null, rating: l?.rating ?? null, travel: p && t ? t.mins + p.option.mins : null };
+}
+function prosCons(xs: { p: Pick; f: Facts }[]) {
+  const known = xs.filter((x) => x.f.known), low = Math.min(...known.map((x) => x.f.pp));
+  const times = xs.map((x) => x.f.travel).filter((t): t is number => t != null), fast = Math.min(...times), slow = Math.max(...times);
+  return new Map(xs.map(({ p, f }) => {
+    const pros: string[] = [], cons: string[] = [];
+    if (!f.known) cons.push("Price not verified: not one of the site's houses");
+    else if (f.pp - low < 20) pros.push(known.length > 1 && f.pp === low ? `Cheapest: ${euro(f.pp)} per person all in` : `${euro(f.pp)} per person all in`);
+    else cons.push(`${euro(f.pp - low)} more per person than the cheapest (${euro(f.pp)} all in)`);
+    if (f.walkM == null) cons.push("Distance to the lifts not stated");
+    else if (f.walkM <= 100) pros.push("Ski in / ski out");
+    else if (walkMins(f.walkM) <= 10) pros.push(`${walkMins(f.walkM)} min walk to the lifts`);
+    else cons.push(`${walkMins(f.walkM)} min walk to the lifts: shuttle or car`);
+    if (f.rating != null && f.rating >= 9) pros.push(`Guests rate it ${f.rating.toFixed(1)}/10`);
+    else if (f.rating != null && f.rating < 8) cons.push(`Guests rate it only ${f.rating.toFixed(1)}/10`);
+    if (f.travel != null && slow - fast >= 30) {
+      if (f.travel === fast) pros.push(`Quickest to get there: ${hm(f.travel)} door to door`);
+      else if (f.travel - fast >= 30) cons.push(`${f.travel - fast < 60 ? `${f.travel - fast} min` : hm(f.travel - fast)} longer to get there (${hm(f.travel)} door to door)`);
+    }
+    return [p.id, { pros, cons }];
+  }));
+}
+const MEDALS = ["🥇", "🥈", "🥉"];
+function votesHtml(trip: TripView["trip"], picks: Pick[], byPick: (id: string) => string[]) {
+  if (!picks.length) return "";
+  const xs = picks.map((p) => ({ p, f: facts(p.data), v: byPick(p.id) })).sort((a, b) => b.v.length - a.v.length);
+  const total = xs.reduce((n, x) => n + x.v.length, 0), most = Math.max(1, ...xs.map((x) => x.v.length));
+  const pc = total > 1 ? prosCons(xs) : null;
+  const rows = xs.map((x, i) => {
+    const c = pc?.get(x.p.id);
+    return `<div class="tv-row"><div class="tv-top"><b>${x.v.length ? (MEDALS[i] || "•") + " " : ""}${esc(x.p.data.title)}</b><span class="num">${x.v.length} vote${x.v.length === 1 ? "" : "s"}</span></div>` +
+      `<div class="tv-bar" aria-hidden="true"><span style="width:${((x.v.length / most) * 100).toFixed(0)}%"></span></div>` +
+      `<small>${esc(x.p.data.resort)} · ${esc(x.p.data.when)}${x.v.length ? ` · ${x.v.map(esc).join(", ")}` : ""}</small>` +
+      (c ? `<ul class="tv-pc">${c.pros.map((t) => `<li class="pro">✅ ${esc(t)}</li>`).join("")}${c.cons.map((t) => `<li class="con">⚠️ ${esc(t)}</li>`).join("")}</ul>` : "") + `</div>`;
+  }).join("");
+  const link = `${location.origin}${location.pathname}?trip=${encodeURIComponent(trip.id)}`;
+  const msg = pc ? [
+    `🗳️ *Ski trip vote: where we stand*`, trip.title ? `_${trip.title}_` : "", ``,
+    ...xs.flatMap((x, i) => {
+      const c = pc.get(x.p.id)!;
+      return [`${x.v.length ? MEDALS[i] || "•" : "•"} *${x.p.data.title}* (${x.p.data.resort}) · ${x.v.length} vote${x.v.length === 1 ? "" : "s"}${x.v.length ? `: ${x.v.join(", ")}` : ""}`,
+        ...c.pros.map((t) => `✅ ${t}`), ...c.cons.map((t) => `⚠️ ${t}`), ``];
+    }),
+    `👉 Not voted yet? Vote here:`, link,
+  ].filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n") : "";
+  return `<div class="tvotes" id="votes"><h3 class="tsub">🗳️ Votes <span class="foot">${total} so far</span></h3>${rows}` +
+    (pc ? `<div class="tmsg"><label for="tvotes-text">Vote update for your group chats</label><textarea id="tvotes-text" readonly rows="8">${esc(msg)}</textarea>` +
+      `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-votes">Copy vote update</button>` +
+      `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send on WhatsApp</a></div></div>`
+      : `<p class="foot">Pros and cons of each pick show up from 2 votes.</p>`) + `</div>`;
+}
+
 function pickCard(p: Pick, votes: string[], mine: string, flag: string) {
   const d = p.data, v = verified(d);
   return `<article class="tpick${flag ? " pinned" : ""}">` +
@@ -304,7 +368,8 @@ function renderTrip(_s: State) {
   const limits = (lim ? `<p class="foot">${lim.peopleUsed} of ${lim.people} people on this trip · ${lim.tripsUsed} of ${lim.trips} trips</p>` : "") +
     (others.length ? `<p class="foot">Your other trips: ${others.map(([g, id]) => `<button type="button" class="linkbtn" data-act="open-trip" data-trip="${esc(id)}">${esc(groupLabel(g))}</button>`).join(" · ")}</p>` : "") +
     `<p class="foot">Another group? Pick it in Filters, choose a house and “Create a trip” for it: one trip per group.</p>`;
-  $("trip-body").innerHTML = alert + pulse + box + (confirmed ? challengeHtml(trip) : "") + limits +
+  const visible = [best, ...found, ...rest].filter((p): p is Pick => !!p);
+  $("trip-body").innerHTML = alert + pulse + box + (confirmed ? challengeHtml(trip) : "") + limits + votesHtml(trip, visible, byPick) +
     (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
     (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +
@@ -372,6 +437,10 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     else if (act === "copy-challenge") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
       navigator.clipboard.writeText(text).then(() => toast("Invite copied: paste it to the other group."), () => window.prompt("Copy this invite:", text));
+    }
+    else if (act === "copy-votes") {
+      const ta = $("tvotes-text") as HTMLTextAreaElement;
+      navigator.clipboard.writeText(ta.value).then(() => toast("Vote update copied: paste it in the group chat."), () => { ta.select(); toast("Selected: copy it with your phone's Copy."); });
     }
     else if (act === "copy-msg") {
       const ta = $("tmsg-text") as HTMLTextAreaElement;

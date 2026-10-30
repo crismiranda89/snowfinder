@@ -320,7 +320,7 @@ function card(s: State, x: Priced, label: string, selected: boolean, week?: numb
   const mapLinks = `<span class="maplinks"><a href="${esc(mapUrl)}" target="_blank" rel="noopener noreferrer">📍 Map</a>` +
     (routeUrl ? `<a href="${esc(routeUrl)}" target="_blank" rel="noopener noreferrer">Walking route to the lift ↗</a>` : "") + `</span>`;
   return `<article class="hcard${selected || s.pick === l.id ? " sel" : ""}" role="listitem">` +
-    `<a class="hphoto" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${photo}<span class="tier">${esc(label)}</span></a>` +
+    `<a class="hphoto" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${photo}<span class="tier">${esc(label)}</span>${l.rating != null ? `<span class="hrate" aria-label="Rated ${l.rating.toFixed(1)} out of 10">★ ${l.rating.toFixed(1)}</span>` : ""}</a>` +
     `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
     (week != null ? `<span class="cheapwk">📅 Cheapest week: ${esc(seasonRange(SEASON, s.pattern, week, s.days).text)}</span>` : "") +
     `<div class="hprice"><b>${euro(x.pp)}</b><small>per person, house only · ${euro(x.total)} for the house</small></div>` +
