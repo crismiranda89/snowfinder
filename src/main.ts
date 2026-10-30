@@ -4,7 +4,7 @@ import { range as seasonRange } from "./model/calendar.ts";
 import { GROUPS, decodeShare, encodeShare, load, save, type State } from "./state.ts";
 import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
-import { loadTrip, renderMyPick, wireTrip } from "./trip.ts";
+import { loadTrip, renderMyPick, renderTripsByGroup, wireTrip } from "./trip.ts";
 
 const REPO = (document.querySelector('a.btn.secondary') as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
 const WEEKS = SEASON.weeks.length;
@@ -30,7 +30,7 @@ function render() {
   // The grid's title shows the week picked in it, or "All dates" until one is tapped.
   $("gridTitle").querySelector("b")!.textContent = weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "All weeks";
   $("allWeeks").hidden = !weekChosen;
-  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTable(state);
+  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTripsByGroup(state); renderTable(state);
 }
 function update(mut: (s: State) => void) { mut(state); save(state); render(); }
 

@@ -75,6 +75,13 @@ async function get(id: string): Promise<TripView> {
 const TRIPS_KEY = "snowfinder-my-trips";
 const myTrips = (): Record<string, string> => { try { return JSON.parse(localStorage.getItem(TRIPS_KEY) || "{}"); } catch { return {}; } };
 const rememberTrip = (group: string, trip: string) => { try { localStorage.setItem(TRIPS_KEY, JSON.stringify({ ...myTrips(), [group]: trip })); } catch { /* private mode */ } };
+// Every trip opened in this browser (trip id → its group, title and organiser), for "Trips by group".
+const SEEN_KEY = "snowfinder-seen-trips";
+type Seen = Record<string, { group: string; title: string; organizer: string; at: number }>;
+const seenTrips = (): Seen => { try { return JSON.parse(localStorage.getItem(SEEN_KEY) || "{}"); } catch { return {}; } };
+function rememberSeen(id: string, group: string, title: string, organizer: string) {
+  try { localStorage.setItem(SEEN_KEY, JSON.stringify({ ...seenTrips(), [id]: { group, title, organizer, at: Date.now() } })); } catch { /* private mode */ }
+}
 const groupLabel = (id: string) => GROUPS.find((g) => g.id === id)?.label || id;
 /** The open trip's group setup, read from its title ("4 couples · Thu 4 Mar → Tue 9 Mar"). */
 const tripGroup = () => GROUPS.find((g) => g.label === (last?.trip.title || "").split(" · ")[0])?.id || "";
@@ -153,6 +160,27 @@ export function renderMyPick(s: State) {
         : `<button type="button" class="btn" data-act="create-trip">Create a trip for ${esc(groupLabel(g).toLowerCase())}</button>`
       : `<span class="foot">Shared trips aren't set up on this site yet.</span>`}` +
     `<button type="button" class="ghost" data-act="clear-pick">Clear</button></div>`;
+}
+
+// ---- "Trips by group": one row per group setup, with the trips this browser created or opened
+export function renderTripsByGroup(s: State) {
+  const box = document.getElementById("tripsbygroup"); if (!box) return;
+  const block = $("trips-block");
+  block.hidden = !tripsReady(); if (block.hidden) return;
+  const seen = seenTrips(), mine = myTrips(), here = tripId();
+  for (const [g, id] of Object.entries(mine)) if (!seen[id]) seen[id] = { group: g, title: "", organizer: "", at: 0 };
+  const cur = groupId(s.group);
+  box.innerHTML = GROUPS.map((g) => {
+    const trips = Object.entries(seen).filter(([, t]) => t.group === g.id).sort((a, b) => b[1].at - a[1].at);
+    const list = trips.map(([id, t]) => {
+      const when = t.title.split(" · ").slice(1).join(" · ");
+      return `<li><button type="button" class="linkbtn" data-act="open-trip" data-trip="${esc(id)}">${esc(when || "Open the trip")}</button>` +
+        `<span class="foot">${t.organizer ? ` by ${esc(t.organizer)}` : ""}${mine[g.id] === id ? " · yours" : ""}${id === here ? " · open now" : ""}</span></li>`;
+    }).join("");
+    return `<div class="tg-row${g.id === cur ? " on" : ""}"><div class="tg-top"><b>${esc(g.label)}</b>` +
+      (trips.length ? "" : `<button type="button" class="btn secondary" data-act="start-group" data-g="${esc(g.id)}">Start one</button>`) + `</div>` +
+      (list ? `<ul class="tg-list">${list}</ul>` : `<span class="foot">No trip yet.</span>`) + `</div>`;
+  }).join("") + `<p class="foot">Trips you created or opened on this phone. One trip per group: “Start one” sets the group, then choose a house and “Create a trip”.</p>`;
 }
 
 // ---- the dialog that asks for a name (and a reason when making a pick)
@@ -338,6 +366,8 @@ function renderTrip(_s: State) {
   const isOrg = !!me && norm(me) === norm(trip.organizer);
   // Trips made before this browser kept a list: the organiser's own trip is remembered when they open it.
   if (isOrg && tripGroup() && !myTrips()[tripGroup()]) rememberTrip(tripGroup(), trip.id);
+  rememberSeen(trip.id, tripGroup(), trip.title, trip.organizer);
+  renderTripsByGroup(_s);
   const shown = (x: { name: string; approved?: string }) => isYes(x.approved) || isOrg || (!!me && norm(x.name) === norm(me));
   const hiddenPicks = picks.filter((p) => p !== best && !shown(p));
   const found = picks.filter((p) => p !== best && p.data.foundBy && shown(p));
@@ -432,6 +462,14 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     const act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);
+    else if (act === "start-group") {
+      const g = GROUPS.find((x) => x.id === t.closest<HTMLElement>("[data-g]")!.dataset.g);
+      if (g) {
+        update((s) => { s.group = { ...g.group }; s.pick = undefined; s.air = undefined; });
+        document.getElementById("houses-block")?.scrollIntoView({ block: "start", behavior: "smooth" });
+        toast(`Group set to ${g.label.toLowerCase()}. Choose a house, then “Create a trip”.`);
+      }
+    }
     else if (act === "open-trip") openTrip(t.closest<HTMLElement>("[data-trip]")!.dataset.trip!, getState(), toast);
     else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
     else if (act === "copy-challenge") {
