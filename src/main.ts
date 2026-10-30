@@ -57,9 +57,10 @@ function num(id: string, lo: number, hi: number, set: (s: State, v: number) => v
 
 renderStatic();
 // Every section folds when you tap its heading; which ones are folded is remembered (this browser only).
-const FOLD_KEY = "snowfinder-folded";
+// v2: everyone starts again from the defaults (week grid folded, houses open).
+const FOLD_KEY = "snowfinder-folded-v2";
 let folded: string[] = [];
-// The week grid starts folded on a first visit: the houses below already cover every date.
+// By default only the week grid is folded: the houses below already cover every date.
 try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || '["grid-block"]'); } catch { /* private mode */ }
 document.querySelectorAll<HTMLElement>("section.block").forEach((sec, i) => {
   const h2 = sec.querySelector<HTMLElement>(":scope > h2, :scope > .head > h2"); if (!h2) return;
