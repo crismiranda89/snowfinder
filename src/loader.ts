@@ -2,7 +2,7 @@
 // (falling snow and rotating lines), "duel" (four quick taps: ski or board, …) and "guess" (guess the price
 // per person). On a first visit the two games come first: the trip opens once both are done and it has
 // loaded. The answers go to the sheet (see trip.ts). ?loader=snow|duel|guess picks the card shown first.
-import { euro } from "./ui/render.ts";
+import { esc, euro } from "./ui/render.ts";
 import { haptic } from "./ui/haptic.ts";
 
 export type Loader = "snow" | "duel" | "guess";
@@ -185,11 +185,14 @@ export function glide(target: HTMLElement) {
 }
 
 /** Lines for the top of the trip once it opens: how close the guess was, and the quick answers. */
-export function loaderResult(answers: string[], guess: number | null, real: number | null): string {
+/** Lines for the card: how close a guess was, and the quick answers. `who` names someone else (the organiser);
+ *  without it the lines are about the visitor ("You guessed", "Your ski style"). */
+export function loaderResult(answers: string[], guess: number | null, real: number | null, who = ""): string {
+  const guessed = who ? `${esc(who)} guessed` : "You guessed", style = who ? `${esc(who)}'s ski style` : "Your ski style";
   let out = "";
   if (guess != null && real) out += real < guess
-    ? `<p class="ld-result win">🎉 You guessed <b>${euro(guess)}</b> and the top pick is only <b>${euro(real)}</b> per person: ${euro(guess - real)} less. Lock it in before it goes!</p>`
-    : `<p class="ld-result">🎯 You guessed <b>${euro(guess)}</b>, the top pick is <b>${euro(real)}</b> per person: ${verdict(guess, real)}</p>`;
-  if (answers.length) out += `<p class="ld-result">⛷️ Your ski style: ${answers.join(" · ")}</p>`;
+    ? `<p class="ld-result win">🎉 ${guessed} <b>${euro(guess)}</b> and the top pick is only <b>${euro(real)}</b> per person: ${euro(guess - real)} less. Lock it in before it goes!</p>`
+    : `<p class="ld-result">🎯 ${guessed} <b>${euro(guess)}</b>, the top pick is <b>${euro(real)}</b> per person: ${verdict(guess, real)}</p>`;
+  if (answers.length) out += `<p class="ld-result">⛷️ ${style}: ${answers.join(" · ")}</p>`;
   return out;
 }

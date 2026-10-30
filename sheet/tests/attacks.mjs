@@ -107,8 +107,14 @@ check("Quiz on a trip that doesn't exist", qbad.error, qbad.error || "accepted")
 check("Quiz rows never show in the public trip view", !("quiz" in view()), "hidden");
 const mine = post({ action: "myQuiz", trip: T, key: "k-quiz-oooooooooooooooo" });
 check("A browser gets back its own answers", mine.found && mine.answers.join(" · ") === "⛷️ Ski · 🍻 Après", JSON.stringify(mine));
+post({ action: "quiz", trip: T, key: "k-cristiano-aaaaaaaaaaaa", name: "Cristiano", answers: ["🏂 Board"], guess: 1300 });
+const oq = view().organizerQuiz;
+check("The trip shares the organiser's answers, not anyone else's", oq && oq.guess === 1300 && oq.answers.join() === "🏂 Board", JSON.stringify(oq));
 const theirs = post({ action: "myQuiz", trip: T, key: "k-other-browser-xxxxxx" });
 check("Another browser can't read them", theirs.ok && !theirs.found, JSON.stringify(theirs));
+
+const nq = post({ action: "nameQuiz", trip: T, guess: 919, name: "Mallory", key: "nope-nope-nope-nope" });
+check("Naming a quiz row needs the checker key", nq.error === "Not allowed", nq.error || "named");
 
 // Approving a pick needs the checker key.
 const ev = view().picks.find((p) => p.name === "Bob") || view().picks[1];

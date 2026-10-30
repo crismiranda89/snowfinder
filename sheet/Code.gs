@@ -115,6 +115,7 @@ function doGet(e) {
     votes: Object.values(latest),
     ideas: rows_("ideas").filter((x) => x.trip === id).map((x) => Object.assign(strip(x), { links: safeParse_(x.links, []), images: safeParse_(x.images, []) })),
     limits: { trips: prop_("MAX_TRIPS", 12), people: prop_("MAX_PEOPLE", 10), tripsUsed: rows_("trips").length, peopleUsed: people_(id).size },
+    organizerQuiz: organizerQuiz_(trip),
   });
 }
 function safeParse_(s, d) { try { return JSON.parse(s); } catch (err) { return d === undefined ? {} : d; } }
@@ -124,7 +125,7 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
-    if (["review", "checkPick", "foundPick", "deleteTrip", "approvePick"].includes(b.action)) return json_(checker_(b));
+    if (["review", "checkPick", "foundPick", "deleteTrip", "approvePick", "nameQuiz"].includes(b.action)) return json_(checker_(b));
     const name = clip_(b.name, 40).replace(/[\u0000-\u001f]/g, "");
     if (!["createTrip", "addPick", "vote", "idea", "quiz", "myQuiz"].includes(b.action)) return json_({ error: "Unknown action" });
     if (b.action !== "createTrip" && !rows_("trips").some((t) => t.id === b.trip)) return json_({ error: "Trip not found" });
@@ -211,6 +212,13 @@ function checker_(b) {
     tab_("picks").getRange(p._row, 10).setValue(b.approved);
     return { ok: true };
   }
+  if (b.action === "nameQuiz") {
+    // Puts a name on a trip's quiz row (found by its guess), e.g. the organiser's play from a browser with no name.
+    const q = rows_("quiz").filter((r) => r.trip === b.trip && +r.guess === +b.guess);
+    if (q.length !== 1) return { error: `${q.length} rows have that guess` };
+    tab_("quiz").getRange(q[0]._row, 3).setValue(cell_(clip_(b.name, 40)));
+    return { ok: true };
+  }
   if (b.action === "deleteTrip") {
     // Removes a trip and everything on it (picks, votes, posts, names). Only with the checker key.
     if (!rows_("trips").some((t) => t.id === b.trip)) return { error: "Trip not found" };
@@ -240,6 +248,16 @@ function quiz_(b, name) {
   const row = [b.trip, k, clip_(name, 40), answers.join(" · "), guess, now_()].map(cell_);
   if (hit) sh.getRange(hit._row, 1, 1, row.length).setValues([row]); else sh.appendRow(row);
   return { ok: true };
+}
+/** The organiser's own loading-game answers and guess for their trip (shown on the shared card, by name): the row
+ *  saved under the organiser's name, or from the browser that created the trip. Nobody else's answers are shared. */
+function organizerQuiz_(trip) {
+  const who = norm_(trip.organizer);
+  const keys = rows_("people").filter((r) => r.trip === trip.id && norm_(r.name) === who).map((r) => r.key);
+  const rows = rows_("quiz").filter((q) => q.trip === trip.id && (norm_(q.name) === who || keys.includes(q.key)));
+  const row = rows.sort((a, b) => String(b.updated).localeCompare(String(a.updated)))[0];
+  if (!row) return null;
+  return { answers: String(row.answers || "").split(" · ").filter((a) => QUIZ.includes(a)), guess: +row.guess || null };
 }
 /** This browser's own answers and guess for a trip (found by the hash of its secret key), nobody else's. */
 function myQuiz_(b) {

@@ -59,11 +59,11 @@ function num(id: string, lo: number, hi: number, set: (s: State, v: number) => v
 
 renderStatic();
 // Every section folds when you tap its heading; which ones are folded is remembered (this browser only).
-// v4: everyone starts again from the defaults (week grid and "Go deeper" folded, the rest open); v3 had
-// saved the folds the steps make by themselves.
-const FOLD_KEY = "snowfinder-folded-v4";
+// v5: everyone starts again from the defaults: only step 1 (Dates) open, every other section folded.
+const FOLD_KEY = "snowfinder-folded-v5";
 let folded: string[] = [];
-try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || '["grid-block","deeper-block"]'); } catch { /* private mode */ }
+const FOLDED_AT_START = ["houses-block", "rank-block", "trip-block", "trips-block", "deeper-block"];
+try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || JSON.stringify(FOLDED_AT_START)); } catch { /* private mode */ }
 const folds = new Map<string, (closed: boolean) => void>();
 /** Only a tap on a heading is remembered; folding the page does by itself (next step, a trip link) is for this visit. */
 function fold(key: string, closed: boolean, remember = true) {
@@ -241,9 +241,8 @@ wireTrip(() => state, update, toast);
 // A trip link lands on the trip (step 5), below the steps.
 // A trip link shows the trip first: steps 1–3 fold for this visit, so the trip sits right under the header.
 const onTrip = !!new URLSearchParams(location.search).get("trip");
-// Coming back with a pick: steps 1–3 fold for this visit so your pick is on the first screen.
-if (!onTrip && state.pick) for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false);
-if (onTrip) { for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false); fold("trip-block", false, false); }
+// A trip link starts the same way for this visit: the welcome card on top, then only Dates open.
+if (onTrip) { fold("grid-block", false, false); for (const k of FOLDED_AT_START) fold(k, true, false); }
 // The loading games, then the organiser's pick, show in the welcome card at the top (trip.ts).
 // A first visit to a trip (or no pick of your own yet) takes on the shared plan: dates, group, house, flight,
 // food and filters, so the pinned bar shows exactly what was shared.
