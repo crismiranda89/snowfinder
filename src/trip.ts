@@ -85,10 +85,19 @@ function rememberSeen(id: string, group: string, title: string, organizer: strin
 const groupLabel = (id: string) => GROUPS.find((g) => g.id === id)?.label || id;
 /** The open trip's group setup, read from its title ("4 couples · Thu 4 Mar → Tue 9 Mar"). */
 const tripGroup = () => GROUPS.find((g) => g.label === (last?.trip.title || "").split(" · ")[0])?.id || "";
+/** The open trip's group and dates (from the organiser's pick), so a visitor's picks fit the trip. */
+export function tripSettings(): Pick_<State, "group" | "pattern" | "week" | "days"> | null {
+  if (!last) return null;
+  const best = last.picks.find((p) => p.name === last!.trip.organizer) || last.picks[0];
+  const s = best?.data.share ? decodeShare("#" + best.data.share, SEASON.weeks.length) : null;
+  return s ? { group: s.group, pattern: s.pattern, week: s.week, days: s.days } : null;
+}
+type Pick_<T, K extends keyof T> = { [P in K]: T[P] };
 function openTrip(id: string, s: State, toast: (m: string) => void) {
   history.pushState(null, "", `?trip=${encodeURIComponent(id)}`);
   last = null; confirmed = false;
   renderMyPick(s); loadTrip(s, toast);
+  $("trip-block").classList.remove("collapsed");
   $("trip-block").scrollIntoView({ block: "start", behavior: "smooth" });
 }
 async function post(body: object): Promise<any> {
@@ -422,7 +431,7 @@ function renderTrip(_s: State) {
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
     (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +
     (rest.length || hiddenPicks.length ? `<h3 class="tsub">Everyone's picks</h3>` + rest.map((p) => pickCard(p, byPick(p.id), mine, "")).join("") + waitingNote(hiddenPicks.length, "pick") : "") +
-    `<h3 class="tsub">Pick your own</h3><p class="foot">Choose a house below (“Choose this house”), set your dates and group, then “Add my pick to the trip”.</p>` +
+    `<h3 class="tsub">Pick your own</h3><p class="foot">Open steps 1–3 above: pick a week, “Choose this house”, a flight, then “Add my pick to the trip”.</p>` +
     ideasHtml(ideas.filter(shown)) + waitingNote(ideas.filter((x) => !shown(x)).length, "suggested place");
 }
 

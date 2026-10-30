@@ -4,7 +4,7 @@ import { range as seasonRange } from "./model/calendar.ts";
 import { GROUPS, decodeShare, encodeShare, load, save, type State } from "./state.ts";
 import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
-import { loadTrip, renderMyPick, renderTripsByGroup, wireTrip } from "./trip.ts";
+import { loadTrip, renderMyPick, renderTripsByGroup, tripSettings, wireTrip } from "./trip.ts";
 
 const REPO = (document.querySelector('a.btn.secondary') as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
 const WEEKS = SEASON.weeks.length;
@@ -57,19 +57,22 @@ function num(id: string, lo: number, hi: number, set: (s: State, v: number) => v
 
 renderStatic();
 // Every section folds when you tap its heading; which ones are folded is remembered (this browser only).
-// v3: everyone starts again from the defaults (week grid and "Go deeper" folded, the rest open).
-const FOLD_KEY = "snowfinder-folded-v3";
+// v4: everyone starts again from the defaults (week grid and "Go deeper" folded, the rest open); v3 had
+// saved the folds the steps make by themselves.
+const FOLD_KEY = "snowfinder-folded-v4";
 let folded: string[] = [];
 try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || '["grid-block","deeper-block"]'); } catch { /* private mode */ }
 const folds = new Map<string, (closed: boolean) => void>();
-function fold(key: string, closed: boolean) {
+/** Only a tap on a heading is remembered; folding the page does by itself (next step, a trip link) is for this visit. */
+function fold(key: string, closed: boolean, remember = true) {
   folds.get(key)?.(closed);
+  if (!remember) return;
   folded = closed ? [...new Set([...folded, key])] : folded.filter((k) => k !== key);
   try { localStorage.setItem(FOLD_KEY, JSON.stringify(folded)); } catch { /* ignore */ }
 }
 /** The steps run in order: picking in one folds it and opens the next, scrolled into view. */
 function advance(from: string, to: string | null, target: string) {
-  fold(from, true); if (to) fold(to, false);
+  fold(from, true, false); if (to) fold(to, false, false);
   requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ block: "start", behavior: "smooth" }));
 }
 document.querySelectorAll<HTMLElement>("section.block").forEach((sec, i) => {
@@ -107,11 +110,13 @@ $("houseslede").addEventListener("click", (ev) => { if ((ev.target as HTMLElemen
 // houses, grid and ranking all show those dates; its resort opens in the ranking.
 document.addEventListener("click", (ev) => {
   const b = (ev.target as HTMLElement).closest<HTMLElement>(".choose"); if (!b) return;
+  const fromStep2 = !!b.closest("#houses-block");
   weekChosen = true;
   const l = LISTINGS.find((x) => x.id === b.dataset.pick), d = l && OPTIONS.find((o) => o.resort === l.resort);
   if (d) { rankOpen.add("a:" + d.region); rankOpen.add("r:" + d.resort); }
   // After trip.ts has stored the pick: a house chosen (not un-chosen) moves on to its flights.
-  setTimeout(() => { if (state.pick === b.dataset.pick) advance("houses-block", "rank-block", d ? "rank-block" : "mypick"); });
+  // Only from step 2: a house chosen inside "Flights and others" keeps you where you are.
+  setTimeout(() => { if (fromStep2 && state.pick === b.dataset.pick) advance("houses-block", "rank-block", d ? "rank-block" : "mypick"); });
 }, true);
 // Step 3: choosing a flight for your house moves on to your pick (and the trip).
 document.addEventListener("click", (ev) => {
@@ -191,4 +196,13 @@ render();
 applySort(state, "cmp");
 wireTrip(() => state, update, toast);
 // A trip link lands on the trip (step 5), below the steps.
-loadTrip(state, toast).then(() => { if (new URLSearchParams(location.search).get("trip")) { fold("trip-block", false); $("trip-block").scrollIntoView({ block: "start" }); } });
+// A trip link shows the trip first: steps 1–3 fold for this visit, so the trip sits right under the header.
+const onTrip = !!new URLSearchParams(location.search).get("trip");
+if (onTrip) { for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false); fold("trip-block", false, false); }
+// Once it has loaded, jump to it (no animation) unless the visitor has already scrolled.
+// The trip's group and dates become the visitor's, so "Add my pick" fits the trip (unless they already picked).
+loadTrip(state, toast).then(() => {
+  const t = onTrip && !state.pick ? tripSettings() : null;
+  if (t) { weekChosen = true; update((s) => { Object.assign(s, t, { group: { ...t.group } }); }); }
+  if (onTrip && scrollY < 40) $("trip-block").scrollIntoView({ block: "start" });
+});

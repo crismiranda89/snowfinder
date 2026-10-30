@@ -84,8 +84,8 @@ const again = post({ action: "createTrip", name: "Zed", key: "k-z-kkkkkkkkkkkkkk
 check("Same organiser, same group: second trip refused (and pointed to the first)", again.error && again.trip === t2, again.error || "accepted");
 const other = post({ action: "createTrip", name: "Zed", key: "k-z-kkkkkkkkkkkkkkkk", title: "3 couples · Thu 4 Mar", reason: "r", data: pickData() });
 check("Same organiser, another group: allowed", other.ok, other.error || "ok");
-let trips = 3; for (let i = 0; i < 10; i++) if (!post({ action: "createTrip", name: "T" + i, key: "k-T" + i + "-mmmmmmmmmmmmmmmm", title: "t", reason: "r", data: pickData() }).error) trips++;
-check("Trip limit (8) holds", trips <= 8, `${trips} trips`);
+let trips = 3; for (let i = 0; i < 14; i++) if (!post({ action: "createTrip", name: "T" + i, key: "k-T" + i + "-mmmmmmmmmmmmmmmm", title: "t", reason: "r", data: pickData() }).error) trips++;
+check("Trip limit (12) holds", trips <= 12, `${trips} trips`);
 
 // 11. Legitimate use still works: the same browser can change its vote; a real post with a Booking link goes in.
 const okVote = post({ action: "vote", trip: T, name: "Cristiano", key: "k-cristiano-aaaaaaaaaaaa", pick: org.pick });
@@ -96,6 +96,13 @@ const noLink = post({ action: "idea", trip: T, name: "Ana", key: "k-ana-nnnnnnnn
 check("A post with no checkable link is refused", noLink.error, noLink.error || "accepted");
 const keys = JSON.stringify(view());
 check("Name secrets never leave the sheet", !/k-cristiano|key/.test(keys), /key/.test(keys) ? "a key field is visible" : "hidden");
+
+// Approving a pick needs the checker key.
+const ev = view().picks.find((p) => p.name === "Bob") || view().picks[1];
+const ap = post({ action: "approvePick", pick: ev.id, approved: "yes", key: "nope-nope-nope-nope" });
+check("Approve a pick without the checker key", ap.error === "Not allowed", ap.error || "approved");
+const apOk = post({ action: "approvePick", pick: ev.id, approved: "yes", key: "s3cret-checker-key-0123456789abcdef" });
+check("Checker can approve a pick", apOk.ok && view().picks.find((p) => p.id === ev.id).approved === "yes", apOk.error || "ok");
 
 // Deleting a trip needs the checker key, and removes only that trip.
 const del = post({ action: "deleteTrip", trip: t2, key: "wrong-key-0123456789" });

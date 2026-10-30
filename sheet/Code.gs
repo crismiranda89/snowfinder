@@ -9,7 +9,7 @@
 //
 // The organiser stays in control: a friend's pick or "better option" post is only checked once the
 // organiser types "yes" in its `approved` cell (or "no" to decline). Limits against abuse: at most
-// MAX_TRIPS trips in the sheet and MAX_PEOPLE names per trip (Script Properties; defaults 8 and 10).
+// MAX_TRIPS trips in the sheet and MAX_PEOPLE names per trip (Script Properties; defaults 12 and 10).
 // A trip started from another trip's "challenge a group" link records that trip as `parent`.
 
 const TABS = {
@@ -109,7 +109,7 @@ function doGet(e) {
     picks: rows_("picks").filter((p) => p.trip === id).map((p) => Object.assign(strip(p), { data: safeParse_(p.data) })),
     votes: Object.values(latest),
     ideas: rows_("ideas").filter((x) => x.trip === id).map((x) => Object.assign(strip(x), { links: safeParse_(x.links, []), images: safeParse_(x.images, []) })),
-    limits: { trips: prop_("MAX_TRIPS", 8), people: prop_("MAX_PEOPLE", 10), tripsUsed: rows_("trips").length, peopleUsed: people_(id).size },
+    limits: { trips: prop_("MAX_TRIPS", 12), people: prop_("MAX_PEOPLE", 10), tripsUsed: rows_("trips").length, peopleUsed: people_(id).size },
   });
 }
 function safeParse_(s, d) { try { return JSON.parse(s); } catch (err) { return d === undefined ? {} : d; } }
@@ -119,7 +119,7 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(15000);
   try {
-    if (["review", "checkPick", "foundPick", "deleteTrip"].includes(b.action)) return json_(checker_(b));
+    if (["review", "checkPick", "foundPick", "deleteTrip", "approvePick"].includes(b.action)) return json_(checker_(b));
     const name = clip_(b.name, 40).replace(/[\u0000-\u001f]/g, "");
     if (!["createTrip", "addPick", "vote", "idea"].includes(b.action)) return json_({ error: "Unknown action" });
     if (b.action !== "createTrip" && !rows_("trips").some((t) => t.id === b.trip)) return json_({ error: "Trip not found" });
@@ -130,7 +130,7 @@ function doPost(e) {
       const same = rows_("trips").find((t) => String(t.title).split(" · ")[0] === group &&
         rows_("people").some((r) => r.trip === t.id && r.key === k && norm_(r.name) === norm_(t.organizer)));
       if (same) return json_({ error: `You already have a trip for ${group}.`, trip: same.id });
-      const max = prop_("MAX_TRIPS", 8);
+      const max = prop_("MAX_TRIPS", 12);
       if (rows_("trips").length >= max) return json_({ error: `The limit of ${max} trips is reached. Ask the organiser to raise it.` });
       const data = cleanPick_(b.data);
       if (!data) return json_({ error: "Choose one of the site's houses first." });
@@ -195,6 +195,13 @@ function checker_(b) {
     const sh = tab_("picks");
     if (b.data) { const d = safeParse_(p.data); for (const k of ["pp", "group", "houseTotal"]) if (Number.isFinite(+b.data[k])) d[k] = Math.round(+b.data[k]); sh.getRange(p._row, 6).setValue(JSON.stringify(d)); }
     sh.getRange(p._row, 7, 1, 3).setValues([[b.status, now_(), clip_(b.note, 600)]]);
+    return { ok: true };
+  }
+  if (b.action === "approvePick") {
+    // The organiser's yes/no on a pick, from a review session (same as typing it in the "approved" cell).
+    const p = rows_("picks").find((r) => r.id === b.pick); if (!p) return { error: "No such pick" };
+    if (!["yes", "no", ""].includes(b.approved)) return { error: "Bad value" };
+    tab_("picks").getRange(p._row, 10).setValue(b.approved);
     return { ok: true };
   }
   if (b.action === "deleteTrip") {
