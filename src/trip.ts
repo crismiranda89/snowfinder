@@ -428,7 +428,8 @@ function renderTrip(_s: State) {
   const rest = picks.filter((p) => p !== best && !p.data.foundBy && shown(p)).sort((a, b) => byPick(b.id).length - byPick(a.id).length);
   const waitingNote = (n: number, what: string) => n ? `<p class="foot">${n} ${what}${n > 1 ? "s" : ""} waiting for ${esc(trip.organizer)}'s OK.</p>` : "";
   const leader = [...picks].sort((a, b) => byPick(b.id).length - byPick(a.id).length)[0];
-  $("trip-title").innerHTML = `<span class="step">5</span>${esc(trip.title ? `Our trip · ${trip.title}` : "Our trip")}`;
+  // Step 5's title stays short (one line on a phone); the trip's own name sits on the line below it.
+  $("trip-title").innerHTML = `<span class="step">5</span>Confirm availability`;
   // Keep the pressure visible: how many picks are still bookable, and loudly when the best one is gone.
   const checked = picks.filter((p) => p.status && p.status !== "unchecked");
   const free = checked.filter((p) => p.status !== "unavailable").length;
@@ -453,7 +454,7 @@ function renderTrip(_s: State) {
     (others.length ? `<p class="foot">Your other trips: ${others.map(([g, id]) => `<button type="button" class="linkbtn" data-act="open-trip" data-trip="${esc(id)}">${esc(groupLabel(g))}</button>`).join(" · ")}</p>` : "") +
     `<p class="foot">Another group? Pick it in Filters, choose a house and “Create a trip” for it: one trip per group.</p>`;
   const visible = [best, ...found, ...rest].filter((p): p is Pick => !!p);
-  $("trip-body").innerHTML = alert + pulse + box + (confirmed ? challengeHtml(trip) : "") + limits + votesHtml(trip, visible, byPick) +
+  $("trip-body").innerHTML = `<p class="tname">Our trip${trip.title ? ` · ${esc(trip.title)}` : ""}</p>` + alert + pulse + box + (confirmed ? challengeHtml(trip) : "") + limits + votesHtml(trip, visible, byPick) +
     (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
     (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +

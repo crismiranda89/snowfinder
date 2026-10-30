@@ -581,3 +581,4 @@ section.block,.mypick{scroll-margin-top:96px}
 /* Every step title the same size on one line; step 1's lead-in is lighter, its value bold */
 #gridTitle b,#gridTitle .gt-lead{font-size:inherit}
 @media (max-width:640px){ #grid-block>.head>h2,#houses-block>.head>h2,#rank-block>.head>h2,#trip-block>.head>h2,#trips-block>.head>h2,#deeper-block>.head>h2{font-size:1.08rem} }
+.tname{margin:-4px 0 0;font-weight:600;color:var(--muted)}
