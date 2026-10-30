@@ -28,7 +28,8 @@ try { if (localStorage.getItem("snowfinder-house-view") === "distance") houseVie
 function render() {
   resetCache();
   // The grid's title shows the week picked in it, or "All dates" until one is tapped.
-  $("gridTitle").textContent = `❄️ Week of your dreams: ${weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "All dates"} 🎿`;
+  $("gridTitle").querySelector("b")!.textContent = weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "All weeks";
+  $("allWeeks").hidden = !weekChosen;
   renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTable(state);
 }
 function update(mut: (s: State) => void) { mut(state); save(state); render(); }
@@ -104,6 +105,7 @@ document.addEventListener("click", (ev) => {
   if (d) { rankOpen.add("a:" + d.region); rankOpen.add("r:" + d.resort); }
 }, true);
 $("heatbody").addEventListener("click", pickCell);
+$("allWeeks").addEventListener("click", () => { weekChosen = false; render(); });
 $("heatbody").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pickCell(ev); } });
 $("tbody").addEventListener("change", (ev) => {
   const t = ev.target as HTMLInputElement; if (!t.dataset || !t.dataset.f) return;

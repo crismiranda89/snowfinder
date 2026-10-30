@@ -392,3 +392,9 @@ tr.dimrow td{opacity:.45}
 [data-style="apres"] .seg button[aria-pressed="true"]{background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--accent-ink)}
 [data-style="apres"] .quickbar{background:var(--bg);border-bottom-color:var(--line)}
 [data-style="apres"] .hprice b,[data-style="apres"] .tot b{color:var(--accent2)}
+
+/* NEW · the week grid's title: light lead-in, the week in bold; "Show all weeks" stays visible when folded */
+#gridTitle .gt-lead{font-weight:400}
+#gridTitle b{font-weight:700}
+.block.collapsed .head>.keep{display:inline-flex}
+#allWeeks{font-size:.9rem}
