@@ -168,7 +168,8 @@ document.addEventListener("click", (ev) => {
   const b = (ev.target as HTMLElement).closest<HTMLElement>("[data-act='pick-air']"); if (!b) return;
   haptic(12);
   update((s) => { s.air = b.dataset.air; });
-  advance("rank-block", null, "mypick"); // step 5 stays closed: it opens after "Add my pick" and the games
+  // The organiser's own house and flight on a trip link: that's the welcome card on top, with Lock it.
+  advance("rank-block", null, $("mypick").hidden && !$("welcome").hidden ? "welcome" : "mypick"); // step 4 stays closed: it opens after "Add my pick" and the games
 });
 $("heatbody").addEventListener("click", pickCell);
 $("allWeeks").addEventListener("click", () => { weekChosen = false; render(); });

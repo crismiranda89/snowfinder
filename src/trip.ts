@@ -135,6 +135,7 @@ export const tripSeen = (id: string) => !!seenTrips()[id];
 function openTrip(id: string, s: State, toast: (m: string) => void) {
   history.pushState(null, "", `?trip=${encodeURIComponent(id)}`);
   last = null; confirmed = false;
+  loader?.stop(); loader = null;
   renderMyPick(s); loadTrip(s, toast);
   $("trip-block").classList.remove("collapsed");
   $("trip-block").scrollIntoView({ block: "start", behavior: "smooth" });
@@ -211,6 +212,11 @@ function renderWelcome(result = "") {
   const t = SEASON.flightTimes[p.option.code], rg = seasonRange(SEASON, s.pattern, s.week, s.days), o = SEASON.origin;
   const ci = isoOf(rg.a), co = isoOf(rg.b);
   const gf = `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${o.code} to ${p.option.code} on ${ci} returning ${co}`)}`;
+  // Lock it = a vote for the organiser's pick. Until the trip loads its id isn't known; the button shows anyway.
+  const best = last && (last.picks.find((p) => p.name === last!.trip.organizer) || last.picks[0]);
+  const me = myName().toLowerCase(), locked = !!best && !!me && last!.votes.some((v) => v.pick === best.id && v.name.toLowerCase() === me);
+  const lock = locked ? `<button type="button" class="btn wc-lock" aria-pressed="true" disabled>✓ Locked in</button>`
+    : `<button type="button" class="btn wc-lock" data-act="lock-it"${best ? ` data-pick="${esc(best.id)}"` : ""}>🔒 Lock it</button>`;
   box.hidden = false;
   const html = `<div class="mypick welcomecard">` +
     `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
@@ -221,7 +227,7 @@ function renderWelcome(result = "") {
     `<small>${t ? `${esc(t.airlines)} · ${hm(t.mins)} flight${t.stops ? ", 1 stop" : ", direct"} · ` : ""}${t ? hm(t.mins + p.option.mins) : esc(p.option.time)} door to door · out ${esc(rg.text.split(" → ")[0])}, back ${esc(rg.text.split(" → ")[1])}</small>` +
     `<a href="${esc(gf)}" target="_blank" rel="noopener noreferrer">See flights and times for these dates ↗</a></div>` +
     priceBreakdown(s, p) + result +
-    `<div class="mp-acts"><button type="button" class="btn wc-explore" data-act="explore">Explore</button></div></div>`;
+    `<div class="mp-acts wc-acts">${lock}<button type="button" class="btn secondary wc-explore" data-act="explore">Explore other options</button></div></div>`;
   // Redraw only when something changed: the sheet answering with the same pick mustn't swallow a tap on Explore.
   if (html !== welcomeHtml) { welcomeHtml = html; box.innerHTML = html; }
 }
@@ -229,13 +235,13 @@ function renderWelcome(result = "") {
 // ---- the "Your pick" bar, shown once a house is chosen
 export function renderMyPick(s: State) {
   const box = $("mypick"), p = pickSummary(s), sp = tripId() ? sharedPlan() : null;
-  // On a trip, the organiser's pick is already the welcome card at the top: no second copy here.
-  if (!p || (sp && sp.listingId === s.pick && !$("welcome").hidden)) { box.hidden = true; box.innerHTML = ""; return; }
+  // On a trip, the organiser's pick (house and flight) is already the welcome card at the top: no second copy here.
+  if (!p || (sp && sp.listingId === s.pick && (sp.s.air || "") === (s.air || "") && !$("welcome").hidden)) { box.hidden = true; box.innerHTML = ""; return; }
   box.hidden = false;
   // In a trip of the same group you add your pick to it; for another group you start (or open) that group's trip.
   const g = groupId(s.group), inTrip = !!tripId() && (!last || tripGroup() === g || !tripGroup()), own = myTrips()[g];
   box.innerHTML = `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
-    `<div class="mp-body"><span class="eyebrow"><span class="step">4</span>Your pick</span><b>${esc(p.listing.title)}</b>` +
+    `<div class="mp-body"><span class="eyebrow">Your pick</span><b>${esc(p.listing.title)}</b>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
     `<div class="mp-price"><b>${euro(p.pp)}</b><small>per person all in · ${euro(p.group)} group · house ${euro(p.housePP)} pp</small></div>` +
     `<label class="mp-air">✈ Flight <select id="mp-air">${p.flights.map((f) => {
@@ -363,7 +369,8 @@ function ask(title: string, withReason: string | null): Promise<{ name: string; 
 export async function createTrip(s: State, toast: (m: string) => void) {
   const p = pickSummary(s); if (!p) return;
   const a = await ask("Create our trip", autoReason(p)); if (!a) return;
-  try {
+  // The games start the moment the name is in: they're there to cover the save and the reload (10–20 s).
+  const saving = (async () => {
     const { trip } = await post({ action: "createTrip", name: a.name, title: `${groupLabel(groupId(s.group))} · ${p.when}`, reason: a.reason, data: pickData(s, p), parent: fromTrip() });
     rememberTrip(groupId(s.group), trip);
     history.pushState(null, "", `?trip=${trip}`);
@@ -374,8 +381,9 @@ export async function createTrip(s: State, toast: (m: string) => void) {
     confirmed = true;
     renderTrip(s);
     toast("Trip created. Copy the message below and paste it in your group chats.");
-    playGames();
-  } catch (e) {
+  })();
+  playGames("🎉 Creating your trip", saving);
+  try { await saving; } catch (e) {
     const old = (e as { trip?: string }).trip;
     if (old) { rememberTrip(groupId(s.group), old); toast(`${(e as Error).message} Opening it.`); openTrip(old, s, toast); return; }
     toast(`Couldn't create the trip: ${(e as Error).message}`);
@@ -384,20 +392,21 @@ export async function createTrip(s: State, toast: (m: string) => void) {
 export async function addPick(s: State, toast: (m: string) => void) {
   const p = pickSummary(s); if (!p) return;
   const a = await ask("Add my pick", autoReason(p)); if (!a) return;
-  try {
+  // Straight away, under the pick: the pick is saved and the trip refreshes while they play.
+  const saving = (async () => {
     await post({ action: "addPick", trip: tripId(), name: a.name, reason: a.reason, data: pickData(s, p) });
     confirmed = true;
     toast(`Your pick is in, with your vote. ${last?.trip.organizer || "The organiser"} approves it before it's checked.`);
-    playGames(); // straight away, under the pick: the trip refreshes while they play
     await loadTrip(s, toast);
-  }
-  catch (e) { toast(`Couldn't add your pick: ${(e as Error).message}`); }
+  })();
+  playGames("🎉 Adding your pick", saving);
+  try { await saving; } catch (e) { toast(`Couldn't add your pick: ${(e as Error).message}`); }
 }
-async function vote(pick: string, s: State, toast: (m: string) => void) {
+async function vote(pick: string, s: State, toast: (m: string) => void, done = "") {
   haptic(12);
   let name = myName();
   if (!name) { const a = await ask("Your name, to vote", null); if (!a) return; name = a.name; }
-  try { await post({ action: "vote", trip: tripId(), name, pick }); await loadTrip(s, toast); }
+  try { await post({ action: "vote", trip: tripId(), name, pick }); if (done) toast(done); await loadTrip(s, toast); }
   catch (e) { toast(`Couldn't vote: ${(e as Error).message}`); }
 }
 
@@ -452,7 +461,7 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
   const first = !last, body = $("trip-body"), welcome = $("welcome");
   let instant = false;
   if (first) {
-    loader?.stop(); $("trip-loader").innerHTML = ""; body.innerHTML = ""; body.hidden = false;
+    $("trip-loader").innerHTML = ""; body.innerHTML = ""; body.hidden = false;
     const cached = readCache(id);
     if (cached) { instant = true; last = cached; renderTrip(s); }
     if (cached || snapshot()) renderWelcome(welcomeLines());
@@ -486,12 +495,13 @@ function welcomeLines() {
 /** After adding a pick (or creating the trip): the ski-style questions and the price guess, right under the
  *  pick (step 4). Once both are done the price reveal plays, the games go away, and step 5 opens with the
  *  visitor's own lines on top. */
-function playGames() {
-  const id = tripId(), el = $("pick-games"); if (!id) return;
+/** The two games under the pick, started as soon as it's sent; they open the votes once `saving` is done. */
+function playGames(title: string, saving: Promise<unknown>) {
+  const el = $("pick-games");
   loader?.stop();
-  loader = startLoader(el, {
+  const l = loader = startLoader(el, {
     gate: true, first: "duel", target: el,
-    title: "🎉 Your pick is in", intro: "2 quick games while it's saved →",
+    title, intro: "2 quick games while it's saved →",
     gateLine: "🎯 Answer the questions and lock your guess to see the votes",
     doneLine: "✅ All done: opening the votes ↓",
     onReveal: (result) => setTimeout(() => {
@@ -501,12 +511,14 @@ function playGames() {
       glide($("trip-block"));
     }, result ? 2600 : 0),
     // The organiser's play goes under the organiser's name: it shows on the welcome card for everyone.
-    onDone: (answers, guess) => {
+    // A new trip has no id until it's saved, so the answers wait for it.
+    onDone: (answers, guess) => saving.then(() => {
+      const id = tripId(); if (!id) return;
       markPlayed(id, answers, guess);
       post({ action: "quiz", trip: id, name: myName(), answers, guess }).catch(() => { /* saved on this device anyway */ });
-    },
+    }, () => { /* not saved: nothing to file them under */ }),
   });
-  loader.ready(sharedPP());
+  saving.then(() => { if (loader === l) l.ready(sharedPP()); }, () => { if (loader === l) { l.stop(); loader = null; } });
   glide(el);
 }
 
@@ -632,8 +644,8 @@ function renderTrip(_s: State) {
   const rest = picks.filter((p) => p !== best && !p.data.foundBy && shown(p)).sort((a, b) => byPick(b.id).length - byPick(a.id).length);
   const waitingNote = (n: number, what: string) => n ? `<p class="foot">${n} ${what}${n > 1 ? "s" : ""} waiting for ${esc(trip.organizer)}'s OK.</p>` : "";
   const leader = [...picks].sort((a, b) => byPick(b.id).length - byPick(a.id).length)[0];
-  // Step 5's title stays short (one line on a phone); the trip's own name sits on the line below it.
-  $("trip-title").innerHTML = `<span class="step">5</span>Confirm availability`;
+  // Step 4's title stays short (one line on a phone); the trip's own name sits on the line below it.
+  $("trip-title").innerHTML = `<span class="step">4</span>Confirm availability`;
   // Keep the pressure visible: how many picks are still bookable, and loudly when the best one is gone.
   const checked = picks.filter((p) => p.status && p.status !== "unchecked");
   const free = checked.filter((p) => p.status !== "unavailable").length;
@@ -740,6 +752,17 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       }
     }
     else if (act === "open-trip") openTrip(t.closest<HTMLElement>("[data-trip]")!.dataset.trip!, getState(), toast);
+    else if (act === "lock-it") {
+      const pick = t.closest<HTMLElement>("[data-pick]")?.dataset.pick;
+      if (!pick) toast("One second: the trip is still loading.");
+      else {
+        const org = last?.trip.organizer || "", whose = /^AI pick/i.test(org) ? "the AI's" : org ? `${org.split(/\s+/)[0]}'s` : "the organiser's";
+        // "Locking…" at once (the sheet takes a few seconds), then "✓ Locked in" once the trip comes back with
+        // the vote, or "Lock it" again if it didn't go through.
+        const b = t.closest<HTMLButtonElement>("button")!; b.disabled = true; b.textContent = "🔒 Locking…";
+        vote(pick, getState(), toast, `🔒 Locked in: your vote is on ${whose} pick.`).then(() => { welcomeHtml = ""; if (!$("welcome").hidden) renderWelcome(welcomeLines()); });
+      }
+    }
     else if (act === "explore") {
       // Close the card and let them look around from Dates; their "Your pick" bar comes back in step 4.
       explored = true; $("welcome").hidden = true; renderMyPick(getState()); haptic(10); glide($("grid-block"));

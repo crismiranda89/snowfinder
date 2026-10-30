@@ -37,6 +37,6 @@ variable. After editing `sheet/Code.gs`, the organiser redeploys it in Apps Scri
 
 ## Open ideas
 
-- Further refactor of votes and the sharing messages in step 5.
+- Further refactor of votes and the sharing messages in step 4.
 - Food uses one hand-set meal price per resort (`compare.meal` in `data/resorts.json`); real medians
   could be researched.

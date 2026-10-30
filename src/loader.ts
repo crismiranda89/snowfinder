@@ -112,7 +112,9 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
   const tryOpen = () => {
     const done = answers.length === QUESTIONS.length && locked;
     if (done && !saved) { saved = true; o.onDone(answers.slice(), guess); }
-    if (!loaded || revealed) return;
+    if (revealed) return;
+    // Games done before the sheet has answered: say it's still on its way, not stuck.
+    if (!loaded) { if (done) foot.innerHTML = `<span class="ld-gate">⏳ All done, almost there: still saving…</span>`; return; }
     if (gate && !done) {
       foot.innerHTML = `<span class="ld-gate">${esc(o.gateLine || `🔓 Your trip is ready: ${answers.length < QUESTIONS.length ? "answer the questions" : "lock your guess"} to open it`)}</span>`;
       go(answers.length < QUESTIONS.length ? 1 : 2);

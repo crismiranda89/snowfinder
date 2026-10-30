@@ -33,7 +33,7 @@ rest of the site works the same.
 | `ui/deck.ts` | The stacked-card picker used instead of dropdowns |
 | `ui/sort.ts` | Sortable tables in Go deeper |
 | `ui/haptic.ts` | Short vibration on taps (Android only) |
-| `trip.ts` | Shared trips: welcome card, "My pick", create/add pick, votes, step 5, Top picks, "I have a better plan" |
+| `trip.ts` | Shared trips: welcome card, "My pick", create/add pick, votes, step 4, Top picks, "I have a better plan" |
 | `loader.ts` | The card slider used for the games (ski style duel + price guess) and the reveal |
 | `styles.css` | All styles, one file |
 
@@ -48,12 +48,13 @@ rest of the site works the same.
    for the filters, and picking a week filters them. "❌ Let's not complicate" hides the extra weeks.
 4. **Step 2 Houses** (`#houses-block`): fitting houses, by price level or by distance.
 5. **Step 3 Flights and others** (`#rank-block`): airport options for the chosen house. Choosing one folds
-   step 3 and scrolls to the pick.
+   step 3 and scrolls to the pick (on a trip link, to the welcome card when it's the organiser's own house
+   and flight).
 6. **My pick** (`#mypick`) with "Create our trip" / "Add my pick to the trip".
-7. **Games** (`#pick-games`): after a pick is added, two quick games play right under it (they start
-   before the sheet answers). When both are done the price reveal plays, the games are removed, the
-   result lines move into `#trip-loader`, and step 5 opens.
-8. **Step 5 Confirm availability** (`#trip-block`): trip name, availability dot (red "not checked yet" or
+7. **Games** (`#pick-games`): as soon as the name is saved, two quick games play right under the pick while
+   the sheet saves it (`playGames(title, saving)`). When both are done and the save is in, the price reveal
+   plays, the games are removed, the result lines move into `#trip-loader`, and step 4 opens.
+8. **Step 4 Confirm availability** (`#trip-block`): trip name, availability dot (red "not checked yet" or
    green "checked · X of Y still free"), votes with a red/green check dot per pick, "📣 Share voting with
    your friends" (group-chat message, vote update, challenge another group), pick cards.
 9. **🏅 Top picks** (`#trips-block`): featured trips (`FEATURED` in `trip.ts`) plus trips this browser has
@@ -67,7 +68,7 @@ rest of the site works the same.
 
 - `fold(key, closed, remember)` opens/closes a section; `remember` saves it in `snowfinder-folded-v5`.
 - `advance(from, to, target)` folds one step, opens the next and glides to `target`.
-- `FOLDED_AT_START` lists the sections closed on a first visit. Step 5 (`trip-block`) is closed on every
+- `FOLDED_AT_START` lists the sections closed on a first visit. Step 4 (`trip-block`) is closed on every
   load that isn't a trip link; on a trip link only Dates is open. Bump the key's version to reset everyone's
   saved folds after changing the defaults.
 
@@ -75,8 +76,9 @@ rest of the site works the same.
 
 1. Organiser chooses a house + flight → *Create our trip* → name and reason → `POST createTrip`. The link is
    `?trip=<id>`; the share hash carries the whole plan.
-2. A friend opens the link: welcome card → Explore → choose their own → *Add my pick* → `POST addPick`
-   (waits for the organiser's `yes` in the sheet) → games → step 5. Votes are `POST vote`.
+2. A friend opens the link: welcome card → 🔒 *Lock it* (a `POST vote` for the organiser's pick) or
+   *Explore other options* → choose their own → *Add my pick* → `POST addPick` (waits for the organiser's
+   `yes` in the sheet) → games → step 4. Votes are `POST vote`.
 3. Game answers and price guesses go to `POST quiz` (one row per browser per trip).
 4. Shared links open with all resorts selected (`dest = []`).
 
