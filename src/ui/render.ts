@@ -312,7 +312,7 @@ export function renderRank(s: State, repo: string) {
 
 // ---- houses
 const HOUSE_SVG = `<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 52h48M14 52V28l18-14 18 14v24M26 52V38h12v14" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M4 30 32 8l28 22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
-function sourceName(l: Listing) {
+export function sourceName(l: Listing) {
   const h = (() => { try { return new URL(l.url).hostname; } catch { return ""; } })();
   return /airbnb\./.test(h) ? "Airbnb" : /booking\./.test(h) ? "Booking.com" : /vrbo\./.test(h) ? "Vrbo" : h.replace(/^www\./, "") || "listing";
 }

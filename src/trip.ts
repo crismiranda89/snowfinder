@@ -12,6 +12,7 @@ import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
 import { glide, loaderResult, loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
 import { haptic } from "./ui/haptic.ts";
+import { openPromo } from "./ui/promo.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -672,6 +673,7 @@ function renderTrip(_s: State) {
   const box = `<div class="tmsg"><label for="tmsg-text">Message for your group chats</label>` +
     `<textarea id="tmsg-text" readonly rows="12">${esc(msg)}</textarea>` +
     `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-msg">Copy message</button>${wa}` +
+    `<button type="button" class="btn secondary" data-act="promo">📸 Image for Instagram</button>` +
     `<span class="foot">Paste it in each group. The house link shows its photo in WhatsApp.</span></div></div>`;
   const lim = last.limits;
   const others = Object.entries(myTrips()).filter(([, id]) => id !== trip.id);
@@ -788,6 +790,13 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     else if (act === "copy-votes") {
       const ta = $("tvotes-text") as HTMLTextAreaElement;
       navigator.clipboard.writeText(ta.value).then(() => toast("Vote update copied: paste it in the group chat."), () => { ta.select(); toast("Selected: copy it with your phone's Copy."); });
+    }
+    else if (act === "promo") {
+      // The image of the trip's top pick (the one on the welcome card), with the trip link
+      const sp = sharedPlan(); if (!sp || !last) return;
+      resetCache(); const p = pickSummary(sp.s); resetCache(); if (!p) return;
+      const org = sp.organizer;
+      openPromo(p, { who: /^AI pick/i.test(org) ? "🤖 AI pick" : `👋 ${org.split(/\s+/)[0]} picked this`, link: tripLink(last), toast });
     }
     else if (act === "copy-msg") {
       const ta = $("tmsg-text") as HTMLTextAreaElement;

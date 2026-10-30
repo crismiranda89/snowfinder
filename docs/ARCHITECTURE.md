@@ -33,6 +33,7 @@ rest of the site works the same.
 | `ui/deck.ts` | The stacked-card picker used instead of dropdowns |
 | `ui/sort.ts` | Sortable tables in Go deeper |
 | `ui/haptic.ts` | Short vibration on taps (Android only) |
+| `ui/promo.ts` | The 1080×1350 promo image (house photo split diagonally with the resort, details card) and its preview with Share / Save / Copy link; from "Share this plan" and step 4 |
 | `trip.ts` | Shared trips: welcome card, "My pick", create/add pick, votes, step 4, Top picks, "I have a better plan" |
 | `loader.ts` | The card slider used for the games (ski style duel + price guess) and the reveal |
 | `styles.css` | All styles, one file |

@@ -4,7 +4,8 @@ import { range as seasonRange } from "./model/calendar.ts";
 import { decodeShare, encodeShare, load, normGroup, save, type State } from "./state.ts";
 import { wireDecks } from "./ui/deck.ts";
 import { haptic } from "./ui/haptic.ts";
-import { rankOpen, renderQuickSum, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
+import { openPromo } from "./ui/promo.ts";
+import { pickSummary, rankOpen, renderQuickSum, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
 import { loadTrip, renderMyPick, renderTripsByGroup, setTopTrips, tripSeen, tripSettings, wireTrip } from "./trip.ts";
 
@@ -221,6 +222,9 @@ document.addEventListener("error", (ev) => {
 
 $("share").addEventListener("click", async () => {
   const url = location.origin + location.pathname + "#" + encodeShare(state);
+  // With a house chosen: the promo image (Instagram, group chats), with this plan's link
+  resetCache(); const p = pickSummary(state); resetCache();
+  if (p) { openPromo(p, { who: "⛷️ Our ski trip plan", link: url, toast }); return; }
   try {
     if (navigator.share && matchMedia("(pointer:coarse)").matches) { await navigator.share({ title: "Our ski trip plan · Snowfinder", url }); return; }
     await navigator.clipboard.writeText(url);
