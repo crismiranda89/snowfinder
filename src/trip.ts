@@ -7,7 +7,7 @@ import { renderDeck } from "./ui/deck.ts";
 import { RESORTS_FILE, SEASON } from "./data.ts";
 import { addDays, foodDays, isoOf, nights, range as seasonRange } from "./model/calendar.ts";
 import type { PatternKey } from "./types.ts";
-import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
+import { breakdownList, combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
 import { glide, loaderResult, loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
@@ -189,19 +189,7 @@ export function whatsappText(d: PickData, link: string): string {
 
 /** What makes up the price per person, one line each, adding up to the total. */
 function priceBreakdown(s: State, p: PickSummary) {
-  const r = p.parts, n = p.people, days = s.days, nts = nights(SEASON, s.days);
-  const lines: [string, string, number][] = [
-    ["✈", `Flight Porto → ${p.option.air}, return with a bag`, r.flight],
-    [p.groundKind === "car" ? "🚗" : "🚐", p.groundKind === "car" ? `Rental car to the resort, shared (${Math.ceil(n / 5)} car${n > 5 ? "s" : ""} for ${n})` : `Transfer to the resort, shared by ${n}`, r.ground],
-    ["🏠", `House, ${nts} nights: ${euro(p.houseTotal)} split by ${n}`, r.stay],
-    ["🎫", `Lift pass, ${days} days`, r.pass],
-    ["🎿", `Ski or snowboard rental, ${days} days`, r.rent],
-    ["🍽", `Food, ${foodDays(SEASON, s.days)} days`, r.food],
-  ];
-  return `<details class="mp-why"><summary>What's in ${euro(p.pp)} per person</summary><ul>` +
-    lines.filter(([, , v]) => v > 0).map(([i, t, v]) => `<li><span>${i} ${esc(t)}</span><b class="num">${euro(v)}</b></li>`).join("") +
-    `<li class="mp-total"><span>All in, per person</span><b class="num">${euro(p.pp)}</b></li></ul>` +
-    `<p class="foot">Prices for these dates, checked ${esc(SEASON.collected.slice(0, 10))}. Flights and houses move: check them before booking.</p></details>`;
+  return `<details class="mp-why"><summary>What's in ${euro(p.pp)} per person</summary>${breakdownList(s, p)}</details>`;
 }
 
 // ---- the welcome card on a shared trip link: the organiser's pick, laid out like "Your pick", with the

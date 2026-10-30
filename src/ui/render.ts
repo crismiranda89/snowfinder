@@ -510,21 +510,28 @@ export function renderQuickSum(s: State) {
     : best ? `<span class="qb-res">📍 ${esc(best.d.name)}${caret}</span><b class="qb-pp num"><small>from</small> ${euro(best.k.pp)}</b>`
     : `<span class="qb-res">📍 —${caret}</span><b class="qb-pp">€ —</b>`;
   $("qbsum").classList.toggle("set", !!p);
-  // The dropdown: everything chosen so far, top to bottom as the page asks for it.
-  const food = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan].label : `${euro(s.food)} per person a day`;
-  const ground = (k: "car" | "transfer") => k === "car" ? "Rental car" : "Transfer";
-  const t = p ? SEASON.flightTimes[p.option.code] : best ? SEASON.flightTimes[best.d.code] : undefined;
-  const rows: [string, string, string][] = [
-    ["📅", "Dates", `${dates(s, s.week).text} · ${nights(SEASON, s.days)} nights, ${s.days} snow days`],
-    ["👥", "Group", describe(s.group)],
-    ["📍", "Resort", p ? p.resort.name : best ? `${best.d.name} (cheapest this week)` : "—"],
-    ["🏠", "House", p ? `${p.listing.title} · ${p.walk} · ${euro(p.housePP)} pp` : `${LEVEL_LABEL[s.house] === "Any" ? "Any level" : LEVEL_LABEL[s.house]} · ${LIFT_BANDS[s.liftBand || "all"].label.toLowerCase()} to the lifts · not chosen yet`],
-    ["✈", "Flight", p ? `${SEASON.origin.city} → ${p.option.air}${t ? ` · ${hm(t.mins + p.option.mins)} door to door` : ""}` : best ? `${SEASON.origin.city} → ${best.d.air}${t ? ` · ${hm(t.mins + best.d.mins)} door to door` : ""}` : "—"],
-    [ "🚗", "Getting there", s.ground === "all" ? `Cheapest: ${ground(p ? p.groundKind : best ? best.k.groundKind : "car").toLowerCase()}` : ground(s.ground)],
-    ["🍽", "Food", food],
-    ["💶", "Per person, all in", p ? `${euro(p.pp)} · ${euro(p.group)} for ${p.people}` : best ? `from ${euro(best.k.pp)}` : "—"],
+  // The dropdown: what's in the price per person, line by line (the same list as "What's in" on a pick).
+  $("qbpanel").innerHTML = p
+    ? `<b class="qb-head">What's in ${euro(p.pp)} per person</b>${breakdownList(s, p)}`
+    : best ? `<b class="qb-head">From ${euro(best.k.pp)} per person</b><p class="foot">The cheapest this week is ${esc(best.d.name)}, flying to ${esc(best.d.air)}. Choose a house in step 2 to see what's in the price.</p>`
+    : `<p class="foot">Choose dates and a house to see the price per person.</p>`;
+}
+
+/** What's in the price per person, one line per part: flight, getting there, house, lift pass, rental, food. */
+export function breakdownList(s: State, p: PickSummary) {
+  const r = p.parts, n = p.people, days = s.days, nts = nights(SEASON, s.days);
+  const lines: [string, string, number][] = [
+    ["✈", `Flight ${SEASON.origin.city} → ${p.option.air}, return with a bag`, r.flight],
+    [p.groundKind === "car" ? "🚗" : "🚐", p.groundKind === "car" ? `Rental car to the resort, shared (${cars(n)} car${cars(n) > 1 ? "s" : ""} for ${n})` : `Transfer to the resort, shared by ${n}`, r.ground],
+    ["🏠", `House, ${nts} nights: ${euro(p.houseTotal)} split by ${n}`, r.stay],
+    ["🎫", `Lift pass, ${days} days`, r.pass],
+    ["🎿", `Ski or snowboard rental, ${days} days`, r.rent],
+    ["🍽", `Food, ${foodDays(SEASON, s.days)} days`, r.food],
   ];
-  $("qbpanel").innerHTML = `<dl>${rows.map(([i, k, v]) => `<div><dt>${i} ${esc(k)}</dt><dd${/€/.test(v) ? ` class="money"` : ""}>${esc(v)}</dd></div>`).join("")}</dl>`;
+  return `<ul class="pb-list">` +
+    lines.filter(([, , v]) => v > 0).map(([i, t, v]) => `<li><span>${i} ${esc(t)}</span><b class="num money">${euro(v)}</b></li>`).join("") +
+    `<li class="mp-total"><span>All in, per person</span><b class="num money">${euro(p.pp)}</b></li></ul>` +
+    `<p class="foot">Prices for these dates, checked ${esc(SEASON.collected.slice(0, 10))}. Flights and houses move: check them before booking.</p>`;
 }
 
 // ---- a person's pick: one house, priced with the cheapest way there under the current settings
