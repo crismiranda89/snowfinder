@@ -107,6 +107,24 @@ const DECKS: Record<string, (s: State, v: string) => void> = {
   rooms: (s, v) => { s.group = normGroup({ ...s.group, soloRooms: v as State["group"]["soloRooms"] }); },
 };
 wireDecks((id, v) => { const set = DECKS[id]; if (set) update((s) => set(s, v)); });
+// Cost bars: a tap (touch) opens the breakdown without opening or closing the resort; tap again or elsewhere to
+// close. On a mouse, hovering a part of the bar highlights its line in the breakdown.
+document.addEventListener("click", (ev) => {
+  const w = (ev.target as HTMLElement).closest<HTMLElement>(".barwrap");
+  document.querySelectorAll(".barwrap.show").forEach((x) => { if (x !== w) x.classList.remove("show"); });
+  if (!w) return;
+  ev.preventDefault(); ev.stopPropagation();
+  w.classList.toggle("show"); haptic(6);
+}, true);
+document.addEventListener("keydown", (ev) => {
+  const w = (ev.target as HTMLElement).closest?.(".barwrap");
+  if (w && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); w.classList.toggle("show"); }
+});
+document.addEventListener("mouseover", (ev) => {
+  const sp = (ev.target as HTMLElement).closest<HTMLElement>(".bar span"), w = sp?.closest(".barwrap");
+  document.querySelectorAll(".bt-row.hot").forEach((x) => x.classList.remove("hot"));
+  if (sp && w) w.querySelector(`.bt-row[data-p="${sp.dataset.p}"]`)?.classList.add("hot");
+});
 // The pinned bar's summary opens a dropdown with everything chosen so far; tap again (or outside) to close.
 document.addEventListener("click", (ev) => {
   const bar = document.querySelector(".quickbar")!, t = ev.target as HTMLElement;

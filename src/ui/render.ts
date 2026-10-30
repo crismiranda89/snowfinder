@@ -260,9 +260,15 @@ export function renderRank(s: State, repo: string) {
     const f = SEASON.flightTimes[d.code];
     return f ? `${hm(f.mins + d.mins)} total (${hm(f.mins)} flight${f.stops ? ", 1 stop" : ""} + ${hm(d.mins)} by road)` : `${esc(d.time.replace("~", ""))} by road`;
   };
-  const bar = ({ d, k }: R, label: string) => `<div class="bar" role="img" aria-label="${esc(label)}: ${euro(k.pp)} per person">` +
-    (Object.keys(k.parts) as (keyof typeof k.parts)[]).map((p) =>
-      `<span title="${labels[p]}: ${euro(k.parts[p])}" style="width:${((k.parts[p] / max) * 100).toFixed(2)}%;background:${colors[p]}"></span>`).join("") + "</div>";
+  // A bar per option; hover it (desktop) or tap it (phone) for the breakdown, which names every part and its price.
+  const bar = ({ k }: R, label: string) => {
+    const parts = (Object.keys(k.parts) as (keyof typeof k.parts)[]).filter((p) => k.parts[p] > 0);
+    return `<div class="barwrap" tabindex="0" role="button" aria-label="${esc(label)}: ${euro(k.pp)} per person. Show the breakdown">` +
+      `<div class="bar">${parts.map((p) => `<span data-p="${p}" style="width:${((k.parts[p] / max) * 100).toFixed(2)}%;background:${colors[p]}"></span>`).join("")}</div>` +
+      `<div class="bar-tip" role="tooltip"><b>${esc(label)}</b>${parts.map((p) =>
+        `<span class="bt-row" data-p="${p}"><i style="background:${colors[p]}"></i>${labels[p]}<em class="num">${euro(k.parts[p])}</em></span>`).join("")}` +
+      `<span class="bt-row bt-tot">Per person, all in<em class="num">${euro(k.pp)}</em></span></div></div>`;
+  };
   const tot = (xs: R[]) => {
     const lo = xs[0].k, hi = xs[xs.length - 1].k;
     return `<div class="tot num">${xs.length > 1 ? "<small>from</small>" : ""}<b>${euro(lo.pp)}</b><small>${xs.length > 1 && Math.round(hi.pp) > Math.round(lo.pp) ? `to ${euro(hi.pp)}` : `${euro(lo.group)} group`}</small></div>`;

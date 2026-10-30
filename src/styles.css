@@ -171,7 +171,7 @@ tr.dimrow td{opacity:.45}
 
 @media (max-width:640px){
   .row{grid-template-columns:minmax(0,1fr) 84px;grid-template-areas:"who tot" "bar bar";gap:8px 12px}
-  .who{grid-area:who}.tot{grid-area:tot}.bar{grid-area:bar}
+  .who{grid-area:who}.tot{grid-area:tot}.bar,.barwrap{grid-area:bar}
   .ghost{margin-left:0}
 }
 @media (prefers-reduced-motion:no-preference){.bar span{transition:width .35s ease}}
@@ -610,3 +610,20 @@ button.qb-sum{font:inherit;color:inherit;background:none;border:0;padding:2px 0;
 .stepper button:active{transform:scale(.88)}
 .stepper b{min-width:1.6em;text-align:center;font-size:1.1rem;font-variant-numeric:tabular-nums}
 .groupctl .groupsum{flex-basis:100%}
+/* NEW · bar breakdown: hover (mouse) or tap (touch) a bar to see every part and its price */
+.barwrap{position:relative;min-width:0;cursor:pointer;outline:none;border-radius:6px}
+.barwrap:focus-visible{box-shadow:0 0 0 2px var(--accent)}
+.bar span{transition:filter .15s,opacity .15s}
+.bar-tip{position:absolute;z-index:20;left:0;top:calc(100% + 6px);min-width:220px;max-width:min(320px,86vw);display:grid;gap:4px;padding:10px 12px;border-radius:14px;background:var(--surface);border:1px solid var(--line);box-shadow:0 14px 34px -10px rgba(0,0,0,.55);font-size:.86rem;visibility:hidden;opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .2s cubic-bezier(.3,1.3,.5,1),visibility 0s .2s;pointer-events:none}
+.bar-tip>b{font-size:.8rem;color:var(--muted);font-weight:600}
+.bt-row{display:grid;grid-template-columns:10px 1fr auto;gap:8px;align-items:center;padding:1px 4px;border-radius:6px}
+.bt-row i{width:10px;height:10px;border-radius:3px}
+.bt-row em{font-style:normal;font-weight:700}
+.bt-tot{grid-template-columns:1fr auto;border-top:1px solid var(--line);margin-top:4px;padding-top:6px;font-weight:700}
+.barwrap.show .bar-tip{visibility:visible;opacity:1;transform:none;transition:opacity .15s,transform .2s cubic-bezier(.3,1.3,.5,1),visibility 0s}
+@media (hover:hover){
+  .barwrap:hover .bar-tip,.barwrap:focus-visible .bar-tip{visibility:visible;opacity:1;transform:none;transition:opacity .15s,transform .2s cubic-bezier(.3,1.3,.5,1),visibility 0s}
+  .barwrap:hover .bar span{opacity:.55}
+  .barwrap .bar span:hover{opacity:1;filter:brightness(1.15)}
+}
+.bt-row.hot{background:var(--soft)}
