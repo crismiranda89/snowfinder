@@ -17,6 +17,9 @@ Budget / Mid / Luxury houses that actually fit your group, with photos.
   its typical (median) price and its best-rated house nearest the lifts.
 - **Editable**: type in a real quote for any week and it replaces the estimate.
 - **Share**: one link carries your whole plan (group, week, prices you typed) to your friends.
+- **Shared trips** (optional): the organiser creates a trip from their pick; friends open the link, add
+  their own pick, play two quick games (ski style, guess the price) and vote. Everything a friend posts
+  waits for the organiser's OK. Stored in a Google Sheet, see [`sheet/`](sheet/README.md).
 - **Telegram votes** (optional): a bot that runs the group's decisions with agreed thresholds and deadlines.
   See [`bot/`](bot/README.md).
 
@@ -24,7 +27,8 @@ Flights are from Porto (OPO); the origin is a setting in the season file, so a f
 
 ## Where's the backend?
 
-There is no server for the site. Everything is calculated in the browser.
+There is no server for the site. Every price is calculated in the browser. The only optional backend is a
+Google Sheet with a small Apps Script web app for shared trips (picks, votes, ideas, game answers).
 
 ```
 data/listings.csv ─┐                       ┌─────────────────────────┐
@@ -32,13 +36,19 @@ Google Sheet (opt) ┴─► weekly GitHub Action ─► data/generated/listings
                        (pipeline/, Python)  │  data/resorts.json        │─► esbuild ─► GitHub Pages (static)
                                             │  data/season-2027.json    │
                                             └─────────────────────────┘
+Browser (trip links) ◄──► Google Sheet + Apps Script (sheet/, optional)
 Telegram group ◄──► Cloudflare Worker + D1 (bot/, optional, free tier)
 ```
+
+How the code is organised, the page order and the fold system: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 - **Data** lives in the repo as JSON/CSV, so changes are pull requests with a history.
 - **The pipeline** (`pipeline/`) validates the curated house list, merges quotes for the same house, fills
   in missing photos from the listing page where it can, and only commits when something changed. A paid or
   official listing API can be added later as another provider (`pipeline/providers/base.py`).
+- **The sheet** stores shared trips. It applies the rules (caps, name ownership, link checks); nothing reads
+  or acts on submissions automatically. The organiser reviews them in a Claude Code session
+  ([sheet/CHECKER.md](sheet/CHECKER.md)).
 - **The bot** is the only always-on part, because votes need to close on time. It runs on Cloudflare's
   free tier.
 
@@ -51,7 +61,7 @@ Telegram group ◄──► Cloudflare Worker + D1 (bot/, optional, free tier)
 | Transfer | per vehicle; one per 8 people, a 5–8 seat van costs ×1.4 |
 | House | median of the chosen level's fitting houses, otherwise a 2-bedroom estimate × (bedrooms ÷ 2)<sup>0.9</sup> |
 | Lift pass, rental | per person, fixed for the season |
-| Food | € per person per day × 6 days |
+| Food | the resort's typical meal-out price × the food plan's multiplier, per person per day × 6 days (an estimate, not a median of menus; the Food (i) shows the table) |
 | Lessons | price per day × ski days × beginners, shared over the group |
 
 Demand levels per week come from the 2027 school holidays of the countries that ski at each resort.
@@ -69,7 +79,9 @@ Needs Node 22.18+ (for the tests) and Python 3.11+ (only for the listings pipeli
 npm install
 npm run dev          # http://localhost:8000, rebuilds on save
 npm test             # model, houses, share links, parity with the prototype
-npm run build        # → dist/
+npm run typecheck
+npm run test:sheet   # abuse tests for the shared-trip sheet
+npm run build        # → dist/ (set SHEET_API=<Apps Script URL> to turn shared trips on)
 
 pip install -r pipeline/requirements.txt
 python -m pytest -q                      # pipeline tests
@@ -83,7 +95,9 @@ python -m pipeline.build_listings        # rebuild data/generated/listings.json
 3. Optional: friends add houses in a Google Sheet. **File → Share → Publish to web → CSV**, then save the
    link as the repository secret `LISTINGS_SHEET_URL`. The weekly *Refresh house listings* job picks it up
    (or run it by hand from the Actions tab).
-4. Optional: the Telegram vote bot, see [bot/README.md](bot/README.md).
+4. Optional: shared trips. Set up the sheet ([sheet/README.md](sheet/README.md)) and save its URL as the
+   repository variable `SHEET_API`.
+5. Optional: the Telegram vote bot, see [bot/README.md](bot/README.md).
 
 ## Contributing
 
