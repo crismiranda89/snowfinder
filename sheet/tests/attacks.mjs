@@ -97,6 +97,15 @@ check("A post with no checkable link is refused", noLink.error, noLink.error || 
 const keys = JSON.stringify(view());
 check("Name secrets never leave the sheet", !/k-cristiano|key/.test(keys), /key/.test(keys) ? "a key field is visible" : "hidden");
 
+// Loading games: only the site's answers are kept, one row per browser per trip, no formulas, no key leaks.
+for (let i = 0; i < 20; i++) post({ action: "quiz", trip: T, key: "k-quiz-oooooooooooooooo", answers: ["⛷️ Ski", "=HYPERLINK(\"x\")", "🍻 Après"], guess: 900 + i });
+const qrows = sheets.quiz.rows.slice(1);
+check("Quiz flood from one browser keeps one row", qrows.length === 1, `${qrows.length} rows`);
+check("Quiz keeps only the site's answers", qrows[0][3] === "⛷️ Ski · 🍻 Après", qrows[0][3]);
+const qbad = post({ action: "quiz", trip: "nope", key: "k-quiz-oooooooooooooooo", answers: ["⛷️ Ski"] });
+check("Quiz on a trip that doesn't exist", qbad.error, qbad.error || "accepted");
+check("Quiz rows never show in the public trip view", !("quiz" in view()), "hidden");
+
 // Approving a pick needs the checker key.
 const ev = view().picks.find((p) => p.name === "Bob") || view().picks[1];
 const ap = post({ action: "approvePick", pick: ev.id, approved: "yes", key: "nope-nope-nope-nope" });

@@ -463,3 +463,61 @@ section.block,.mypick{scroll-margin-top:96px}
 .ld.ready .ld-bar span{animation:none;width:100%}
 @keyframes ld-pop{from{transform:scale(.8);opacity:0}}
 #trip-loader:empty{display:none}
+/* NEW · loading games: spring pills, slide between questions, count-up reveal, confetti */
+.ld-card{display:grid;gap:12px;justify-items:center;transition:transform .22s cubic-bezier(.4,0,.2,1),opacity .22s}
+.ld-card.out{transform:translateX(-28px);opacity:0}
+.ld-card.in{animation:ld-in .32s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes ld-in{from{transform:translateX(36px);opacity:0}}
+.ld-opt{position:relative;font:inherit;font-size:1.05rem;font-weight:600;border:1.5px solid var(--line);background:var(--soft);color:var(--ink);border-radius:999px;padding:12px 22px;cursor:pointer;transition:transform .18s cubic-bezier(.3,1.6,.5,1),background .18s,color .18s,opacity .18s,border-color .18s}
+.ld-opt:active{transform:scale(.94)}
+.ld-opt.picked{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);animation:ld-spring .42s cubic-bezier(.3,1.6,.5,1)}
+.ld-opt.dim{opacity:.35;transform:scale(.96)}
+@keyframes ld-spring{0%{transform:scale(.9)}55%{transform:scale(1.08)}100%{transform:scale(1)}}
+.ld-tick{display:inline-grid;place-items:center;width:1.3em;height:1.3em;margin-left:8px;border-radius:999px;background:var(--accent-ink);color:var(--accent);font-size:.8em;animation:ld-pop .3s cubic-bezier(.3,1.6,.5,1)}
+.ld-steps{display:flex;gap:6px}
+.ld-steps i{width:22px;height:4px;border-radius:999px;background:var(--line);transition:background .3s}
+.ld-steps i.on{background:var(--accent)}
+.ld-check{display:grid;place-items:center;width:52px;height:52px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-size:1.6rem;font-weight:700;animation:ld-spring .5s cubic-bezier(.3,1.6,.5,1)}
+.ld-lock{font:inherit;font-weight:700;border:0;border-radius:999px;padding:12px 24px;background:var(--accent);color:var(--accent-ink);cursor:pointer;transition:transform .18s cubic-bezier(.3,1.6,.5,1),background .2s}
+.ld-lock:active{transform:scale(.94)}
+.ld-lock.locked{background:var(--ok);animation:ld-spring .42s cubic-bezier(.3,1.6,.5,1)}
+.ld-count{font-variant-numeric:tabular-nums;transition:color .3s,transform .3s}
+.ld-count.win{color:var(--ok);animation:ld-spring .5s cubic-bezier(.3,1.6,.5,1)}
+.ld-verdict{font-family:var(--f-body)!important;font-size:1.05rem!important}
+.ld-gate{font-weight:600;color:var(--accent)}
+.ld-foot{display:grid;justify-items:center;min-height:1.2em;padding:0 12px;text-align:center}
+.ld-guess .ld-card{position:relative}
+.ld-confetti{position:absolute;left:50%;top:40%;pointer-events:none}
+.ld-confetti i{position:absolute;width:8px;height:12px;border-radius:2px;animation:ld-burst 1.5s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes ld-burst{0%{transform:translate(0,0) rotate(0);opacity:1}60%{opacity:1}100%{transform:translate(var(--x),calc(var(--y) + 120px)) rotate(540deg);opacity:0}}
+.ld-result.win{background:var(--ok-bg);border:1px solid var(--ok)}
+
+/* Neo: a fintech-app look. Pure black, Inter everywhere, huge bold numbers, sections as soft cards with
+   big radius, pill controls, a blue-to-violet accent and glassy pinned bar. Always dark. */
+:root[data-style="neo"]{
+  --bg:#000; --surface:#111114; --ink:#fff; --muted:#8e8e98; --line:#24242a; --soft:#1c1c21;
+  --accent:#3d7bff; --accent-ink:#fff; --accent2:#8a5cff;
+  --c-flight:#3d7bff; --c-ground:#8a5cff; --c-stay:#ff9f43; --c-pass:#22d3a6; --c-rent:#ff5c8a; --c-food:#c3e956; --c-lesson:#8fb3d6;
+  --ok:#22c55e; --ok-bg:#0d2a19; --warn:#ffb020; --warn-bg:#33260a; --bad:#ff5c5c; --bad-bg:#3a1414;
+  --h0:#0f2e22; --h1:#26300f; --h2:#3a2a10; --h3:#3d1622; --h-ink:#fff;
+  --f-display:"Inter",system-ui,sans-serif; --f-body:"Inter",system-ui,sans-serif;
+  color-scheme:dark}
+[data-style="neo"] body{font-size:15.5px;letter-spacing:-.005em}
+[data-style="neo"] h1,[data-style="neo"] h2{font-weight:800;letter-spacing:-.03em;line-height:1.08}
+[data-style="neo"] h1{font-size:clamp(2.1rem,8vw,3.4rem)}
+[data-style="neo"] h2{font-size:1.4rem}
+[data-style="neo"] section.block{background:var(--surface);border-radius:28px;padding:18px 16px}
+[data-style="neo"] .hcard,[data-style="neo"] .fitcard,[data-style="neo"] .filters,[data-style="neo"] .mypick,[data-style="neo"] .tmsg,[data-style="neo"] .tpick,[data-style="neo"] .tv-row,[data-style="neo"] .tg-row,[data-style="neo"] .ld{border-radius:24px;border-color:transparent;background:var(--soft)}
+[data-style="neo"] .mypick{box-shadow:0 0 0 1.5px var(--accent)}
+[data-style="neo"] .btn{border-radius:999px;border:0;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;padding:9px 18px}
+[data-style="neo"] .btn.secondary{background:var(--soft);color:var(--ink)}
+[data-style="neo"] .seg{border:0;border-radius:999px;background:var(--soft);padding:3px;gap:2px}
+[data-style="neo"] .seg button{border-radius:999px;border:0!important;transition:background .2s,color .2s}
+[data-style="neo"] .seg button[aria-pressed="true"]{background:#fff;color:#000}
+[data-style="neo"] .quickbar{background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom-color:var(--line)}
+[data-style="neo"] .hprice b,[data-style="neo"] .tot b,[data-style="neo"] .mp-price b,[data-style="neo"] .ld-val{font-weight:800;letter-spacing:-.04em}
+[data-style="neo"] .mp-price b{font-size:2rem}
+[data-style="neo"] .step{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-text-fill-color:#fff}
+[data-style="neo"] .hphoto .tier,[data-style="neo"] .hphoto .hrate{background:rgba(0,0,0,.6);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+[data-style="neo"] .ld-opt{background:var(--surface)}
+[data-style="neo"] .ld-opt.picked,[data-style="neo"] .ld-lock{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}

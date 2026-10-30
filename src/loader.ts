@@ -1,7 +1,7 @@
-// While a trip loads (the Google Sheet takes 5–10 s), a slider of three small widgets keeps the visitor here:
-// "snow" (falling snow and rotating lines), "duel" (quick taps: ski or board, …) and "guess" (guess the price
-// per person; the trip then shows how close it was). Swipe between them; ?loader=snow|duel|guess picks the
-// one shown first. One of them may become the only one later.
+// While a trip loads (the Google Sheet takes 5–10 s), a slider of three cards keeps the visitor here: "snow"
+// (falling snow and rotating lines), "duel" (four quick taps: ski or board, …) and "guess" (guess the price
+// per person). On a first visit the two games come first: the trip opens once both are done and it has
+// loaded. The answers go to the sheet (see trip.ts). ?loader=snow|duel|guess picks the card shown first.
 import { euro } from "./ui/render.ts";
 
 export type Loader = "snow" | "duel" | "guess";
@@ -16,84 +16,158 @@ const LINES = [
   "Waxing the skis…", "Checking the house is still free…", "Counting the votes…", "Warming up the fondue…",
   "Looking for the shortest lift queue…", "Packing the goggles…", "Asking the snow forecast nicely…",
 ];
+// The answers must match QUIZ in sheet/Code.gs, which drops anything else.
 const QUESTIONS: { q: string; a: [string, string] }[] = [
   { q: "Ski or snowboard?", a: ["⛷️ Ski", "🏂 Board"] },
   { q: "First lift or lie-in?", a: ["🌅 First lift", "😴 Lie-in"] },
   { q: "Après-ski or early night?", a: ["🍻 Après", "🛌 Early night"] },
   { q: "Fondue or pizza on the slopes?", a: ["🫕 Fondue", "🍕 Pizza"] },
 ];
-let guess: number | null = null;
-let answers: string[] = [];
-/** Set once the trip has loaded: the top pick's price per person, to score a guess locked in afterwards. */
-let real: number | null = null;
 const verdict = (g: number, r: number) => {
   const pct = Math.abs(g - r) / r;
-  return pct <= 0.05 ? "🏆 Spot on!" : pct <= 0.15 ? "👏 So close!" : pct <= 0.3 ? "Not bad." : g > r ? "Good news: it's cheaper." : "Ouch, a bit more than you hoped.";
+  return pct <= 0.05 ? "🏆 Spot on!" : pct <= 0.15 ? "👏 So close!" : pct <= 0.3 ? "Not bad." : "Ouch, a bit more than you hoped.";
 };
-
 const flakes = Array.from({ length: 18 }, (_, i) =>
   `<i style="left:${(i * 53) % 100}%;animation-delay:${((i * 37) % 30) / 10}s;animation-duration:${3 + ((i * 17) % 30) / 10}s;font-size:${10 + ((i * 7) % 12)}px">❄</i>`).join("");
-const duelHtml = () => {
-  const n = answers.length;
-  return n < QUESTIONS.length
-    ? `<b>⛷️ Ski or board?</b><span class="ld-q">${QUESTIONS[n].q}</span>` +
-      `<div class="ld-acts">${QUESTIONS[n].a.map((a) => `<button type="button" class="btn secondary" data-ans="${a}">${a}</button>`).join("")}</div>` +
-      `<span class="foot">${n + 1} of ${QUESTIONS.length}</span>`
-    : `<b>⛷️ Your ski style</b><span class="ld-q">${answers.join(" · ")}</span><span class="foot">Swipe for the next one →</span>`;
-};
+const CONFETTI = ["#3d7bff", "#8a5cff", "#22c55e", "#ffd257", "#ff5c8a", "#3ee6ff"];
 
-/** Shows the slider in `el`; call the returned function when the trip has loaded. */
-export function startLoader(el: HTMLElement, first: Loader): () => void {
-  guess = null; answers = []; real = null;
-  const panes: Record<Loader, string> = {
-    snow: `<div class="ld-flakes" aria-hidden="true">${flakes}</div><b>❄️ Opening your trip</b><span class="ld-line">${LINES[0]}</span><span class="foot">Swipe for a quick game →</span>`,
-    duel: duelHtml(),
-    guess: `<b>🎯 Guess the price</b><span class="ld-q">Per person, all in: flight, house, lift pass, rental and food?</span>` +
-      `<output class="ld-val">€1,200</output>` +
-      `<input type="range" min="500" max="3000" step="50" value="1200" aria-label="Your guess, euros per person">` +
-      `<button type="button" class="btn" data-act="lock-guess">Lock my guess</button>`,
-  };
+export interface LoaderOpts {
+  /** First visit: the trip stays hidden until both games are done. */
+  gate: boolean;
+  first: Loader;
+  /** The trip element the page glides to once it opens. */
+  target: HTMLElement;
+  /** Called once, when the trip opens; `result` is the lines to show on top of it. */
+  onReveal: (result: string) => void;
+  /** Called once both games are done, with what to save. */
+  onDone: (answers: string[], guess: number) => void;
+}
+export interface LoaderHandle { ready(realPP: number | null): void; stop(): void }
+
+/** Shows the slider in `el`. Call ready() when the trip has loaded and stop() if it fails. */
+export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
+  const answers: string[] = [];
+  let guess = 1200, locked = false, loaded = false, real: number | null = null, revealed = false, saved = false;
+  const games = o.gate ? `<span class="ld-gate">2 quick games before your trip opens →</span>` : `<span class="foot">Swipe for a quick game →</span>`;
   el.innerHTML = `<div class="ld" role="status" aria-label="Loading the trip">` +
-    `<div class="ld-slider">${ORDER.map((k) => `<section class="ld-pane ld-${k}" data-k="${k}">${panes[k]}</section>`).join("")}</div>` +
+    `<div class="ld-slider">` +
+    `<section class="ld-pane ld-snow"><div class="ld-flakes" aria-hidden="true">${flakes}</div><b>❄️ Opening your trip</b><span class="ld-line">${LINES[0]}</span>${games}</section>` +
+    `<section class="ld-pane ld-duel"><div class="ld-card"></div></section>` +
+    `<section class="ld-pane ld-guess"><div class="ld-card"></div></section></div>` +
     `<div class="ld-dots">${ORDER.map((k, i) => `<button type="button" data-go="${i}" aria-label="Show ${k}"></button>`).join("")}</div>` +
-    `<div class="ld-bar" aria-hidden="true"><span></span></div></div>`;
+    `<div class="ld-bar" aria-hidden="true"><span></span></div><div class="ld-foot"></div></div>`;
   const slider = el.querySelector<HTMLElement>(".ld-slider")!, dots = [...el.querySelectorAll<HTMLElement>(".ld-dots button")];
+  const duel = el.querySelector<HTMLElement>(".ld-duel .ld-card")!, guessCard = el.querySelector<HTMLElement>(".ld-guess .ld-card")!;
+  const foot = el.querySelector<HTMLElement>(".ld-foot")!;
   const at = () => Math.round(slider.scrollLeft / Math.max(1, slider.clientWidth));
   const mark = () => dots.forEach((d, i) => d.setAttribute("aria-current", String(i === at())));
+  const go = (i: number) => slider.scrollTo({ left: i * slider.clientWidth, behavior: "smooth" });
   slider.addEventListener("scroll", mark, { passive: true });
-  requestAnimationFrame(() => { slider.scrollLeft = ORDER.indexOf(first) * slider.clientWidth; mark(); });
+  requestAnimationFrame(() => { slider.scrollLeft = ORDER.indexOf(o.first) * slider.clientWidth; mark(); });
 
+  const drawDuel = () => {
+    const n = answers.length;
+    duel.innerHTML = n < QUESTIONS.length
+      ? `<b>⛷️ Your ski style</b><span class="ld-q">${QUESTIONS[n].q}</span>` +
+        `<div class="ld-acts">${QUESTIONS[n].a.map((a) => `<button type="button" class="ld-opt" data-ans="${a}">${a}</button>`).join("")}</div>` +
+        `<div class="ld-steps">${QUESTIONS.map((_, i) => `<i class="${i < n ? "on" : ""}"></i>`).join("")}</div>`
+      : `<span class="ld-check" aria-hidden="true">✓</span><b>${answers.join(" · ")}</b><span class="foot">${locked ? "All done" : "Now guess the price →"}</span>`;
+  };
+  const drawGuess = () => {
+    guessCard.innerHTML = `<b>🎯 Guess the price</b><span class="ld-q">Per person, all in: flight, house, lift pass, rental and food</span>` +
+      `<output class="ld-val">${euro(guess)}</output>` +
+      `<input type="range" min="500" max="3000" step="50" value="${guess}" aria-label="Your guess, euros per person">` +
+      `<button type="button" class="ld-lock" data-act="lock-guess">Lock my guess</button>`;
+    const r = guessCard.querySelector<HTMLInputElement>("input")!, out = guessCard.querySelector("output")!;
+    r.oninput = () => { guess = +r.value; out.textContent = euro(guess); };
+  };
+  // The price reveal: the number runs from the guess to the real price; cheaper than guessed is a win.
+  const revealGuess = () => {
+    if (!locked || real == null) return;
+    const r = real, cheaper = r < guess;
+    guessCard.innerHTML = `<span class="foot">You said ${euro(guess)}</span><output class="ld-val ld-count">${euro(guess)}</output>` +
+      `<b class="ld-verdict">${cheaper ? `🎉 Congratulations! It's ${euro(guess - r)} less than you thought` : verdict(guess, r)}</b>` +
+      `<span class="foot">per person, all in, for the top pick</span>`;
+    const out = guessCard.querySelector<HTMLElement>(".ld-count")!, t0 = performance.now(), d = 1200;
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3);
+      out.textContent = euro(guess + (r - guess) * e);
+      if (k < 1) requestAnimationFrame(step); else out.classList.add(cheaper ? "win" : "done");
+    };
+    requestAnimationFrame(step);
+    if (cheaper) confetti(guessCard);
+  };
+  const tryOpen = () => {
+    const done = answers.length === QUESTIONS.length && locked;
+    if (done && !saved) { saved = true; o.onDone(answers.slice(), guess); }
+    if (!loaded || revealed) return;
+    if (o.gate && !done) {
+      foot.innerHTML = `<span class="ld-gate">🔓 Your trip is ready: ${answers.length < QUESTIONS.length ? "answer the questions" : "lock your guess"} to open it</span>`;
+      go(answers.length < QUESTIONS.length ? 1 : 2);
+      return;
+    }
+    revealed = true;
+    el.querySelector(".ld")!.classList.add("ready");
+    foot.innerHTML = `<button type="button" class="ld-nudge" data-act="to-trip">✅ Your trip is ready ↓</button>`;
+    o.onReveal(loaderResult(answers, locked ? guess : null, real));
+    setTimeout(() => glide(o.target), locked && real != null && real < guess ? 1800 : 900);
+  };
+
+  drawDuel(); drawGuess();
   let i = 0;
   const timer = window.setInterval(() => { const l = el.querySelector(".ld-line"); if (l) l.textContent = LINES[++i % LINES.length]; }, 1800);
-  const range = el.querySelector<HTMLInputElement>("input[type=range]")!, out = el.querySelector("output")!;
-  range.oninput = () => { out.textContent = euro(+range.value); guess = +range.value; };
   el.onclick = (ev) => {
     const t = ev.target as HTMLElement;
-    const go = t.closest<HTMLElement>("[data-go]");
-    if (go) slider.scrollTo({ left: +go.dataset.go! * slider.clientWidth, behavior: "smooth" });
-    const ans = t.closest<HTMLElement>("[data-ans]");
-    if (ans) { answers.push(ans.dataset.ans!); el.querySelector(".ld-duel")!.innerHTML = duelHtml(); }
-    if (t.closest("[data-act='lock-guess']")) {
-      guess = +range.value;
-      el.querySelector(".ld-guess")!.innerHTML = real
-        ? `<b>🎯 ${euro(guess)} vs ${euro(real)}</b><span class="ld-q">${verdict(guess, real)}</span>`
-        : `<b>🎯 ${euro(guess)} locked in</b><span class="ld-q">Let's see how close you are…</span>`;
+    const g = t.closest<HTMLElement>("[data-go]"); if (g) go(+g.dataset.go!);
+    if (t.closest("[data-act='to-trip']")) glide(o.target);
+    // An answer: the chosen pill springs and fills with a tick, the other fades, then the next question slides in.
+    const a = t.closest<HTMLElement>("[data-ans]");
+    if (a && !duel.classList.contains("busy")) {
+      duel.classList.add("busy");
+      a.classList.add("picked"); a.insertAdjacentHTML("beforeend", `<span class="ld-tick">✓</span>`);
+      duel.querySelectorAll(".ld-opt").forEach((b) => { if (b !== a) b.classList.add("dim"); });
+      answers.push(a.dataset.ans!);
+      setTimeout(() => {
+        duel.classList.add("out");
+        setTimeout(() => {
+          drawDuel(); duel.classList.remove("out", "busy"); duel.classList.add("in");
+          setTimeout(() => duel.classList.remove("in"), 320);
+          if (answers.length === QUESTIONS.length) { setTimeout(() => go(2), 700); tryOpen(); }
+        }, 220);
+      }, 420);
+    }
+    if (t.closest("[data-act='lock-guess']") && !locked) {
+      locked = true;
+      const b = guessCard.querySelector<HTMLElement>(".ld-lock")!;
+      b.classList.add("locked"); b.textContent = `✓ ${euro(guess)} locked`;
+      guessCard.querySelector("input")!.disabled = true;
+      setTimeout(() => {
+        if (real != null) revealGuess();
+        else guessCard.insertAdjacentHTML("beforeend", `<span class="foot">Let's see how close you are…</span>`);
+        if (answers.length < QUESTIONS.length) setTimeout(() => go(1), 600);
+        tryOpen();
+      }, 500);
     }
   };
-  return () => { clearInterval(timer); el.onclick = null; };
+  return {
+    ready(realPP) { loaded = true; real = realPP; revealGuess(); tryOpen(); },
+    stop() { clearInterval(timer); el.onclick = null; el.innerHTML = ""; },
+  };
 }
 
-/** The trip has loaded: the slider keeps playing, says so, and the page glides down to the trip. */
-export function loaderReady(el: HTMLElement, realPP: number | null, target: HTMLElement) {
-  real = realPP;
-  const ld = el.querySelector(".ld"); if (!ld) return;
-  ld.classList.add("ready");
-  ld.insertAdjacentHTML("beforeend", `<button type="button" class="ld-nudge" data-act="to-trip">✅ Your trip is ready ↓</button>`);
-  el.querySelector<HTMLElement>("[data-act='to-trip']")!.onclick = () => glide(target);
-  setTimeout(() => glide(target), 900);
+function confetti(host: HTMLElement) {
+  const box = document.createElement("div");
+  box.className = "ld-confetti"; box.setAttribute("aria-hidden", "true");
+  box.innerHTML = Array.from({ length: 28 }, (_, i) => {
+    const ang = (i / 28) * Math.PI * 2, dist = 70 + (i * 37) % 70;
+    return `<i style="--x:${Math.round(Math.cos(ang) * dist)}px;--y:${Math.round(Math.sin(ang) * dist - 40)}px;background:${CONFETTI[i % CONFETTI.length]};animation-delay:${(i % 5) * 20}ms"></i>`;
+  }).join("");
+  host.appendChild(box);
+  setTimeout(() => box.remove(), 1800);
 }
+
 /** A slow scroll (about 1.6 s, eased) so the slider drifts up while its animations keep going. */
-function glide(target: HTMLElement) {
+export function glide(target: HTMLElement) {
   const from = scrollY, to = from + target.getBoundingClientRect().top - 96, t0 = performance.now(), d = 1600;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { scrollTo(0, to); return; }
   const step = (t: number) => {
@@ -104,10 +178,12 @@ function glide(target: HTMLElement) {
   requestAnimationFrame(step);
 }
 
-/** Lines for the top of the trip once it has loaded: how close the guess was, and the quick answers. */
-export function loaderResult(realPP: number | null): string {
+/** Lines for the top of the trip once it opens: how close the guess was, and the quick answers. */
+function loaderResult(answers: string[], guess: number | null, real: number | null): string {
   let out = "";
-  if (guess != null && realPP) out += `<p class="ld-result">🎯 You guessed <b>${euro(guess)}</b>, the top pick is <b>${euro(realPP)}</b> per person: ${verdict(guess, realPP)}</p>`;
+  if (guess != null && real) out += real < guess
+    ? `<p class="ld-result win">🎉 You guessed <b>${euro(guess)}</b> and the top pick is only <b>${euro(real)}</b> per person: ${euro(guess - real)} less. Lock it in before it goes!</p>`
+    : `<p class="ld-result">🎯 You guessed <b>${euro(guess)}</b>, the top pick is <b>${euro(real)}</b> per person: ${verdict(guess, real)}</p>`;
   if (answers.length) out += `<p class="ld-result">⛷️ Your ski style: ${answers.join(" · ")}</p>`;
   return out;
 }

@@ -26,6 +26,9 @@ It needs `~/.snowfinder/checker.json`:
 what changed (votes, picks, posts, availability), what is waiting for his yes/no, and anything that looks
 like spam or an attempt to manipulate the review.
 
+`quiz` lists each visitor's loading-game answers and price guess (one row per browser per trip): summarise
+them per trip when asked (who skis or boards, après or early night, how the guesses compare with the price).
+
 ## 2. Check approved "better option" posts (with his OK)
 
 Use the trip's dates and group (the organiser's pick: `data.share`, `data.when`). Open each link for

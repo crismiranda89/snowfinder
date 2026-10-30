@@ -8,7 +8,7 @@ import type { PatternKey } from "./types.ts";
 import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
-import { loaderReady, loaderResult, loaderVariant, startLoader } from "./loader.ts";
+import { loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -282,7 +282,11 @@ function challengeHtml(trip: TripView["trip"]) {
     `<div class="tmsg-acts"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">Challenge a group on WhatsApp</a>` +
     `<button type="button" class="btn secondary" data-act="copy-challenge" data-text="${esc(text)}">Copy the invite</button></div></div>`;
 }
-let stopLoader: (() => void) | null = null;
+let loader: LoaderHandle | null = null;
+// Trips this browser has played the loading games for (or created): those open straight away next time.
+const PLAYED_KEY = "snowfinder-played";
+const played = (): string[] => { try { return JSON.parse(localStorage.getItem(PLAYED_KEY) || "[]"); } catch { return []; } };
+const markPlayed = (id: string) => { try { localStorage.setItem(PLAYED_KEY, JSON.stringify([...new Set([...played(), id])].slice(-50))); } catch { /* private mode */ } };
 export async function loadTrip(s: State, toast: (m: string) => void) {
   const id = tripId(), box = $("trip-block");
   if (!id) { box.hidden = true; return; }
@@ -290,18 +294,26 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
   if (!tripsReady()) { $("trip-body").innerHTML = `<p class="foot">This trip link needs the shared-trip sheet, which isn't set up on this copy of the site.</p>`; return; }
   // First load: a small widget keeps the visitor busy while the sheet answers (see loader.ts).
   // It stays above the trip once loaded, still playing, and the page glides down to the trip.
-  const first = !last;
-  if (first) { stopLoader?.(); $("trip-body").innerHTML = ""; stopLoader = startLoader($("trip-loader"), loaderVariant()); }
+  // On a first visit the two games come first: the trip stays hidden until they're done (and it has loaded).
+  const first = !last, body = $("trip-body");
+  if (first) {
+    loader?.stop(); body.innerHTML = "";
+    const gate = !played().includes(id) && !Object.values(myTrips()).includes(id);
+    body.hidden = gate;
+    loader = startLoader($("trip-loader"), {
+      gate, first: loaderVariant(), target: body,
+      onReveal: (result) => { body.hidden = false; body.insertAdjacentHTML("afterbegin", result); },
+      onDone: (answers, guess) => { markPlayed(id); post({ action: "quiz", trip: id, name: myName(), answers, guess }).catch(() => { /* the trip still opens */ }); },
+    });
+  }
   try {
     const t = await get(id); last = t; renderTrip(s); renderMyPick(s);
     if (first) {
       const best = t.picks.find((p) => p.name === t.trip.organizer) || t.picks[0], vb = best ? verified(best.data) : null;
-      const pp = vb?.known ? vb.pp : best?.data.pp ?? null;
-      $("trip-body").insertAdjacentHTML("afterbegin", loaderResult(pp));
-      loaderReady($("trip-loader"), pp, $("trip-body"));
+      loader?.ready(vb?.known ? vb.pp : best?.data.pp ?? null);
     }
   }
-  catch (e) { stopLoader?.(); $("trip-loader").innerHTML = ""; $("trip-body").innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
+  catch (e) { loader?.stop(); body.hidden = false; body.innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`; }
 }
 
 /** Prices on a pick card come from the site's own data (the house and the pick's settings), never from what

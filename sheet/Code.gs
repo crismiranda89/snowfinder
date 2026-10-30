@@ -18,7 +18,10 @@ const TABS = {
   votes: ["trip", "name", "pick", "updated"],
   ideas: ["trip", "id", "created", "name", "text", "links", "images", "status", "reply", "pick", "checked", "approved"], // status: new | approved | not approved
   people: ["trip", "name", "key", "created"], // a name belongs to the browser that used it first (key = hash of its secret)
+  quiz: ["trip", "key", "name", "answers", "guess", "updated"], // the loading games: one row per browser per trip
 };
+// The loading games' answers, as the site offers them (anything else is dropped).
+const QUIZ = ["⛷️ Ski", "🏂 Board", "🌅 First lift", "😴 Lie-in", "🍻 Après", "🛌 Early night", "🫕 Fondue", "🍕 Pizza"];
 const MAX_TEXT = 4000, MAX_IMAGES = 3, MAX_IMAGE_BYTES = 1.5 * 1024 * 1024;
 // Flood limits per person and per trip.
 const CAPS = { picksPerName: 2, picksPerTrip: 15, ideasPerName: 3, ideasPerTrip: 20, imagesPerTrip: 30 };
@@ -94,7 +97,9 @@ function doGet(e) {
       },
       stats: rows_("trips").map((t) => ({ trip: t.id, organizer: t.organizer, people: people_(t.id).size,
         picks: picks.filter((p) => p.trip === t.id).length, votes: rows_("votes").filter((v) => v.trip === t.id).length,
-        ideas: ideas.filter((x) => x.trip === t.id).length, unavailable: picks.filter((p) => p.trip === t.id && p.status === "unavailable").length })),
+        ideas: ideas.filter((x) => x.trip === t.id).length, unavailable: picks.filter((p) => p.trip === t.id && p.status === "unavailable").length,
+        quiz: rows_("quiz").filter((q) => q.trip === t.id).length })),
+      quiz: rows_("quiz").map((q) => ({ trip: q.trip, name: q.name, answers: q.answers, guess: q.guess, updated: q.updated })),
     });
   }
   const id = clip_(e.parameter.trip, 20);
@@ -121,8 +126,9 @@ function doPost(e) {
   try {
     if (["review", "checkPick", "foundPick", "deleteTrip", "approvePick"].includes(b.action)) return json_(checker_(b));
     const name = clip_(b.name, 40).replace(/[\u0000-\u001f]/g, "");
-    if (!["createTrip", "addPick", "vote", "idea"].includes(b.action)) return json_({ error: "Unknown action" });
+    if (!["createTrip", "addPick", "vote", "idea", "quiz"].includes(b.action)) return json_({ error: "Unknown action" });
     if (b.action !== "createTrip" && !rows_("trips").some((t) => t.id === b.trip)) return json_({ error: "Trip not found" });
+    if (b.action === "quiz") return json_(quiz_(b, name));
     if (!name) return json_({ error: "Please give your name" });
     if (b.action === "createTrip") {
       // One trip per group setup for each organiser (same name, same browser): the title starts with the group.
@@ -222,6 +228,17 @@ function checker_(b) {
     tab_("ideas").getRange(x._row, 8, 1, 4).setValues([["approved", clip_(b.reply, 2000), pick, now_()]]);
     return { ok: true, pick };
   }
+}
+/** Saves a visitor's loading-game answers and price guess for a trip; again from the same browser replaces it. */
+function quiz_(b, name) {
+  if (typeof b.key !== "string" || b.key.length < 16 || b.key.length > 80) return { error: "Please reload the page and try again." };
+  const answers = (Array.isArray(b.answers) ? b.answers : []).slice(0, 6).map((a) => String(a)).filter((a) => QUIZ.includes(a));
+  const g = Math.round(+b.guess), guess = Number.isFinite(g) && g >= 100 && g <= 20000 ? g : "";
+  if (!answers.length && guess === "") return { error: "Nothing to save" };
+  const k = hash_(b.key), sh = tab_("quiz"), hit = rows_("quiz").find((r) => r.trip === b.trip && r.key === k);
+  const row = [b.trip, k, clip_(name, 40), answers.join(" · "), guess, now_()].map(cell_);
+  if (hit) sh.getRange(hit._row, 1, 1, row.length).setValues([row]); else sh.appendRow(row);
+  return { ok: true };
 }
 function vote_(trip, name, pick) {
   const sh = tab_("votes"), hit = rows_("votes").find((v) => v.trip === trip && norm_(v.name) === norm_(name));
