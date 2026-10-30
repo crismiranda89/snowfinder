@@ -4,7 +4,7 @@
 // those is taken, and it is multiplied by the target week's multiplier.
 import type { Group, HouseLevel, LiftBand, Listing, Quote, Season, Tier } from "../types.ts";
 import { level, weekOfStay } from "./calendar.ts";
-import { bedrooms, people } from "./group.ts";
+import { bedrooms, people, sofa } from "./group.ts";
 
 export const TIERS: Tier[] = ["budget", "mid", "lux"];
 export const TIER_LABEL: Record<Tier, string> = { budget: "Budget", mid: "Mid", lux: "Luxury" };
@@ -49,7 +49,7 @@ export function fits(l: Listing, g: Group): boolean {
   const b = bedrooms(g);
   // Twin: everyone needs a bed of their own, in any room: the listing must say it has enough beds, or have a
   // bedroom each. Any number of bedrooms up to one per person.
-  if (g.soloRooms === "twin") return ((l.beds ?? 0) >= people(g) || l.bedrooms >= people(g)) && l.sleeps >= people(g) && l.bedrooms <= Math.max(b + MAX_EXTRA_BEDROOMS, people(g));
+  if (g.soloRooms === "twin") { const beds = people(g) - sofa(g); return ((l.beds ?? 0) >= beds || l.bedrooms >= beds) && l.sleeps >= people(g) && l.bedrooms <= Math.max(b + MAX_EXTRA_BEDROOMS, people(g)); }
   return l.sleeps >= people(g) && l.bedrooms >= b && l.bedrooms <= b + MAX_EXTRA_BEDROOMS;
 }
 

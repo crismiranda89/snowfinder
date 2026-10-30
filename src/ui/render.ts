@@ -115,14 +115,17 @@ export function renderControls(s: State) {
   $("foodhint").textContent = plan === "custom" ? `× ${fd} days, arrival to departure`
     : `${euro(Math.min(...perDay))}–${euro(Math.max(...perDay))} per person per day, by resort, × ${fd} days`;
   setNum("food", s.food);
-  ($("groupPreset") as HTMLSelectElement).value = groupId(s.group);
+  $("nCouples").textContent = String(s.group.couples); $("nSolo").textContent = String(s.group.solo);
+  renderDeck($("rooms"), [{ v: "shared", label: "Share a room" }, { v: "own", label: "Own room" }, { v: "twin", label: "Own bed, any room" }], s.group.soloRooms);
+  ($("sofa") as HTMLInputElement).checked = !!s.group.livingRoom;
+  $("roomsctl").hidden = !s.group.solo || (s.group.solo === 1 && !!s.group.livingRoom); $("sofactl").hidden = !s.group.solo;
   const p = people(s.group);
   const food = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan].label : `food ${euro(s.food)}/day`;
   $("filtersum").textContent = [describe(s.group).replace(" · ", " (").replace(" · ", ", ") + ")", s.house === "all" ? "any house level" : `${LEVEL_LABEL[s.house]} house`, food.toLowerCase(),
     s.ground === "car" ? "rental car" : s.ground === "transfer" ? "transfer" : "", LIFT_BANDS[s.liftBand || "all"].text,
     s.dest.length ? `${s.dest.length} of ${RESORTS_FILE.resorts.length} resorts` : ""].filter(Boolean).join(" · ");
   const nh = fittingHouses(s).length;
-  $("housecount").textContent = `${nh} house${nh === 1 ? "" : "s"} fit`;
+  $("housecount").textContent = `${nh} house${nh === 1 ? " fits" : "s fit"}`;
   $("housecount").className = "count" + (nh ? "" : " none");
   $("groupsum").innerHTML = `<b>${esc(describe(s.group))}</b>` +
     ` · ${cars(p)} ${cars(p) === 1 ? "car" : "cars"} or ${Math.ceil(p / 8)} transfer ${Math.ceil(p / 8) === 1 ? "vehicle" : "vehicles"}`;

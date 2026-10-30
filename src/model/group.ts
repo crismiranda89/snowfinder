@@ -7,11 +7,15 @@ export const SEATS_PER_CAR = 5;
 export const SEATS_PER_TRANSFER = 8;
 export const VAN_FACTOR = 1.4; // a 5–8 seat van costs ~40% more than a 1–4 seat car transfer
 
+/** People on the living-room sofa bed: one, when it's on and there is a solo friend. */
+export const sofa = (g: Group) => (g.livingRoom ? Math.min(1, g.solo) : 0);
+
 export function people(g: Group): number { return Math.max(1, 2 * g.couples + g.solo); }
 
 export function bedrooms(g: Group): number {
   // twin: a bed each, in any room (all four can share one), so no bedrooms are needed for them.
-  const solo = g.soloRooms === "own" ? g.solo : g.soloRooms === "common" || g.soloRooms === "twin" ? 0 : Math.ceil(g.solo / 2);
+  const rest = g.solo - sofa(g);
+  const solo = g.soloRooms === "own" ? rest : g.soloRooms === "common" || g.soloRooms === "twin" ? 0 : Math.ceil(rest / 2);
   return Math.max(1, g.couples + solo);
 }
 

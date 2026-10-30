@@ -1,7 +1,7 @@
 // Boot: restore state (a share link wins over this browser's saved state), render, wire up controls.
 import { LISTINGS, OPTIONS, SEASON } from "./data.ts";
 import { range as seasonRange } from "./model/calendar.ts";
-import { GROUPS, decodeShare, encodeShare, load, save, type State } from "./state.ts";
+import { decodeShare, encodeShare, load, normGroup, save, type State } from "./state.ts";
 import { wireDecks } from "./ui/deck.ts";
 import { haptic } from "./ui/haptic.ts";
 import { rankOpen, renderQuickSum, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
@@ -104,6 +104,7 @@ const DECKS: Record<string, (s: State, v: string) => void> = {
   house: (s, v) => { s.house = v as State["house"]; },
   lift: (s, v) => { s.liftBand = v as State["liftBand"]; },
   foodPlan: (s, v) => { s.foodPlan = v as State["foodPlan"]; },
+  rooms: (s, v) => { s.group = normGroup({ ...s.group, soloRooms: v as State["group"]["soloRooms"] }); },
 };
 wireDecks((id, v) => { const set = DECKS[id]; if (set) update((s) => set(s, v)); });
 // The pinned bar's summary opens a dropdown with everything chosen so far; tap again (or outside) to close.
@@ -112,8 +113,18 @@ document.addEventListener("click", (ev) => {
   if (t.closest("#qbsum")) { const open = !bar.classList.contains("open"); bar.classList.toggle("open", open); $("qbsum").setAttribute("aria-expanded", String(open)); haptic(8); }
   else if (!t.closest("#qbpanel")) { bar.classList.remove("open"); $("qbsum").setAttribute("aria-expanded", "false"); }
 });
-$("groupPreset").innerHTML = GROUPS.map((g) => `<option value="${g.id}">${g.label}</option>`).join("");
-$("groupPreset").addEventListener("change", (ev) => { const g = GROUPS.find((x) => x.id === (ev.target as HTMLSelectElement).value); if (g) update((s) => { s.group = { ...g.group }; }); });
+// The group: couples and solo friends (− / +), where solo friends sleep, and a sofa bed for one.
+$("groupctl").addEventListener("click", (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLElement>("[data-step]"); if (!b) return;
+  const key = b.closest<HTMLElement>("[data-k]")!.dataset.k as "couples" | "solo", d = +b.dataset.step!;
+  update((s) => {
+    const g = { ...s.group, [key]: s.group[key] + d };
+    if (2 * g.couples + g.solo < 1) return; // somebody has to go
+    s.group = normGroup(g); s.pick = undefined; s.air = undefined;
+  });
+  haptic(8);
+});
+($("sofa") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.group = normGroup({ ...s.group, livingRoom: (ev.target as HTMLInputElement).checked }); }));
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
 $("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } });
 function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; haptic(8); update((s) => { s.week = +cell.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } }

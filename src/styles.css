@@ -603,3 +603,10 @@ button.qb-sum{font:inherit;color:inherit;background:none;border:0;padding:2px 0;
 .welcomecard .ld-result{grid-column:1/-1}
 .welcomecard .mp-acts .wc-explore{flex:1;justify-content:center;font-size:1rem;padding:12px}
 .gated .qb-pp,.gated .qb-panel .money,.gated #rank .tot,.gated .heat td.cell{filter:blur(7px);user-select:none}
+/* NEW · group: couples and solo friends with − / + */
+.groupctl{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end}
+.stepper{display:inline-flex;align-items:center;gap:4px;border-radius:999px;background:var(--soft);padding:3px}
+.stepper button{font:inherit;font-size:1.15rem;font-weight:700;width:34px;height:34px;border:0;border-radius:999px;background:var(--surface);color:var(--ink);cursor:pointer;transition:transform .15s cubic-bezier(.3,1.6,.5,1)}
+.stepper button:active{transform:scale(.88)}
+.stepper b{min-width:1.6em;text-align:center;font-size:1.1rem;font-variant-numeric:tabular-nums}
+.groupctl .groupsum{flex-basis:100%}

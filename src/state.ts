@@ -13,17 +13,46 @@ export interface State extends Settings {
 
 export const STORAGE_KEY = "snowfinder-v1";
 
-/** The group setups the site has houses for. Anything else (an old link, a hand-edited one) falls back to the first. */
+/** Named group setups: the ones the site has houses for, with their own trips ("Trips by group"). Any other
+ *  mix of couples and solo friends works too; it gets a generated id and label. */
 export const GROUPS: { id: string; label: string; group: Group }[] = [
-  { id: "4c1", label: "4 couples + 1 friend (living room)", group: { couples: 4, solo: 1, soloRooms: "common" } },
-  { id: "4c", label: "4 couples", group: { couples: 4, solo: 0, soloRooms: "common" } },
-  { id: "3c", label: "3 couples", group: { couples: 3, solo: 0, soloRooms: "common" } },
+  { id: "4c1", label: "4 couples + 1 friend (living room)", group: { couples: 4, solo: 1, soloRooms: "shared", livingRoom: true } },
+  { id: "4c", label: "4 couples", group: { couples: 4, solo: 0, soloRooms: "shared" } },
+  { id: "3c", label: "3 couples", group: { couples: 3, solo: 0, soloRooms: "shared" } },
   { id: "4s", label: "4 friends, no couples (own rooms)", group: { couples: 0, solo: 4, soloRooms: "own" } },
   { id: "4t", label: "4 friends, no couples (sharing 2 rooms)", group: { couples: 0, solo: 4, soloRooms: "shared" } },
   { id: "4b", label: "4 friends, 4 separate beds (any rooms)", group: { couples: 0, solo: 4, soloRooms: "twin" } },
 ];
-export const groupId = (g: Group) => (GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo && x.group.soloRooms === g.soloRooms)
-  || GROUPS.find((x) => x.group.couples === g.couples && x.group.solo === g.solo))?.id || GROUPS[0].id;
+export const MAX_COUPLES = 8, MAX_SOLO = 8;
+/** One spelling per group: rooms and sofa only matter with solo friends; old "common" is a sofa bed. */
+export function normGroup(g: Partial<Group> | undefined): Group {
+  const int = (x: unknown, hi: number) => { const n = Math.round(Number(x)); return Number.isFinite(n) ? Math.min(hi, Math.max(0, n)) : 0; };
+  const couples = int(g?.couples, MAX_COUPLES), solo = int(g?.solo, MAX_SOLO);
+  let rooms: Group["soloRooms"] = g?.soloRooms === "own" || g?.soloRooms === "twin" ? g.soloRooms : "shared";
+  let livingRoom = !!g?.livingRoom || g?.soloRooms === "common";
+  if (!solo) { rooms = "shared"; livingRoom = false; }
+  if (livingRoom && solo === 1) rooms = "shared";
+  return livingRoom ? { couples, solo, soloRooms: rooms, livingRoom } : { couples, solo, soloRooms: rooms };
+}
+const same = (a: Group, b: Group) => a.couples === b.couples && a.solo === b.solo && a.soloRooms === b.soloRooms && !!a.livingRoom === !!b.livingRoom;
+/** A named setup's id, or a generated one ("c2s3oL": 2 couples, 3 solo, own rooms, sofa bed). */
+export function groupId(g: Group): string {
+  const n = normGroup(g);
+  return GROUPS.find((x) => same(normGroup(x.group), n))?.id || `c${n.couples}s${n.solo}${n.soloRooms[0]}${n.livingRoom ? "L" : ""}`;
+}
+export function groupFromId(id: string): Group | null {
+  const named = GROUPS.find((x) => x.id === id); if (named) return { ...named.group };
+  const m = /^c(\d)s(\d)([sot])(L?)$/.exec(id); if (!m) return null;
+  return normGroup({ couples: +m[1], solo: +m[2], soloRooms: ({ s: "shared", o: "own", t: "twin" } as const)[m[3] as "s" | "o" | "t"], livingRoom: !!m[4] });
+}
+/** "3 couples", or for any other mix "2 couples + 3 friends (own rooms, sofa bed)". Trip titles start with it. */
+export function groupLabel(id: string): string {
+  const named = GROUPS.find((x) => x.id === id); if (named) return named.label;
+  const g = groupFromId(id); if (!g) return id;
+  const c = g.couples ? `${g.couples} couple${g.couples > 1 ? "s" : ""}` : "", f = g.solo ? `${g.solo} friend${g.solo > 1 ? "s" : ""}` : "";
+  const how = g.solo ? [g.soloRooms === "own" ? "own rooms" : g.soloRooms === "twin" ? "a bed each" : "sharing rooms", g.livingRoom ? "sofa bed" : ""].filter(Boolean).join(", ") : "";
+  return [c, f].filter(Boolean).join(" + ") + (how ? ` (${how})` : "");
+}
 
 export function defaults(): State {
   return {
@@ -43,8 +72,8 @@ export function sanitize(raw: unknown, weeks: number): State {
   const d = defaults();
   if (!raw || typeof raw !== "object") return d;
   const r = raw as Record<string, any>;
-  const g = (r.group || {}) as Partial<Group>;
-  const group: Group = { ...GROUPS.find((x) => x.id === groupId({ couples: +g.couples! || 0, solo: +g.solo! || 0, soloRooms: g.soloRooms as Group["soloRooms"] }))!.group };
+  const g0 = normGroup(r.group as Partial<Group>);
+  const group: Group = 2 * g0.couples + g0.solo > 0 ? g0 : { ...d.group }; // nobody going: the default group
   const people = 2 * group.couples + group.solo;
   const edits: Edits = {};
   if (r.edits && typeof r.edits === "object") {

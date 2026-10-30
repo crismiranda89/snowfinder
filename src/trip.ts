@@ -1,7 +1,7 @@
 // Shared trips: one organiser creates a trip from their pick, friends open the link, vote, add their own
 // pick or post "I have a better option" (text, links, screenshots) for review. Stored in a Google Sheet
 // through a small Apps Script web app (sheet/Code.gs); its URL comes from <meta name="snowfinder-api">.
-import { GROUPS, decodeShare, encodeShare, groupId, type State } from "./state.ts";
+import { GROUPS, decodeShare, encodeShare, groupFromId, groupId, groupLabel, type State } from "./state.ts";
 import { RESORTS_FILE, SEASON } from "./data.ts";
 import { addDays, foodDays, isoOf, nights, range as seasonRange } from "./model/calendar.ts";
 import type { PatternKey } from "./types.ts";
@@ -84,9 +84,12 @@ const seenTrips = (): Seen => { try { return JSON.parse(localStorage.getItem(SEE
 function rememberSeen(id: string, group: string, title: string, organizer: string) {
   try { localStorage.setItem(SEEN_KEY, JSON.stringify({ ...seenTrips(), [id]: { group, title, organizer, at: Date.now() } })); } catch { /* private mode */ }
 }
-const groupLabel = (id: string) => GROUPS.find((g) => g.id === id)?.label || id;
 /** The open trip's group setup, read from its title ("4 couples · Thu 4 Mar → Tue 9 Mar"). */
-const tripGroup = () => GROUPS.find((g) => g.label === (last?.trip.title || "").split(" · ")[0])?.id || "";
+const tripGroup = () => {
+  const label = (last?.trip.title || "").split(" · ")[0], named = GROUPS.find((g) => g.label === label);
+  if (named) return named.id;
+  const sp = sharedPlan(); return sp ? groupId(sp.s.group) : "";
+};
 /** The open trip's group and dates (from the organiser's pick), so a visitor's picks fit the trip. */
 /** The organiser's pick on the open trip and its full plan (dates, group, house, flight, food, filters). */
 function sharedPlan(t = last): { best: Pick; s: State } | null {
@@ -133,7 +136,7 @@ export function autoReason(p: PickSummary): string {
 /** The message the organiser sends to the group chat. *bold* is WhatsApp formatting. */
 export function whatsappText(d: PickData, link: string): string {
   const s = d.share ? decodeShare("#" + d.share, SEASON.weeks.length) : null;
-  const group = s ? GROUPS.find((g) => g.id === groupId(s.group))!.label : `${d.people} people`;
+  const group = s ? groupLabel(groupId(s.group)) : `${d.people} people`;
   // Prices are cached per render for the viewer's own settings: count with the pick's settings, then clear.
   const combos = s ? combinations(s) : 0;
   const n = s ? nights(SEASON, s.days) : 5;
@@ -233,7 +236,9 @@ export function renderTripsByGroup(s: State) {
   const seen = seenTrips(), mine = myTrips(), here = tripId();
   for (const [g, id] of Object.entries(mine)) if (!seen[id]) seen[id] = { group: g, title: "", organizer: "", at: 0 };
   const cur = groupId(s.group);
-  box.innerHTML = GROUPS.map((g) => {
+  // The named setups, then any other group this browser has a trip for or is planning now.
+  const ids = [...new Set([...GROUPS.map((g) => g.id), ...Object.values(seen).map((t) => t.group).filter(Boolean), cur])];
+  box.innerHTML = ids.map((id) => ({ id, label: groupLabel(id) })).map((g) => {
     const trips = Object.entries(seen).filter(([, t]) => t.group === g.id).sort((a, b) => b[1].at - a[1].at);
     const list = trips.map(([id, t]) => {
       const when = t.title.split(" · ").slice(1).join(" · ");
@@ -555,11 +560,11 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);
     else if (act === "start-group") {
-      const g = GROUPS.find((x) => x.id === t.closest<HTMLElement>("[data-g]")!.dataset.g);
+      const id = t.closest<HTMLElement>("[data-g]")!.dataset.g!, g = groupFromId(id);
       if (g) {
-        update((s) => { s.group = { ...g.group }; s.pick = undefined; s.air = undefined; });
+        update((s) => { s.group = { ...g }; s.pick = undefined; s.air = undefined; });
         document.getElementById("houses-block")?.scrollIntoView({ block: "start", behavior: "smooth" });
-        toast(`Group set to ${g.label.toLowerCase()}. Choose a house, then “Create a trip”.`);
+        toast(`Group set to ${groupLabel(id).toLowerCase()}. Choose a house, then “Create a trip”.`);
       }
     }
     else if (act === "open-trip") openTrip(t.closest<HTMLElement>("[data-trip]")!.dataset.trip!, getState(), toast);

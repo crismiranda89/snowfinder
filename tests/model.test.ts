@@ -5,7 +5,7 @@ import { bedrooms, cars, people, transferFactor } from "../src/model/group.ts";
 import { fits, houses, inBand, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
 import { calc, foodPerDay } from "../src/model/cost.ts";
 import { foodDays, isClosed, leaveDays, nights, patternLabel, range, weekOfStay } from "../src/model/calendar.ts";
-import { decodeShare, defaults, encodeShare, sanitize } from "../src/state.ts";
+import { decodeShare, defaults, encodeShare, groupFromId, groupId, groupLabel, sanitize } from "../src/state.ts";
 import type { Group, Listing, Settings } from "../src/types.ts";
 
 const G = (couples: number, solo: number, soloRooms: Group["soloRooms"] = "shared"): Group => ({ couples, solo, soloRooms });
@@ -101,16 +101,18 @@ test("median", () => {
 });
 
 test("share link round-trip and sanitising", () => {
-  const s = { ...defaults(), week: 6, group: G(3, 0, "common"), house: "lux" as const, edits: { "sol-tls@6": { flight: 99 } } };
+  const s = { ...defaults(), week: 6, group: G(3, 0, "shared"), house: "lux" as const, edits: { "sol-tls@6": { flight: 99 } } };
   const back = decodeShare("#" + encodeShare(s), SEASON.weeks.length)!;
   assert.equal(back.week, 6); assert.deepEqual(back.group, s.group); assert.equal(back.house, "lux");
   assert.deepEqual(back.edits, s.edits);
   const bad = sanitize({ week: 99, days: 7, group: { couples: -3, solo: "x" }, beg: 50, edits: { "<script>": { a: 1 } } }, 12);
-  assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, G(4, 1, "common")); assert.equal(bad.beg, 0); // unknown groups fall back to 4 couples + 1; lessons are off
+  assert.equal(bad.week, 11); assert.equal(bad.days, 5); assert.deepEqual(bad.group, defaults().group); assert.equal(bad.beg, 0); // nobody going: the default group; lessons are off
   assert.deepEqual(sanitize({ group: G(0, 4, "own") }, 12).group, G(0, 4, "own")); // 4 friends, own rooms
   assert.deepEqual(sanitize({ group: G(0, 4, "shared") }, 12).group, G(0, 4, "shared")); // 4 friends, 2 rooms
   assert.deepEqual(sanitize({ group: G(0, 4, "twin") }, 12).group, G(0, 4, "twin")); // 4 friends, a bed each
-  assert.deepEqual(sanitize({ group: G(2, 3) }, 12).group, G(4, 1, "common")); // only the listed group setups exist
+  assert.deepEqual(sanitize({ group: G(2, 3) }, 12).group, G(2, 3)); // any mix of couples and solo friends
+  assert.deepEqual(sanitize({ group: G(4, 1, "common") }, 12).group, { couples: 4, solo: 1, soloRooms: "shared", livingRoom: true }); // old links: a sofa bed
+  assert.deepEqual(sanitize({ group: { couples: 99, solo: 2 } }, 12).group.couples, 8); // up to 8 couples
   assert.deepEqual(bad.edits, {});
   assert.equal(bad.liftBand, "10"); assert.equal(sanitize({ liftBand: "5" }, 12).liftBand, "5"); assert.equal(sanitize({ liftBand: "x" }, 12).liftBand, "10"); // default: up to 10 min
   assert.equal(bad.ground, "all"); assert.equal(sanitize({ ground: "car" }, 12).ground, "car"); assert.equal(bad.foodPlan, "one");
@@ -213,4 +215,17 @@ test("getting there: All takes the cheaper of rental car and transfer for each r
   const all = calc(SEASON, { ...base, ground: "all" }, opt, 6), car = calc(SEASON, { ...base, ground: "car" }, opt, 6), tr = calc(SEASON, { ...base, ground: "transfer" }, opt, 6);
   assert.equal(all.groundTotal, Math.min(car.groundTotal, tr.groundTotal));
   assert.equal(all.groundKind, car.groundTotal <= tr.groundTotal ? "car" : "transfer");
+});
+
+test("groups: named setups keep their ids and labels; any other mix gets one; the sofa bed saves a bedroom", () => {
+  assert.equal(groupId({ couples: 4, solo: 1, soloRooms: "common" }), "4c1"); // old trips and links
+  assert.equal(groupId({ couples: 4, solo: 1, soloRooms: "own", livingRoom: true }), "4c1");
+  assert.equal(groupId({ couples: 3, solo: 0, soloRooms: "common" }), "3c");
+  assert.equal(groupId({ couples: 2, solo: 3, soloRooms: "own", livingRoom: true }), "c2s3oL");
+  assert.deepEqual(groupFromId("c2s3oL"), { couples: 2, solo: 3, soloRooms: "own", livingRoom: true });
+  assert.equal(groupLabel("c2s3oL"), "2 couples + 3 friends (own rooms, sofa bed)");
+  assert.equal(groupLabel("4c1"), "4 couples + 1 friend (living room)");
+  assert.equal(bedrooms({ couples: 2, solo: 3, soloRooms: "own", livingRoom: true }), 4);
+  assert.equal(bedrooms({ couples: 2, solo: 3, soloRooms: "shared", livingRoom: true }), 3);
+  assert.equal(bedrooms({ couples: 4, solo: 1, soloRooms: "shared", livingRoom: true }), 4);
 });

@@ -53,10 +53,15 @@
   <details class="filters" id="filters">
     <summary><b>Filters</b><span class="count" id="housecount"></span><span class="foot" id="filtersum"></span></summary>
   <div class="controls" role="group" aria-label="Trip settings">
-    <div class="groupctl" role="group" aria-label="Your group">
-      <div class="ctl extra"><label for="groupPreset"><span>Group</span></label>
-        <select id="groupPreset"></select>
+    <div class="groupctl" id="groupctl" role="group" aria-label="Your group">
+      <div class="ctl"><span>Couples</span>
+        <div class="stepper" data-k="couples"><button type="button" data-step="-1" aria-label="One couple fewer">−</button><b id="nCouples">4</b><button type="button" data-step="1" aria-label="One couple more">+</button></div>
       </div>
+      <div class="ctl"><span>Solo friends</span>
+        <div class="stepper" data-k="solo"><button type="button" data-step="-1" aria-label="One solo friend fewer">−</button><b id="nSolo">1</b><button type="button" data-step="1" aria-label="One solo friend more">+</button></div>
+      </div>
+      <div class="ctl" id="roomsctl"><span>Solo friends sleep</span><div id="rooms"></div></div>
+      <label class="check" id="sofactl"><input id="sofa" type="checkbox"> 🛋 Sofa bed in the living room (1 person)</label>
       <div class="groupsum" id="groupsum" aria-live="polite"></div>
     </div>
     <div class="ctl"><span>Airport → resort</span>

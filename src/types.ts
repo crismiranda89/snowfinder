@@ -73,8 +73,13 @@ export interface Option {
   spring: "good" | "ok" | "poor"; flag?: string;
 }
 
-export interface Group { couples: number; solo: number; soloRooms: SoloRooms }
-/** Where solo friends sleep: two per room, a bed each in any room (twin), a room each, or the living room (sofa bed, no bedroom). */
+export interface Group {
+  couples: number; solo: number; soloRooms: SoloRooms;
+  /** One solo friend sleeps on a sofa bed in the living room (no bedroom, but still a bed). */
+  livingRoom?: boolean;
+}
+/** Where solo friends sleep: two per room, a bed each in any room (twin), or a room each. "common" (all in the
+ *  living room) is from older links and becomes a sofa bed for one. */
 export type FoodPlan = "home" | "one" | "both" | "custom";
 export type SoloRooms = "shared" | "twin" | "own" | "common";
 
