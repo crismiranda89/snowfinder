@@ -261,5 +261,7 @@ const takePlan = onTrip && (!tripSeen(tripParam) || !state.pick);
 const loading = loadTrip(state, toast);
 loading.then(() => {
   const t = takePlan ? tripSettings() : null;
-  if (t) { weekChosen = true; update((s) => { Object.assign(s, t, { group: { ...t.group }, dest: [...t.dest], edits: { ...t.edits } }); }); }
+  // A trip link opens with every resort shown (All), whatever resorts the shared plan had narrowed to.
+  if (t) { weekChosen = true; update((s) => { Object.assign(s, t, { group: { ...t.group }, dest: [], edits: { ...t.edits } }); }); }
+  else if (onTrip && state.dest.length) update((s) => { s.dest = []; });
 });
