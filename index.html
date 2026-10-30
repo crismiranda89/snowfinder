@@ -41,13 +41,10 @@
     </form>
   </dialog>
 
-  <div class="quickbar" role="group" aria-label="Dates">
-    <div class="ctl qb"><span>🗓 Arrive → leave</span>
-      <div class="seg" id="pattern"></div>
-    </div>
-    <div class="ctl qb"><span>❄️ Snow days</span>
-      <div class="seg" id="days" aria-label="Snow days"><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button></div>
-    </div>
+  <div class="quickbar" role="group" aria-label="Dates and your trip">
+    <div id="pattern" aria-label="Arrive and leave days"></div>
+    <div class="qb-days"><span aria-hidden="true">❄️ days</span><div class="seg" id="days" aria-label="Snow days"><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button></div></div>
+    <div class="qb-sum" id="qbsum" aria-live="polite"></div>
   </div>
 
   <details class="filters" id="filters">
@@ -60,25 +57,20 @@
       <div class="groupsum" id="groupsum" aria-live="polite"></div>
     </div>
     <div class="ctl"><span>Airport → resort</span>
-      <div class="seg" id="ground"><button type="button" data-v="car">Rental car</button><button type="button" data-v="transfer">Transfer</button></div>
+      <div id="ground"></div>
     </div>
     <div class="ctl"><span>House level</span>
-      <div class="seg" id="house"><button type="button" data-v="all">All</button><button type="button" data-v="budget">Budget</button><button type="button" data-v="mid">Mid</button><button type="button" data-v="lux">Luxury</button></div>
+      <div id="house"></div>
     </div>
     <div class="ctl"><span>Walk to the lifts</span>
-      <div class="seg" id="lift"><button type="button" data-v="all">All</button><button type="button" data-v="ski">Ski in / out</button><button type="button" data-v="5">Up to 5 min</button><button type="button" data-v="10">Up to 10 min</button></div>
+      <div id="lift"></div>
     </div>
-    <div class="ctl extra"><label for="foodPlan"><span>Food</span></label>
-      <select id="foodPlan" aria-describedby="foodhint">
-        <option value="home">Cook at home + snacks</option>
-        <option value="one">One meal out a day</option>
-        <option value="both">Lunch and dinner out</option>
-        <option value="custom">Custom €/person/day</option>
-      </select>
+    <div class="ctl extra"><span>Food</span>
+      <div id="foodPlan" aria-describedby="foodhint"></div>
       <input id="food" type="number" min="0" step="5" inputmode="numeric" aria-label="Food, € per person per day" hidden>
       <small class="foot" id="foodhint"></small>
     </div>
-    <button type="button" class="ghost" id="reset">Reset prices</button>
+    <button type="button" class="btn secondary resetbtn" id="reset"><span aria-hidden="true">↺</span> Reset prices</button>
     <div class="ctl destctl"><span>Resorts <em id="destcount" class="foot" style="font-style:normal;text-transform:none;letter-spacing:0"></em></span>
       <div class="chips" id="dests" role="group" aria-label="Choose resorts"></div>
     </div>

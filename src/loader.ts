@@ -3,6 +3,7 @@
 // per person). On a first visit the two games come first: the trip opens once both are done and it has
 // loaded. The answers go to the sheet (see trip.ts). ?loader=snow|duel|guess picks the card shown first.
 import { euro } from "./ui/render.ts";
+import { haptic } from "./ui/haptic.ts";
 
 export type Loader = "snow" | "duel" | "guess";
 const ORDER: Loader[] = ["snow", "duel", "guess"];
@@ -95,7 +96,7 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
       if (k < 1) requestAnimationFrame(step); else out.classList.add(cheaper ? "win" : "done");
     };
     requestAnimationFrame(step);
-    if (cheaper) confetti(guessCard);
+    if (cheaper) { confetti(guessCard); haptic([30, 50, 30, 50, 60]); }
   };
   const tryOpen = () => {
     const done = answers.length === QUESTIONS.length && locked;
@@ -123,7 +124,7 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
     // An answer: the chosen pill springs and fills with a tick, the other fades, then the next question slides in.
     const a = t.closest<HTMLElement>("[data-ans]");
     if (a && !duel.classList.contains("busy")) {
-      duel.classList.add("busy");
+      duel.classList.add("busy"); haptic(12);
       a.classList.add("picked"); a.insertAdjacentHTML("beforeend", `<span class="ld-tick">✓</span>`);
       duel.querySelectorAll(".ld-opt").forEach((b) => { if (b !== a) b.classList.add("dim"); });
       answers.push(a.dataset.ans!);
@@ -137,7 +138,7 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
       }, 420);
     }
     if (t.closest("[data-act='lock-guess']") && !locked) {
-      locked = true;
+      locked = true; haptic([15, 40, 15]);
       const b = guessCard.querySelector<HTMLElement>(".ld-lock")!;
       b.classList.add("locked"); b.textContent = `✓ ${euro(guess)} locked`;
       guessCard.querySelector("input")!.disabled = true;

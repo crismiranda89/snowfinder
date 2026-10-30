@@ -112,7 +112,8 @@ test("share link round-trip and sanitising", () => {
   assert.deepEqual(sanitize({ group: G(0, 4, "twin") }, 12).group, G(0, 4, "twin")); // 4 friends, a bed each
   assert.deepEqual(sanitize({ group: G(2, 3) }, 12).group, G(4, 1, "common")); // only the listed group setups exist
   assert.deepEqual(bad.edits, {});
-  assert.equal(bad.liftBand, "all"); assert.equal(sanitize({ liftBand: "5" }, 12).liftBand, "5"); assert.equal(sanitize({ liftBand: "x" }, 12).liftBand, "all");
+  assert.equal(bad.liftBand, "10"); assert.equal(sanitize({ liftBand: "5" }, 12).liftBand, "5"); assert.equal(sanitize({ liftBand: "x" }, 12).liftBand, "10"); // default: up to 10 min
+  assert.equal(bad.ground, "all"); assert.equal(sanitize({ ground: "car" }, 12).ground, "car"); assert.equal(bad.foodPlan, "one");
   assert.equal(bad.house, "all"); assert.equal(sanitize({ house: "budget" }, 12).house, "budget");
   assert.equal(sanitize({ limit: true }, 12).limit, false); // the transfer-time filter was removed
   assert.equal(decodeShare("#s=%%%garbage", 12), null);
@@ -205,4 +206,11 @@ test("house level All prices the stay at the median of every fitting house", () 
   const h = houses(SEASON, "aduk", sol, G(4, 1), 6);
   assert.equal(stayFromHouses(h, "all"), median(h.eligible.map((x) => x.total)));
   assert.equal(stayFromHouses(h, "budget"), h.tiers[0].median);
+});
+
+test("getting there: All takes the cheaper of rental car and transfer for each route", () => {
+  const opt = OPTIONS[0], base = { ...defaults(), group: G(4, 0, "common") };
+  const all = calc(SEASON, { ...base, ground: "all" }, opt, 6), car = calc(SEASON, { ...base, ground: "car" }, opt, 6), tr = calc(SEASON, { ...base, ground: "transfer" }, opt, 6);
+  assert.equal(all.groundTotal, Math.min(car.groundTotal, tr.groundTotal));
+  assert.equal(all.groundKind, car.groundTotal <= tr.groundTotal ? "car" : "transfer");
 });

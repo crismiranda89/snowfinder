@@ -2,7 +2,9 @@
 import { LISTINGS, OPTIONS, SEASON } from "./data.ts";
 import { range as seasonRange } from "./model/calendar.ts";
 import { GROUPS, decodeShare, encodeShare, load, save, type State } from "./state.ts";
-import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
+import { wireDecks } from "./ui/deck.ts";
+import { haptic } from "./ui/haptic.ts";
+import { rankOpen, renderQuickSum, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
 import { loadTrip, renderMyPick, renderTripsByGroup, tripSettings, wireTrip } from "./trip.ts";
 
@@ -30,7 +32,7 @@ function render() {
   // The grid's title shows the week picked in it, or "All dates" until one is tapped.
   $("gridTitle").querySelector("b")!.textContent = weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "All weeks";
   $("allWeeks").hidden = !weekChosen;
-  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTripsByGroup(state); renderTable(state);
+  renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTripsByGroup(state); renderQuickSum(state); renderTable(state);
 }
 function update(mut: (s: State) => void) { mut(state); save(state); render(); }
 
@@ -83,7 +85,7 @@ document.querySelectorAll<HTMLElement>("section.block").forEach((sec, i) => {
   const set = (closed: boolean) => { sec.classList.toggle("collapsed", closed); h2.setAttribute("aria-expanded", String(!closed)); };
   folds.set(key, set);
   set(folded.includes(key));
-  const toggle = () => fold(key, !sec.classList.contains("collapsed"));
+  const toggle = () => { haptic(6); fold(key, !sec.classList.contains("collapsed")); };
   h2.addEventListener("click", toggle);
   h2.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
 });
@@ -94,23 +96,28 @@ try { filters.open = localStorage.getItem("snowfinder-filters-open") === "1"; } 
 filters.addEventListener("toggle", () => { try { localStorage.setItem("snowfinder-filters-open", filters.open ? "1" : "0"); } catch { /* ignore */ } });
 wrapHeaders(".detail"); wrapHeaders(".cmp");
 
-seg("pattern", (s, v) => { s.pattern = v as State["pattern"]; });
 seg("days", (s, v) => { s.days = +v as 4 | 5; });
-seg("ground", (s, v) => { s.ground = v as State["ground"]; });
-seg("house", (s, v) => { s.house = v as State["house"]; });
+// The stacked-deck pickers (dates in the pinned bar, and Filters).
+const DECKS: Record<string, (s: State, v: string) => void> = {
+  pattern: (s, v) => { s.pattern = v as State["pattern"]; },
+  ground: (s, v) => { s.ground = v as State["ground"]; },
+  house: (s, v) => { s.house = v as State["house"]; },
+  lift: (s, v) => { s.liftBand = v as State["liftBand"]; },
+  foodPlan: (s, v) => { s.foodPlan = v as State["foodPlan"]; },
+};
+wireDecks((id, v) => { const set = DECKS[id]; if (set) update((s) => set(s, v)); });
 $("groupPreset").innerHTML = GROUPS.map((g) => `<option value="${g.id}">${g.label}</option>`).join("");
 $("groupPreset").addEventListener("change", (ev) => { const g = GROUPS.find((x) => x.id === (ev.target as HTMLSelectElement).value); if (g) update((s) => { s.group = { ...g.group }; }); });
-$("foodPlan").addEventListener("change", (ev) => update((s) => { s.foodPlan = (ev.target as HTMLSelectElement).value as State["foodPlan"]; }));
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
-seg("lift", (s, v) => { s.liftBand = v as State["liftBand"]; });
 $("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } });
-function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; update((s) => { s.week = +cell.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } }
+function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; haptic(8); update((s) => { s.week = +cell.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } }
 $("houseslede").addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest("[data-act='all-dates']")) { weekChosen = false; render(); } });
 // Choosing a house sets its week, and its quote's start day and length when it has one (trip.ts), so the
 // houses, grid and ranking all show those dates; its resort opens in the ranking.
 document.addEventListener("click", (ev) => {
   const b = (ev.target as HTMLElement).closest<HTMLElement>(".choose"); if (!b) return;
   const fromStep2 = !!b.closest("#houses-block");
+  haptic(12);
   weekChosen = true;
   const l = LISTINGS.find((x) => x.id === b.dataset.pick), d = l && OPTIONS.find((o) => o.resort === l.resort);
   if (d) { rankOpen.add("a:" + d.region); rankOpen.add("r:" + d.resort); }
@@ -121,6 +128,7 @@ document.addEventListener("click", (ev) => {
 // Step 3: choosing a flight for your house moves on to your pick (and the trip).
 document.addEventListener("click", (ev) => {
   const b = (ev.target as HTMLElement).closest<HTMLElement>("[data-act='pick-air']"); if (!b) return;
+  haptic(12);
   update((s) => { s.air = b.dataset.air; });
   advance("rank-block", "trip-block", "mypick");
 });
@@ -198,6 +206,8 @@ wireTrip(() => state, update, toast);
 // A trip link lands on the trip (step 5), below the steps.
 // A trip link shows the trip first: steps 1–3 fold for this visit, so the trip sits right under the header.
 const onTrip = !!new URLSearchParams(location.search).get("trip");
+// Coming back with a pick: steps 1–3 fold for this visit so your pick is on the first screen.
+if (!onTrip && state.pick) for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false);
 if (onTrip) { for (const k of ["grid-block", "houses-block", "rank-block"]) fold(k, true, false); fold("trip-block", false, false); }
 // Once it has loaded, jump to it (no animation) unless the visitor has already scrolled.
 // Straight to the trip, where the loading slider shows; once loaded, the slider glides the page down (loader.ts).

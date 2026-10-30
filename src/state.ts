@@ -27,7 +27,7 @@ export const groupId = (g: Group) => (GROUPS.find((x) => x.group.couples === g.c
 
 export function defaults(): State {
   return {
-    v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, liftBand: "all", foodPlan: "home", food: 40, beg: 0,
+    v: 1, pattern: "thu", week: 0, days: 4, ground: "all", limit: false, liftBand: "10", foodPlan: "one", food: 40, beg: 0,
     group: { ...GROUPS[0].group }, house: "all", dest: [], edits: {}, sort: {},
   };
 }
@@ -60,7 +60,7 @@ export function sanitize(raw: unknown, weeks: number): State {
     pattern: oneOf(r.pattern, ["wed", "thu", "fri"] as const, d.pattern) as PatternKey,
     week: int(r.week, 0, weeks - 1, 0),
     days: int(r.days, 4, 5, 4) as 4 | 5,
-    ground: oneOf(r.ground, ["car", "transfer"] as const, "car") as Ground,
+    ground: oneOf(r.ground, ["car", "transfer", "all"] as const, d.ground) as Ground,
     limit: false, // the transfer-time filter was removed; old links may still carry it
     liftBand: oneOf(r.liftBand, ["all", "ski", "5", "10"] as const, d.liftBand!) as LiftBand,
     foodPlan: oneOf(r.foodPlan, ["home", "one", "both", "custom"] as const, d.foodPlan!) as FoodPlan,

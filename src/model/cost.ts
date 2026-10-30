@@ -54,11 +54,13 @@ export function foodPerDay(s: Settings, d: Option): number {
 }
 
 export interface Parts { flight: number; ground: number; stay: number; pass: number; rent: number; food: number; lesson: number }
-export interface Calc { parts: Parts; pp: number; group: number; people: number; stayTotal: number; groundTotal: number; stay: StayInfo }
+export interface Calc { parts: Parts; pp: number; group: number; people: number; stayTotal: number; groundTotal: number; stay: StayInfo; groundKind: "car" | "transfer" }
 
 export function calc(season: Season, s: Settings, d: Option, w: number, listings: Listing[] = []): Calc {
   const p = people(s.group);
-  const groundTotal = s.ground === "car" ? val(season, s, d, "car", w) * cars(p) : val(season, s, d, "transfer", w) * transferFactor(p);
+  const car = val(season, s, d, "car", w) * cars(p), transfer = val(season, s, d, "transfer", w) * transferFactor(p);
+  const groundKind = s.ground === "all" ? (car <= transfer ? "car" : "transfer") : s.ground;
+  const groundTotal = groundKind === "car" ? car : transfer;
   const st = stay(season, s, d, w, listings);
   const parts: Parts = {
     flight: val(season, s, d, "flight", w),
@@ -70,5 +72,5 @@ export function calc(season: Season, s: Settings, d: Option, w: number, listings
     lesson: val(season, s, d, "lesson", w) * s.days * (+s.beg || 0) / p,
   };
   const pp = parts.flight + parts.ground + parts.stay + parts.pass + parts.rent + parts.food + parts.lesson;
-  return { parts, pp, group: pp * p, people: p, stayTotal: st.total, groundTotal, stay: st };
+  return { parts, pp, group: pp * p, people: p, stayTotal: st.total, groundTotal, stay: st, groundKind };
 }

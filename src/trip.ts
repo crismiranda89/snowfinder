@@ -9,6 +9,7 @@ import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary 
 import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
 import { loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
+import { haptic } from "./ui/haptic.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -154,7 +155,7 @@ function priceBreakdown(s: State, p: PickSummary) {
   const r = p.parts, n = p.people, days = s.days, nts = nights(SEASON, s.days);
   const lines: [string, string, number][] = [
     ["✈", `Flight Porto → ${p.option.air}, return with a bag`, r.flight],
-    [s.ground === "car" ? "🚗" : "🚐", s.ground === "car" ? `Rental car to the resort, shared (${Math.ceil(n / 5)} car${n > 5 ? "s" : ""} for ${n})` : `Transfer to the resort, shared by ${n}`, r.ground],
+    [p.groundKind === "car" ? "🚗" : "🚐", p.groundKind === "car" ? `Rental car to the resort, shared (${Math.ceil(n / 5)} car${n > 5 ? "s" : ""} for ${n})` : `Transfer to the resort, shared by ${n}`, r.ground],
     ["🏠", `House, ${nts} nights: ${euro(p.houseTotal)} split by ${n}`, r.stay],
     ["🎫", `Lift pass, ${days} days`, r.pass],
     ["🎿", `Ski or snowboard rental, ${days} days`, r.rent],
@@ -261,6 +262,7 @@ export async function addPick(s: State, toast: (m: string) => void) {
   catch (e) { toast(`Couldn't add your pick: ${(e as Error).message}`); }
 }
 async function vote(pick: string, s: State, toast: (m: string) => void) {
+  haptic(12);
   let name = myName();
   if (!name) { const a = await ask("Your name, to vote", null); if (!a) return; name = a.name; }
   try { await post({ action: "vote", trip: tripId(), name, pick }); await loadTrip(s, toast); }

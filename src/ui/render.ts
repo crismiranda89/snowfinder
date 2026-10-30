@@ -8,6 +8,7 @@ import { LEVEL_LABEL, LIFT_BANDS, TIER_LABEL, houses, nearLifts, priceFor, walkM
 import type { Field, Listing, Option, PatternKey, Resort, Tier } from "../types.ts";
 import { groupId, type State } from "../state.ts";
 import { applySort, sortBtn } from "./sort.ts";
+import { renderDeck } from "./deck.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 export function esc(s: unknown): string {
@@ -57,8 +58,6 @@ function shut(s: State, d: Option, w: number) { return isClosed(SEASON, d, s.pat
 // ---- header bits that only depend on the season
 export function renderStatic() {
   const o = SEASON.origin;
-  $("pattern").innerHTML = (Object.keys(SEASON.patterns) as (keyof typeof SEASON.patterns)[])
-    .map((k) => `<button type="button" data-v="${k}">${esc(SEASON.patterns[k].label)}</button>`).join("");
   $("origin").textContent = `${o.city} (${o.code})`;
   $("cmporigin").textContent = o.city;
   $("collected").textContent = `Season ${SEASON.season}. Estimates collected on ${fmt(new Date(SEASON.collected))} ${SEASON.collected.slice(0, 4)}. Check flights and houses with real dates before booking.`;
@@ -99,15 +98,18 @@ function renderCompareBody() {
 }
 
 export function renderControls(s: State) {
-  const segs: [string, string][] = [["pattern", s.pattern], ["days", String(s.days)], ["ground", s.ground], ["house", s.house], ["lift", s.liftBand || "all"]];
+  const segs: [string, string][] = [["days", String(s.days)]];
   for (const [id, v] of segs) $(id).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
   const setNum = (id: string, v: number) => { const el = $(id) as HTMLInputElement; if (document.activeElement !== el) el.value = String(v); };
   const first = dates(s, 0).a, last = dates(s, SEASON.weeks.length - 1).b, n = nights(SEASON, s.days), fd = foodDays(SEASON, s.days);
   $("eyebrow").textContent = `From ${SEASON.origin.city} · ${n} nights · ${fmt(first)} – ${fmt(last)} ${last.getUTCFullYear()}`;
-  $("pattern").querySelectorAll<HTMLButtonElement>("button").forEach((b) => { b.textContent = patternLabel(SEASON, b.dataset.v as State["pattern"], s.days); });
+  renderDeck($("pattern"), (Object.keys(SEASON.patterns) as State["pattern"][]).map((v) => ({ v, label: patternLabel(SEASON, v, s.days) })), s.pattern, "🗓");
+  renderDeck($("ground"), [{ v: "all", label: "All (cheapest)" }, { v: "car", label: "Rental car" }, { v: "transfer", label: "Transfer" }], s.ground);
+  renderDeck($("house"), (["all", "budget", "mid", "lux"] as const).map((v) => ({ v, label: LEVEL_LABEL[v] === "Any" ? "All" : LEVEL_LABEL[v] })), s.house);
+  renderDeck($("lift"), (["all", "ski", "5", "10"] as const).map((v) => ({ v, label: LIFT_BANDS[v].label })), s.liftBand || "all");
   $("fooddays").textContent = String(fd);
   const plan = s.foodPlan || "custom";
-  ($("foodPlan") as HTMLSelectElement).value = plan;
+  renderDeck($("foodPlan"), [...(Object.keys(FOOD_PLANS) as (keyof typeof FOOD_PLANS)[]).map((v) => ({ v, label: FOOD_PLANS[v].label })), { v: "custom", label: "Custom €/person/day" }], plan);
   ($("food") as HTMLInputElement).hidden = plan !== "custom";
   const perDay = OPTIONS.map((d) => foodPerDay(s, d));
   $("foodhint").textContent = plan === "custom" ? `× ${fd} days, arrival to departure`
@@ -117,7 +119,7 @@ export function renderControls(s: State) {
   const p = people(s.group);
   const food = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan].label : `food ${euro(s.food)}/day`;
   $("filtersum").textContent = [describe(s.group).replace(" · ", " (").replace(" · ", ", ") + ")", s.house === "all" ? "any house level" : `${LEVEL_LABEL[s.house]} house`, food.toLowerCase(),
-    s.ground === "car" ? "rental car" : "transfer", LIFT_BANDS[s.liftBand || "all"].text,
+    s.ground === "car" ? "rental car" : s.ground === "transfer" ? "transfer" : "", LIFT_BANDS[s.liftBand || "all"].text,
     s.dest.length ? `${s.dest.length} of ${RESORTS_FILE.resorts.length} resorts` : ""].filter(Boolean).join(" · ");
   const nh = fittingHouses(s).length;
   $("housecount").textContent = `${nh} house${nh === 1 ? "" : "s"} fit`;
@@ -247,7 +249,7 @@ export function renderRank(s: State, repo: string) {
   const rows = visible(s).filter((d) => !shut(s, d, w)).map((d) => ({ d, k: c(s, d, w) })).sort((a, b) => a.k.pp - b.k.pp);
   const max = Math.max(...rows.map((r) => r.k.pp), 1);
   const colors: Record<string, string> = { flight: "var(--c-flight)", ground: "var(--c-ground)", stay: "var(--c-stay)", pass: "var(--c-pass)", rent: "var(--c-rent)", food: "var(--c-food)", lesson: "var(--c-lesson)" };
-  const labels: Record<string, string> = { flight: "Flight", ground: s.ground === "car" ? "Car" : "Transfer", stay: "House", pass: "Lift pass", rent: "Rental", food: "Food", lesson: "Lessons (group average)" };
+  const labels: Record<string, string> = { flight: "Flight", ground: s.ground === "car" ? "Car" : s.ground === "transfer" ? "Transfer" : "Car / transfer", stay: "House", pass: "Lift pass", rent: "Rental", food: "Food", lesson: "Lessons (group average)" };
   type R = (typeof rows)[number];
   // "4h15 total (2h15 flight + 2h by road)"; road time alone when the flight time is unknown.
   const trip = (d: Option) => {
@@ -327,7 +329,7 @@ function card(s: State, x: Priced, label: string, selected: boolean, week?: numb
     `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
     (week != null ? `<span class="cheapwk">📅 Cheapest week: ${esc(seasonRange(SEASON, s.pattern, week, s.days).text)}</span>` : "") +
     `<div class="hprice"><b>${euro(x.pp)}</b><small>per person, house only · ${euro(x.total)} for the house</small></div>` +
-    (trip ? `<small class="allin">≈ <b>${euro(trip.best.pp)}</b> per person all in, flying to ${esc(trip.best.d.code)} (flight, ${s.ground === "car" ? "car" : "transfer"}, house, pass, rental, food)</small>` : "") +
+    (trip ? `<small class="allin">≈ <b>${euro(trip.best.pp)}</b> per person all in, flying to ${esc(trip.best.d.code)} (flight, ${trip.best.groundKind}, house, pass, rental, food)</small>` : "") +
     `<small>Quote for ${dates}${nq > 1 ? ` (+${nq - 1} more)` : ""}${x.exact ? "" : ", adjusted to this week's demand"}${l.notes ? " · " + esc(l.notes) : ""}</small>` +
     `<div class="hacts"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a>` +
     `<button type="button" class="choose" data-pick="${esc(l.id)}" data-week="${week ?? s.week}"${x.exact ? ` data-checkin="${esc(x.quote.checkin)}" data-nights="${x.quote.nights}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div></div></article>`;
@@ -484,14 +486,24 @@ export function renderHouseSection(s: State, view: HouseView, repo: string, allD
     g.xs.map((f) => card(s, f.x, f.r.name, false, f.week)).join("") + `</div></div>`).join("");
 }
 
+/** The pinned bar's summary: your pick's resort and price, or the cheapest resort this week ("from"). */
+export function renderQuickSum(s: State) {
+  const p = pickSummary(s);
+  if (p) { $("qbsum").innerHTML = `<span class="qb-res">📍 ${esc(p.resort.name)}</span><b class="qb-pp num">${euro(p.pp)}</b>`; $("qbsum").className = "qb-sum set"; return; }
+  const best = visible(s).filter((d) => !shut(s, d, s.week)).map((d) => ({ d, pp: c(s, d, s.week).pp })).sort((a, b) => a.pp - b.pp)[0];
+  $("qbsum").innerHTML = best ? `<span class="qb-res">📍 ${esc(best.d.name)}</span><b class="qb-pp num"><small>from</small> ${euro(best.pp)}</b>` : `<span class="qb-res">📍 —</span><b class="qb-pp">€ —</b>`;
+  $("qbsum").className = "qb-sum";
+}
+
 // ---- a person's pick: one house, priced with the cheapest way there under the current settings
 export interface PickSummary {
   listing: Listing; resort: Resort; option: Option; when: string; people: number;
   housePP: number; houseTotal: number; pp: number; group: number; walk: string;
   /** Every open way to fly there this week, cheapest first, priced all in with this house. */
-  flights: { d: Option; pp: number; parts: Calc["parts"] }[];
+  flights: { d: Option; pp: number; parts: Calc["parts"]; groundKind: Calc["groundKind"] }[];
   /** Per person cost of each part for the chosen flight, with this house. */
   parts: Calc["parts"];
+  groundKind: Calc["groundKind"];
 }
 /** The trip all in with house l in week w: the flight you chose (s.air) if it flies there, else the cheapest. */
 export function allIn(s: State, l: Listing, w: number) {
@@ -499,7 +511,7 @@ export function allIn(s: State, l: Listing, w: number) {
   if (!opts.length) return null;
   const p = people(s.group);
   const house = priceFor(SEASON, opts[0].mkt, l, w, nights(SEASON, s.days)).total;
-  const flights = opts.map((d) => { const k = c(s, d, w); return { d, pp: k.pp - k.parts.stay + house / p, parts: { ...k.parts, stay: house / p } }; }).sort((a, b) => a.pp - b.pp);
+  const flights = opts.map((d) => { const k = c(s, d, w); return { d, pp: k.pp - k.parts.stay + house / p, parts: { ...k.parts, stay: house / p }, groundKind: k.groundKind }; }).sort((a, b) => a.pp - b.pp);
   return { house, flights, best: flights.find((f) => f.d.id === s.air) || flights[0] };
 }
 export function pickSummary(s: State): PickSummary | null {
@@ -509,5 +521,5 @@ export function pickSummary(s: State): PickSummary | null {
   if (!l || !r || !a) return null;
   const p = people(s.group), house = a.house, best = a.best;
   const walk = l.toLiftM == null ? "distance to lifts not stated" : l.toLiftM <= 100 ? "ski in / ski out" : `${walkMins(l.toLiftM)} min walk to the lifts`;
-  return { listing: l, resort: r, option: best.d, when: dates(s, s.week).text, people: p, housePP: house / p, houseTotal: house, pp: best.pp, group: best.pp * p, walk, flights: a.flights, parts: best.parts };
+  return { listing: l, resort: r, option: best.d, when: dates(s, s.week).text, people: p, housePP: house / p, houseTotal: house, pp: best.pp, group: best.pp * p, walk, flights: a.flights, parts: best.parts, groundKind: best.groundKind };
 }

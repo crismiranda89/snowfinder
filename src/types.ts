@@ -3,7 +3,8 @@
 
 export type Level = 0 | 1 | 2 | 3;
 export type PatternKey = "wed" | "thu" | "fri";
-export type Ground = "car" | "transfer";
+/** How the group gets from the airport: rental car, transfer, or "all" (whichever is cheaper for each route). */
+export type Ground = "car" | "transfer" | "all";
 export type Tier = "budget" | "mid" | "lux";
 /** House level filter: one third of the fitting houses, or all of them. */
 export type HouseLevel = Tier | "all";
