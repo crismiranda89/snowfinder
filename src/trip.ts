@@ -3,7 +3,7 @@
 // through a small Apps Script web app (sheet/Code.gs); its URL comes from <meta name="snowfinder-api">.
 import { GROUPS, decodeShare, encodeShare, groupId, type State } from "./state.ts";
 import { RESORTS_FILE, SEASON } from "./data.ts";
-import { addDays, isoOf, nights } from "./model/calendar.ts";
+import { addDays, foodDays, isoOf, nights } from "./model/calendar.ts";
 import type { PatternKey } from "./types.ts";
 import { combinations, esc, euro, hm, pickSummary, resetCache, type PickSummary } from "./ui/render.ts";
 import { LISTINGS } from "./data.ts";
@@ -139,6 +139,23 @@ export function whatsappText(d: PickData, link: string): string {
   ].join("\n");
 }
 
+/** What makes up the price per person, one line each, adding up to the total. */
+function priceBreakdown(s: State, p: PickSummary) {
+  const r = p.parts, n = p.people, days = s.days, nts = nights(SEASON, s.days);
+  const lines: [string, string, number][] = [
+    ["✈", `Flight Porto → ${p.option.air}, return with a bag`, r.flight],
+    [s.ground === "car" ? "🚗" : "🚐", s.ground === "car" ? `Rental car to the resort, shared (${Math.ceil(n / 5)} car${n > 5 ? "s" : ""} for ${n})` : `Transfer to the resort, shared by ${n}`, r.ground],
+    ["🏠", `House, ${nts} nights: ${euro(p.houseTotal)} split by ${n}`, r.stay],
+    ["🎫", `Lift pass, ${days} days`, r.pass],
+    ["🎿", `Ski or snowboard rental, ${days} days`, r.rent],
+    ["🍽", `Food, ${foodDays(SEASON, s.days)} days`, r.food],
+  ];
+  return `<details class="mp-why"><summary>What's in ${euro(p.pp)} per person</summary><ul>` +
+    lines.filter(([, , v]) => v > 0).map(([i, t, v]) => `<li><span>${i} ${esc(t)}</span><b class="num">${euro(v)}</b></li>`).join("") +
+    `<li class="mp-total"><span>All in, per person</span><b class="num">${euro(p.pp)}</b></li></ul>` +
+    `<p class="foot">Prices for these dates, checked ${esc(SEASON.collected.slice(0, 10))}. Flights and houses move: check them before booking.</p></details>`;
+}
+
 // ---- the "Your pick" bar, shown once a house is chosen
 export function renderMyPick(s: State) {
   const box = $("mypick"), p = pickSummary(s);
@@ -147,13 +164,14 @@ export function renderMyPick(s: State) {
   // In a trip of the same group you add your pick to it; for another group you start (or open) that group's trip.
   const g = groupId(s.group), inTrip = !!tripId() && (!last || tripGroup() === g || !tripGroup()), own = myTrips()[g];
   box.innerHTML = `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
-    `<div class="mp-body"><span class="eyebrow">Your pick</span><b>${esc(p.listing.title)}</b>` +
+    `<div class="mp-body"><span class="eyebrow"><span class="step">4</span>Your pick</span><b>${esc(p.listing.title)}</b>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
     `<div class="mp-price"><b>${euro(p.pp)}</b><small>per person all in · ${euro(p.group)} group · house ${euro(p.housePP)} pp</small></div>` +
     `<label class="mp-air">✈ Flight <select id="mp-air">${p.flights.map((f) => {
       const t = SEASON.flightTimes[f.d.code];
       return `<option value="${esc(f.d.id)}"${f.d.id === p.option.id ? " selected" : ""}>${esc(f.d.air)}${t ? ` · ${hm(t.mins + f.d.mins)}` : ""} · ${euro(f.pp)} pp</option>`;
     }).join("")}</select></label></div>` +
+    priceBreakdown(s, p) +
     `<div class="mp-acts">${tripsReady()
       ? inTrip ? `<button type="button" class="btn" data-act="add-pick">Add my pick to the trip</button>`
         : own ? `<button type="button" class="btn" data-act="open-trip" data-trip="${esc(own)}">Open our ${esc(groupLabel(g).toLowerCase())} trip</button>`
@@ -374,7 +392,7 @@ function renderTrip(_s: State) {
   const rest = picks.filter((p) => p !== best && !p.data.foundBy && shown(p)).sort((a, b) => byPick(b.id).length - byPick(a.id).length);
   const waitingNote = (n: number, what: string) => n ? `<p class="foot">${n} ${what}${n > 1 ? "s" : ""} waiting for ${esc(trip.organizer)}'s OK.</p>` : "";
   const leader = [...picks].sort((a, b) => byPick(b.id).length - byPick(a.id).length)[0];
-  $("trip-title").textContent = trip.title ? `Our trip · ${trip.title}` : "Our trip";
+  $("trip-title").innerHTML = `<span class="step">5</span>${esc(trip.title ? `Our trip · ${trip.title}` : "Our trip")}`;
   // Keep the pressure visible: how many picks are still bookable, and loudly when the best one is gone.
   const checked = picks.filter((p) => p.status && p.status !== "unchecked");
   const free = checked.filter((p) => p.status !== "unavailable").length;

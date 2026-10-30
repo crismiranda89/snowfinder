@@ -57,23 +57,30 @@ function num(id: string, lo: number, hi: number, set: (s: State, v: number) => v
 
 renderStatic();
 // Every section folds when you tap its heading; which ones are folded is remembered (this browser only).
-// v2: everyone starts again from the defaults (week grid folded, houses open).
-const FOLD_KEY = "snowfinder-folded-v2";
+// v3: everyone starts again from the defaults (week grid and "Go deeper" folded, the rest open).
+const FOLD_KEY = "snowfinder-folded-v3";
 let folded: string[] = [];
-// By default only the week grid is folded: the houses below already cover every date.
-try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || '["grid-block"]'); } catch { /* private mode */ }
+try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || '["grid-block","deeper-block"]'); } catch { /* private mode */ }
+const folds = new Map<string, (closed: boolean) => void>();
+function fold(key: string, closed: boolean) {
+  folds.get(key)?.(closed);
+  folded = closed ? [...new Set([...folded, key])] : folded.filter((k) => k !== key);
+  try { localStorage.setItem(FOLD_KEY, JSON.stringify(folded)); } catch { /* ignore */ }
+}
+/** The steps run in order: picking in one folds it and opens the next, scrolled into view. */
+function advance(from: string, to: string | null, target: string) {
+  fold(from, true); if (to) fold(to, false);
+  requestAnimationFrame(() => document.getElementById(target)?.scrollIntoView({ block: "start", behavior: "smooth" }));
+}
 document.querySelectorAll<HTMLElement>("section.block").forEach((sec, i) => {
   const h2 = sec.querySelector<HTMLElement>(":scope > h2, :scope > .head > h2"); if (!h2) return;
   const key = sec.id || `section-${i}`;
   (h2.parentElement === sec ? h2 : h2.parentElement!).classList.add("sechead");
   h2.classList.add("fold"); h2.tabIndex = 0; h2.setAttribute("role", "button");
   const set = (closed: boolean) => { sec.classList.toggle("collapsed", closed); h2.setAttribute("aria-expanded", String(!closed)); };
+  folds.set(key, set);
   set(folded.includes(key));
-  const toggle = () => {
-    const closed = !sec.classList.contains("collapsed"); set(closed);
-    folded = closed ? [...new Set([...folded, key])] : folded.filter((k) => k !== key);
-    try { localStorage.setItem(FOLD_KEY, JSON.stringify(folded)); } catch { /* ignore */ }
-  };
+  const toggle = () => fold(key, !sec.classList.contains("collapsed"));
   h2.addEventListener("click", toggle);
   h2.addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
 });
@@ -93,8 +100,8 @@ $("groupPreset").addEventListener("change", (ev) => { const g = GROUPS.find((x) 
 $("foodPlan").addEventListener("change", (ev) => update((s) => { s.foodPlan = (ev.target as HTMLSelectElement).value as State["foodPlan"]; }));
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
 seg("lift", (s, v) => { s.liftBand = v as State["liftBand"]; });
-$("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); } });
-function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; update((s) => { s.week = +cell.dataset.w!; }); } }
+$("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } });
+function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; update((s) => { s.week = +cell.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } }
 $("houseslede").addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest("[data-act='all-dates']")) { weekChosen = false; render(); } });
 // Choosing a house sets its week, and its quote's start day and length when it has one (trip.ts), so the
 // houses, grid and ranking all show those dates; its resort opens in the ranking.
@@ -103,7 +110,15 @@ document.addEventListener("click", (ev) => {
   weekChosen = true;
   const l = LISTINGS.find((x) => x.id === b.dataset.pick), d = l && OPTIONS.find((o) => o.resort === l.resort);
   if (d) { rankOpen.add("a:" + d.region); rankOpen.add("r:" + d.resort); }
+  // After trip.ts has stored the pick: a house chosen (not un-chosen) moves on to its flights.
+  setTimeout(() => { if (state.pick === b.dataset.pick) advance("houses-block", "rank-block", d ? "rank-block" : "mypick"); });
 }, true);
+// Step 3: choosing a flight for your house moves on to your pick (and the trip).
+document.addEventListener("click", (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLElement>("[data-act='pick-air']"); if (!b) return;
+  update((s) => { s.air = b.dataset.air; });
+  advance("rank-block", "trip-block", "mypick");
+});
 $("heatbody").addEventListener("click", pickCell);
 $("allWeeks").addEventListener("click", () => { weekChosen = false; render(); });
 $("heatbody").addEventListener("keydown", (ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); pickCell(ev); } });
@@ -175,4 +190,5 @@ initSort(() => state, "cmp", () => save(state));
 render();
 applySort(state, "cmp");
 wireTrip(() => state, update, toast);
-loadTrip(state, toast);
+// A trip link lands on the trip (step 5), below the steps.
+loadTrip(state, toast).then(() => { if (new URLSearchParams(location.search).get("trip")) { fold("trip-block", false); $("trip-block").scrollIntoView({ block: "start" }); } });

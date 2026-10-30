@@ -36,18 +36,6 @@
     <h1>Ski trip cost, week by week</h1>
   </header>
 
-  <section class="block trip" id="trip-block" hidden>
-    <div class="head"><h2 id="trip-title">Our trip</h2></div>
-    <div id="trip-body"></div>
-  </section>
-
-  <div class="mypick" id="mypick" hidden aria-live="polite"></div>
-
-  <section class="block" id="trips-block" hidden>
-    <div class="head"><h2>🎿 Trips by group</h2></div>
-    <div class="tg" id="tripsbygroup"></div>
-  </section>
-
   <dialog id="askdlg" class="askdlg">
     <form method="dialog">
       <h3 id="ask-title">Your name</h3>
@@ -102,7 +90,7 @@
   </details>
 
   <section class="block" id="grid-block">
-    <div class="head"><h2 id="gridTitle"><span class="gt-lead">❄️ Week of your dreams:</span> <b>All weeks</b> 🎿</h2><button type="button" class="linkbtn keep" id="allWeeks" hidden>Show all weeks</button>
+    <div class="head"><h2 id="gridTitle"><span class="step">1</span><span class="gt-lead">❄️ Week of your dreams:</span> <b>All weeks</b> 🎿</h2><button type="button" class="linkbtn keep" id="allWeeks" hidden>Show all weeks</button>
       <div class="hl"><span><i style="background:var(--h0)"></i>cheapest</span><span><i style="background:var(--h1)"></i></span><span><i style="background:var(--h2)"></i></span><span><i style="background:var(--h3)"></i>priciest</span><span><i style="background:transparent;box-shadow:inset 0 0 0 2px var(--ok)"></i>area's best week</span><span><i style="background:repeating-linear-gradient(45deg,var(--soft) 0 3px,var(--surface) 3px 6px);border:1px solid var(--line)"></i>all resorts closed</span><span><i style="background:transparent;box-shadow:inset 0 -3px 0 var(--bad)"></i>weak spring snow</span></div>
     </div>
     <div class="gridbox"><table class="heat"><thead id="heathead"></thead><tbody id="heatbody"></tbody></table></div>
@@ -111,15 +99,15 @@
   </section>
 
   <section class="block" id="houses-block">
-    <div class="head"><h2>Houses for your group</h2>
+    <div class="head"><h2><span class="step">2</span>Houses for your group</h2>
       <div class="seg" id="houseView" role="group" aria-label="Group houses by"><button type="button" data-v="price">By price</button><button type="button" data-v="distance">By distance to lifts</button></div>
     </div>
     <p class="foot" id="houseslede" aria-live="polite"></p>
     <div id="housegroups"></div>
   </section>
 
-  <section class="block">
-    <div class="head"><h2 id="rankTitle">This week's ranking</h2>
+  <section class="block" id="rank-block">
+    <div class="head"><h2 id="rankTitle"><span class="step">3</span>Flights and others</h2>
       <div class="legend">
         <span><i style="background:var(--c-flight)"></i>Flight</span>
         <span><i style="background:var(--c-ground)"></i>Car / transfer</span>
@@ -132,6 +120,22 @@
     <div class="rank" id="rank"></div>
   </section>
 
+  <div class="mypick" id="mypick" hidden aria-live="polite"></div>
+
+  <section class="block trip" id="trip-block" hidden>
+    <div class="head"><h2 id="trip-title"><span class="step">5</span>Our trip</h2></div>
+    <div id="trip-body"></div>
+  </section>
+
+  <section class="block" id="trips-block" hidden>
+    <div class="head"><h2>🎿 Trips by group</h2></div>
+    <div class="tg" id="tripsbygroup"></div>
+  </section>
+
+  <section class="block" id="deeper-block">
+    <div class="head"><h2>Go deeper 😉</h2></div>
+    <p class="foot">Which resort suits whom, the full comparison, every price for the week (editable) and how it all works.</p>
+    <div class="deeper">
   <section class="block">
     <h2>Which resort suits whom</h2>
     <p class="foot">What each resort is best for, and what friends who don't ski or snowboard can do there.</p>
@@ -190,7 +194,7 @@
       <ul>
         <li>Groups: 4 couples + 1 friend (9 people, 4 bedrooms: the friend sleeps on a sofa bed in the living room), 4 couples (8 people, 4 bedrooms) 3 couples (6 people, 3 bedrooms), or 4 friends with no couples in their own rooms (4 bedrooms) sharing 2 rooms, or 4 separate beds in any rooms (the listing must say it has 4 beds, or have 4 bedrooms). One bedroom per couple; a house fits if it sleeps everyone and has the bedrooms needed, up to 2 more.</li>
         <li>House: the median price of the houses in the chosen level that fit your group (enough bedrooms and beds). Houses are split into the cheapest, middle and priciest third. With no fitting houses listed, the price is estimated from a 2-bedroom flat, scaled by bedrooms<sup>0.9</sup>.</li>
-        <li>Houses are listed inside each resort in the ranking. “Within a 10-min walk of the lifts” keeps only houses whose listed distance is a 10-minute walk or less (at 75 m a minute in ski boots, so about 750 m); houses with no distance listed are left out.</li>
+        <li>Houses are listed inside each resort in “Flights and others”. “Walk to the lifts” keeps houses whose listed distance is in the band: ski in / ski out (100 m or less), up to 5 min (375 m) or up to 10 min (750 m), at 75 m a minute in ski boots. With a band set, houses with no distance listed are left out; “All” keeps every house.</li>
         <li>Rental car: one car per 5 people. Transfer: one vehicle per 8 people, and a 5–8 seat van costs about 40% more than a car transfer.</li>
         <li>Food per person per day × <span id="fooddays">6</span> days (one more than the nights, arrival to departure), priced from each resort’s meal-out cost in the comparison: cooking at home with slope snacks is about 0.6 of a meal out, one meal out a day about 1.4, lunch and dinner out about 2.2 (the rest is groceries and snacks). Or pick Custom and set your own daily amount.</li>
         <li>Flights are from <span id="origin">Porto</span>, direct with one checked bag. Unconfirmed: Porto–Chambéry; Porto–Memmingen (Ryanair, ~5 a week) and Porto–Turin (Ryanair) exist but may not fly on winter dates.</li>
@@ -202,6 +206,8 @@
       <ul id="sources"></ul>
     </section>
   </div>
+    </div>
+  </section>
 
   <footer class="sitefoot">
     <div class="stylepick"><span>Page style</span><div class="seg" id="pageStyle" role="group" aria-label="Page style"><button type="button" data-v="classic">Classic</button><button type="button" data-v="piste">Piste</button><button type="button" data-v="apres">Après</button></div></div>

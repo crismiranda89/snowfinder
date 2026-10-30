@@ -353,7 +353,6 @@ tr.dimrow td{opacity:.45}
 [data-style="piste"] .wrap{max-width:780px;gap:0;counter-reset:sec}
 [data-style="piste"] .wrap>*{padding-block:22px}
 [data-style="piste"] section.block{border-top:2px solid var(--ink);counter-increment:sec}
-[data-style="piste"] section.block>.head>h2::after,[data-style="piste"] section.block>h2::after{content:" " counter(sec,decimal-leading-zero);font-size:.55em;color:var(--muted);font-weight:400;vertical-align:.5em;margin-left:.3em}
 [data-style="piste"] h1{font-size:clamp(2.2rem,7vw,3.6rem);font-weight:600;letter-spacing:-.02em;font-style:italic}
 [data-style="piste"] h2{font-weight:600;letter-spacing:-.01em;font-size:1.75rem}
 [data-style="piste"] .hcard,[data-style="piste"] .fitcard,[data-style="piste"] .filters,[data-style="piste"] .mypick,[data-style="piste"] .tmsg,[data-style="piste"] .tpick{border-radius:0;border-color:var(--ink);box-shadow:none}
@@ -415,3 +414,15 @@ tr.dimrow td{opacity:.45}
 .tg-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
 .tg-list{list-style:none;margin:0;padding:0;display:grid;gap:2px}
 .tg-row .btn{padding:4px 10px;font-size:.8rem}
+/* NEW · numbered steps, "Go deeper", pick price breakdown, flight choice in the ranking */
+.step{display:inline-grid;place-items:center;min-width:1.35em;height:1.35em;margin-right:.4em;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-body);font-size:.62em;font-weight:700;vertical-align:.18em;-webkit-text-fill-color:var(--accent-ink)}
+.eyebrow .step{font-size:.85em;vertical-align:0}
+section.block,.mypick{scroll-margin-top:96px}
+.deeper{display:grid;gap:30px}
+.mp-why{grid-column:1/-1;border-top:1px solid var(--line);padding-top:8px}
+.mp-why>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+.mp-why ul{list-style:none;margin:8px 0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:4px}
+.mp-why li{display:flex;justify-content:space-between;gap:12px;font-size:.9rem}
+.mp-why li span{min-width:0}
+.mp-why li.mp-total{border-top:1px solid var(--line);padding-top:6px;font-weight:700}
+.flypick{margin-top:6px;padding:4px 10px;font-size:.8rem}

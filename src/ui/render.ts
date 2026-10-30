@@ -242,7 +242,7 @@ let rankSeeded = false;
 
 export function renderRank(s: State, repo: string) {
   const w = s.week;
-  $("rankTitle").textContent = "Ranking · " + dates(s, w).text;
+  $("rankTitle").innerHTML = `<span class="step">3</span>Flights and others · ${esc(dates(s, w).text)}`;
   const closed = visible(s).filter((d) => shut(s, d, w));
   const rows = visible(s).filter((d) => !shut(s, d, w)).map((d) => ({ d, k: c(s, d, w) })).sort((a, b) => a.k.pp - b.k.pp);
   const max = Math.max(...rows.map((r) => r.k.pp), 1);
@@ -262,10 +262,15 @@ export function renderRank(s: State, repo: string) {
     return `<div class="tot num">${xs.length > 1 ? "<small>from</small>" : ""}<b>${euro(lo.pp)}</b><small>${xs.length > 1 && Math.round(hi.pp) > Math.round(lo.pp) ? `to ${euro(hi.pp)}` : `${euro(lo.group)} group`}</small></div>`;
   };
   // Under its resort a flight row is named by airport; on its own (one-airport resort) by resort.
+  // With your house picked at this resort, each flight row lets you choose that flight for the trip.
+  const mine = s.pick ? LISTINGS.find((l) => l.id === s.pick) : undefined;
+  const myFlight = mine ? allIn(s, mine, w)?.best.d.id : undefined;
+  const flyBtn = (d: Option) => mine && mine.resort === d.resort
+    ? `<button type="button" class="btn${myFlight === d.id ? "" : " secondary"} flypick" data-act="pick-air" data-air="${esc(d.id)}" aria-pressed="${myFlight === d.id}">${myFlight === d.id ? "✓ Your flight" : "Fly this way"}</button>` : "";
   const flight = (x: R, underResort = false) => `<div class="row opt"><div class="who">` +
     (underResort ? `<b>✈ ${esc(x.d.air)}</b><small>${trip(x.d)} to ${esc(x.d.name)} · ${x.d.km} km</small>`
       : `<b>${esc(x.d.name)}</b><small>via ${esc(x.d.air)} · ${trip(x.d)} · ${x.d.km} km · ${esc(x.d.alt)}</small>`) +
-    `<div class="tags">${pills(s, x.d, x.k, w)}</div></div>` +
+    `<div class="tags">${pills(s, x.d, x.k, w)}</div>${flyBtn(x.d)}</div>` +
     bar(x, `${x.d.name} via ${x.d.air}`) + tot([x]) + "</div>";
   const group = (key: string, cls: string, who: string, xs: R[], label: string, kids: string) =>
     `<details class="grp ${cls}" data-k="${esc(key)}"${rankOpen.has(key) ? " open" : ""}><summary class="row"><div class="who">${who}</div>${bar(xs[0], label)}${tot(xs)}</summary><div class="kids">${kids}</div></details>`;
@@ -484,7 +489,9 @@ export interface PickSummary {
   listing: Listing; resort: Resort; option: Option; when: string; people: number;
   housePP: number; houseTotal: number; pp: number; group: number; walk: string;
   /** Every open way to fly there this week, cheapest first, priced all in with this house. */
-  flights: { d: Option; pp: number }[];
+  flights: { d: Option; pp: number; parts: Calc["parts"] }[];
+  /** Per person cost of each part for the chosen flight, with this house. */
+  parts: Calc["parts"];
 }
 /** The trip all in with house l in week w: the flight you chose (s.air) if it flies there, else the cheapest. */
 export function allIn(s: State, l: Listing, w: number) {
@@ -492,7 +499,7 @@ export function allIn(s: State, l: Listing, w: number) {
   if (!opts.length) return null;
   const p = people(s.group);
   const house = priceFor(SEASON, opts[0].mkt, l, w, nights(SEASON, s.days)).total;
-  const flights = opts.map((d) => { const k = c(s, d, w); return { d, pp: k.pp - k.parts.stay + house / p }; }).sort((a, b) => a.pp - b.pp);
+  const flights = opts.map((d) => { const k = c(s, d, w); return { d, pp: k.pp - k.parts.stay + house / p, parts: { ...k.parts, stay: house / p } }; }).sort((a, b) => a.pp - b.pp);
   return { house, flights, best: flights.find((f) => f.d.id === s.air) || flights[0] };
 }
 export function pickSummary(s: State): PickSummary | null {
@@ -502,5 +509,5 @@ export function pickSummary(s: State): PickSummary | null {
   if (!l || !r || !a) return null;
   const p = people(s.group), house = a.house, best = a.best;
   const walk = l.toLiftM == null ? "distance to lifts not stated" : l.toLiftM <= 100 ? "ski in / ski out" : `${walkMins(l.toLiftM)} min walk to the lifts`;
-  return { listing: l, resort: r, option: best.d, when: dates(s, s.week).text, people: p, housePP: house / p, houseTotal: house, pp: best.pp, group: best.pp * p, walk, flights: a.flights };
+  return { listing: l, resort: r, option: best.d, when: dates(s, s.week).text, people: p, housePP: house / p, houseTotal: house, pp: best.pp, group: best.pp * p, walk, flights: a.flights, parts: best.parts };
 }
