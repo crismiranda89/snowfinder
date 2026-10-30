@@ -1,7 +1,9 @@
 // Shared trips: one organiser creates a trip from their pick, friends open the link, vote, add their own
 // pick or post "I have a better option" (text, links, screenshots) for review. Stored in a Google Sheet
 // through a small Apps Script web app (sheet/Code.gs); its URL comes from <meta name="snowfinder-api">.
-import { GROUPS, decodeShare, encodeShare, groupFromId, groupId, groupLabel, type State } from "./state.ts";
+import { GROUPS, decodeShare, encodeShare, groupFromId, groupId, groupLabel, normGroup, type State } from "./state.ts";
+import type { Group } from "./types.ts";
+import { renderDeck } from "./ui/deck.ts";
 import { RESORTS_FILE, SEASON } from "./data.ts";
 import { addDays, foodDays, isoOf, nights, range as seasonRange } from "./model/calendar.ts";
 import type { PatternKey } from "./types.ts";
@@ -257,27 +259,96 @@ export function renderMyPick(s: State) {
     `<button type="button" class="ghost" data-act="clear-pick">Clear</button></div>`;
 }
 
-// ---- "Trips by group": one row per group setup, with the trips this browser created or opened
+// ---- "Top trips": the trips you can open, picked by group like in Filters. Couples and solo friends step
+// only through numbers some trip has, and "where solo friends sleep" offers only the setups that have a trip.
+// The organiser's own trips and the AI picks are listed for everyone; trips made or opened on this phone join them.
+const FEATURED: { id: string; group: string; title: string; organizer: string; pp: number }[] = [
+  { id: "50a313cf26", group: "4c", title: "4 couples · Thu 4 Mar → Tue 9 Mar", organizer: "Cristiano Miranda", pp: 999 },
+  { id: "d44e47ce74", group: "4c", title: "4 couples · Thu 21 Jan → Tue 26 Jan", organizer: "AI pick (4 couples, comfort)", pp: 1152 },
+  { id: "0353ac0c5a", group: "3c", title: "3 couples · Thu 4 Feb → Tue 9 Feb", organizer: "AI pick (3 couples with kids)", pp: 985 },
+  { id: "f1f08c874d", group: "4c1", title: "4 couples + 1 friend (living room) · Thu 21 Jan → Tue 26 Jan", organizer: "AI pick (big group, après on a budget)", pp: 979 },
+  { id: "95ac83b511", group: "4t", title: "4 friends, no couples (sharing 2 rooms) · Thu 21 Jan → Wed 27 Jan", organizer: "AI pick (4 male friends, focus on snow)", pp: 1286 },
+  { id: "7de88c642a", group: "4s", title: "4 friends, no couples (own rooms) · Thu 21 Jan → Tue 26 Jan", organizer: "AI pick (4 friends, nightlife)", pp: 1504 },
+  { id: "a34b374851", group: "4b", title: "4 friends, 4 separate beds (any rooms) · Thu 28 Jan → Tue 2 Feb", organizer: "AI pick (4 friends, cheapest)", pp: 904 },
+];
+type Sleep = "none" | "sofa" | "shared" | "own" | "twin" | "shared+sofa" | "own+sofa" | "twin+sofa";
+const SLEEP_LABEL: Record<Sleep, string> = {
+  none: "", sofa: "Sofa bed", shared: "Share a room", own: "Own room", twin: "Own bed, any room",
+  "shared+sofa": "Share a room + sofa bed", "own+sofa": "Own room + sofa bed", "twin+sofa": "Own bed + sofa bed",
+};
+const sleepOf = (g0: Group): Sleep => {
+  const g = normGroup(g0), r = g.soloRooms as "shared" | "own" | "twin"; // normGroup leaves no "common"
+  return !g.solo ? "none" : g.livingRoom ? (g.solo === 1 ? "sofa" : `${r}+sofa` as Sleep) : r;
+};
+/** What the Top trips pickers show: starts on your own group, then follows the − / + and the sleeping deck. */
+let topPick: { couples: number; solo: number; sleep: Sleep } | null = null;
+
+interface TopTrip { id: string; g: Group; when: string; organizer: string; pp: number | null; yours: boolean }
+function topTrips(): TopTrip[] {
+  const seen = seenTrips(), mine = myTrips(), out = new Map<string, TopTrip>();
+  const yours = new Set(Object.values(mine));
+  for (const f of FEATURED) {
+    const g = groupFromId(f.group); if (!g) continue;
+    out.set(f.id, { id: f.id, g, when: f.title.split(" · ").slice(1).join(" · "), organizer: f.organizer, pp: f.pp, yours: yours.has(f.id) });
+  }
+  for (const [gid, id] of Object.entries(mine)) if (!seen[id]) seen[id] = { group: gid, title: "", organizer: "", at: 0 };
+  for (const [id, t] of Object.entries(seen)) {
+    const g = groupFromId(t.group); if (!g || out.has(id)) continue;
+    out.set(id, { id, g, when: t.title.split(" · ").slice(1).join(" · "), organizer: t.organizer, pp: null, yours: yours.has(id) });
+  }
+  return [...out.values()];
+}
+export function setTopTrips(k: "couples" | "solo" | "sleep", v: number | string, s: State) {
+  const all = topTrips(); if (!topPick) return;
+  if (k === "sleep") topPick.sleep = v as Sleep;
+  else {
+    // − / + jump to the next number that has a trip; the other pickers follow to something that exists.
+    const vals = [...new Set(all.filter((t) => k === "couples" || t.g.couples === topPick!.couples).map((t) => t.g[k]))].sort((a, b) => a - b);
+    const i = vals.indexOf(topPick[k]), next = vals[Math.min(vals.length - 1, Math.max(0, i + (v as number)))];
+    if (next == null) return;
+    topPick[k] = next;
+  }
+  renderTripsByGroup(s);
+}
 export function renderTripsByGroup(s: State) {
   const box = document.getElementById("tripsbygroup"); if (!box) return;
   const block = $("trips-block");
   block.hidden = !tripsReady(); if (block.hidden) return;
-  const seen = seenTrips(), mine = myTrips(), here = tripId();
-  for (const [g, id] of Object.entries(mine)) if (!seen[id]) seen[id] = { group: g, title: "", organizer: "", at: 0 };
-  const cur = groupId(s.group);
-  // The named setups, then any other group this browser has a trip for or is planning now.
-  const ids = [...new Set([...GROUPS.map((g) => g.id), ...Object.values(seen).map((t) => t.group).filter(Boolean), cur])];
-  box.innerHTML = ids.map((id) => ({ id, label: groupLabel(id) })).map((g) => {
-    const trips = Object.entries(seen).filter(([, t]) => t.group === g.id).sort((a, b) => b[1].at - a[1].at);
-    const list = trips.map(([id, t]) => {
-      const when = t.title.split(" · ").slice(1).join(" · ");
-      return `<li><button type="button" class="linkbtn" data-act="open-trip" data-trip="${esc(id)}">${esc(when || "Open the trip")}</button>` +
-        `<span class="foot">${t.organizer ? ` by ${esc(t.organizer)}` : ""}${mine[g.id] === id ? " · yours" : ""}${id === here ? " · open now" : ""}</span></li>`;
-    }).join("");
-    return `<div class="tg-row${g.id === cur ? " on" : ""}"><div class="tg-top"><b>${esc(g.label)}</b>` +
-      (trips.length ? "" : `<button type="button" class="btn secondary" data-act="start-group" data-g="${esc(g.id)}">Start one</button>`) + `</div>` +
-      (list ? `<ul class="tg-list">${list}</ul>` : `<span class="foot">No trip yet.</span>`) + `</div>`;
-  }).join("") + `<p class="foot">Trips you created or opened on this phone. One trip per group: “Start one” sets the group, then choose a house and “Create a trip”.</p>`;
+  const all = topTrips(), here = tripId();
+  if (!all.length) { box.innerHTML = `<p class="foot">No trips yet. Choose a house, then “Create a trip”.</p>`; return; }
+  // Start on your own group when it has trips, else on the first one; then keep every picker on a value that exists.
+  if (!topPick) {
+    const g = normGroup(s.group), mineG = all.find((t) => groupId(t.g) === groupId(g))?.g || all[0].g;
+    topPick = { couples: mineG.couples, solo: mineG.solo, sleep: sleepOf(mineG) };
+  }
+  const tp = topPick;
+  const couplesVals = [...new Set(all.map((t) => t.g.couples))].sort((a, b) => a - b);
+  if (!couplesVals.includes(tp.couples)) tp.couples = couplesVals[0];
+  const byC = all.filter((t) => t.g.couples === tp.couples);
+  const soloVals = [...new Set(byC.map((t) => t.g.solo))].sort((a, b) => a - b);
+  if (!soloVals.includes(tp.solo)) tp.solo = soloVals[0];
+  const byS = byC.filter((t) => t.g.solo === tp.solo);
+  const sleeps = [...new Set(byS.map((t) => sleepOf(t.g)))];
+  if (!sleeps.includes(tp.sleep)) tp.sleep = sleeps[0];
+  const list = byS.filter((t) => sleepOf(t.g) === tp.sleep).sort((a, b) => (a.pp ?? 1e9) - (b.pp ?? 1e9));
+  const stepper = (k: "couples" | "solo", vals: number[], label: string) => {
+    const i = vals.indexOf(tp[k]);
+    return `<div class="ctl"><span>${label}</span><div class="stepper" data-tk="${k}">` +
+      `<button type="button" data-tstep="-1" aria-label="Fewer ${label.toLowerCase()}"${i <= 0 ? " disabled" : ""}>−</button><b>${tp[k]}</b>` +
+      `<button type="button" data-tstep="1" aria-label="More ${label.toLowerCase()}"${i >= vals.length - 1 ? " disabled" : ""}>+</button></div></div>`;
+  };
+  const medal = ["🥇", "🥈", "🥉"];
+  box.innerHTML = `<div class="groupctl tg-pick">${stepper("couples", couplesVals, "Couples")}${stepper("solo", soloVals, "Solo friends")}` +
+    (tp.sleep !== "none" ? `<div class="ctl"><span>Solo friends sleep</span><div id="tg-sleep"></div></div>` : "") + `</div>` +
+    `<ol class="tg-list">${list.map((t, i) => {
+      const who = /^AI pick/i.test(t.organizer) ? `🤖 ${esc(t.organizer)}` : t.organizer ? `👋 ${esc(t.organizer)}` : "";
+      return `<li class="tg-row${t.id === here ? " on" : ""}"><span class="tg-medal" aria-hidden="true">${medal[i] || "🎿"}</span>` +
+        `<div class="tg-body"><b>${esc(t.when || "A trip")}</b><span class="foot">${who}${t.yours ? " · yours" : ""}${t.id === here ? " · open now" : ""}</span></div>` +
+        (t.pp ? `<span class="tg-pp">${euro(t.pp)} <small>pp</small></span>` : "") +
+        `<button type="button" class="btn secondary" data-act="open-trip" data-trip="${esc(t.id)}">Open</button></li>`;
+    }).join("")}</ol>` +
+    `<p class="foot">Cheapest first, per person all in. Your group isn't here? Set it in Filters, choose a house and “Create a trip”.</p>`;
+  if (tp.sleep !== "none") renderDeck($("tg-sleep"), sleeps.map((v) => ({ v, label: SLEEP_LABEL[v] })), tp.sleep);
 }
 
 // ---- the dialog that asks for a name (and a reason when making a pick)
@@ -639,6 +710,8 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       });
       return;
     }
+    const ts = t.closest<HTMLElement>("[data-tstep]");
+    if (ts) { setTopTrips(ts.closest<HTMLElement>("[data-tk]")!.dataset.tk as "couples" | "solo", +ts.dataset.tstep!, getState()); haptic(8); return; }
     const act = t.closest<HTMLElement>("[data-act]")?.dataset.act;
     if (act === "create-trip") createTrip(getState(), toast);
     else if (act === "add-pick") addPick(getState(), toast);

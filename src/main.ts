@@ -6,7 +6,7 @@ import { wireDecks } from "./ui/deck.ts";
 import { haptic } from "./ui/haptic.ts";
 import { rankOpen, renderQuickSum, renderHouseSection, type HouseView, renderControls, renderDests, renderHeat, renderRank, renderStatic, renderTable, renderWeeks, resetCache } from "./ui/render.ts";
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
-import { loadTrip, renderMyPick, renderTripsByGroup, tripSeen, tripSettings, wireTrip } from "./trip.ts";
+import { loadTrip, renderMyPick, renderTripsByGroup, setTopTrips, tripSeen, tripSettings, wireTrip } from "./trip.ts";
 
 const REPO = (document.getElementById("githubLink") as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
 const WEEKS = SEASON.weeks.length;
@@ -106,7 +106,10 @@ const DECKS: Record<string, (s: State, v: string) => void> = {
   foodPlan: (s, v) => { s.foodPlan = v as State["foodPlan"]; },
   rooms: (s, v) => { s.group = normGroup({ ...s.group, soloRooms: v as State["group"]["soloRooms"] }); },
 };
-wireDecks((id, v) => { const set = DECKS[id]; if (set) update((s) => set(s, v)); });
+wireDecks((id, v) => {
+  if (id === "tg-sleep") return setTopTrips("sleep", v, state);
+  const set = DECKS[id]; if (set) update((s) => set(s, v));
+});
 // Cost bars: a tap (touch) opens the breakdown without opening or closing the resort; tap again or elsewhere to
 // close. On a mouse, hovering a part of the bar highlights its line in the breakdown.
 document.addEventListener("click", (ev) => {

@@ -407,12 +407,18 @@ tr.dimrow td{opacity:.45}
 .tv-pc{list-style:none;margin:4px 0 0;padding:0;display:grid;gap:2px;font-size:.88rem}
 .tv-pc .con{color:var(--muted)}
 /* NEW · trips by group */
-.tg{display:grid;gap:8px}
-.tg-row{display:grid;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.tg{display:grid;gap:10px}
+.tg-pick{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.tg-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.tg-row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
 .tg-row.on{border-color:var(--accent)}
-.tg-top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.tg-list{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.tg-row .btn{padding:4px 10px;font-size:.8rem}
+.tg-medal{font-size:1.4rem;line-height:1}
+.tg-body{display:grid;gap:2px;flex:1;min-width:0}
+.tg-body .foot{overflow-wrap:anywhere}
+.tg-pp{font-weight:700;white-space:nowrap}
+.tg-pp small{font-weight:400;color:var(--muted)}
+.tg-row .btn{padding:6px 12px;font-size:.8rem}
+.stepper button:disabled{opacity:.3;cursor:default}
 /* NEW · numbered steps, "Go deeper", pick price breakdown, flight choice in the ranking */
 .step{display:inline-grid;place-items:center;min-width:1.35em;height:1.35em;margin-right:.4em;border-radius:999px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-body);font-size:.62em;font-weight:700;vertical-align:.18em;-webkit-text-fill-color:var(--accent-ink)}
 .eyebrow .step{font-size:.85em;vertical-align:0}
@@ -518,6 +524,7 @@ section.block,.mypick{scroll-margin-top:96px}
 [data-style="neo"] .hprice b,[data-style="neo"] .tot b,[data-style="neo"] .mp-price b,[data-style="neo"] .ld-val{font-weight:800;letter-spacing:-.04em}
 [data-style="neo"] .mp-price b{font-size:2rem}
 [data-style="neo"] .step{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-text-fill-color:#fff}
+.step.emo,[data-style="neo"] .step.emo{background:none;font-size:.9em;-webkit-text-fill-color:initial}
 [data-style="neo"] .hphoto .tier,[data-style="neo"] .hphoto .hrate{background:rgba(0,0,0,.6);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 [data-style="neo"] .ld-opt{background:var(--surface)}
 [data-style="neo"] .ld-opt.picked,[data-style="neo"] .ld-lock{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
