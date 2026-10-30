@@ -56,9 +56,10 @@ rest of the site works the same.
 7. **Games** (`#pick-games`): as soon as the name is saved, two quick games play right under the pick while
    the sheet saves it (`playGames(title, saving)`). When both are done and the save is in, the price reveal
    plays, the games are removed, the result lines move into `#trip-loader`, and step 4 opens.
-8. **Step 4 Confirm availability** (`#trip-block`): trip name, availability dot (red "not checked yet" or
-   green "checked · X of Y still free"), votes with a red/green check dot per pick, "📣 Share voting with
-   your friends" (group-chat message, vote update, challenge another group), pick cards.
+8. **Step 4 Confirm availability** (`#trip-block`): "Share on WhatsApp" and "Copy text" on top (the
+   group-chat message, no text box), trip name, availability dot (red "not checked yet" or green
+   "checked · X of Y still free"), votes: each pick with its check dot, pros and cons, "Vote for this"
+   and "View listing". No separate pick cards.
 9. **🏅 Top picks** (`#trips-block`): featured trips (`FEATURED` in `trip.ts`) plus trips this browser has
    seen or made, filtered by group with steppers that only offer values that exist.
 10. **📊 Go deeper** (`#deeper-block`): which resort suits whom, resort comparison, week detail with

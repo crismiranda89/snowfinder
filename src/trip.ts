@@ -12,7 +12,6 @@ import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
 import { glide, loaderResult, loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
 import { haptic } from "./ui/haptic.ts";
-import { openPromo } from "./ui/promo.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -41,16 +40,6 @@ function when(iso?: string) {
   if (min < 60) return `${min} min ago`;
   if (min < 24 * 60) return `${Math.round(min / 60)} h ago`;
   return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short" })} ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
-}
-/** The checker's verdict on a pick: is it still bookable for these dates at this price? */
-function pickStatus(p: Pick, organizer: string) {
-  if (isNo(p.approved)) return `<p class="pstat bad">Not approved by ${esc(organizer)}</p>`;
-  if (!isYes(p.approved)) return `<p class="pstat">Waiting for ${esc(organizer)}'s OK before it's checked</p>`;
-  const at = when(p.checked), note = p.note ? ` ${esc(p.note)}` : "";
-  if (p.status === "available") return `<p class="pstat ok">✓ Still available${at ? ` · checked ${at}` : ""}${note ? ` ·${note}` : ""}</p>`;
-  if (p.status === "unavailable") return `<p class="pstat bad">✕ No longer available for these dates${at ? ` · checked ${at}` : ""}.${note}</p>`;
-  if (p.status === "changed") return `<p class="pstat warn">Price changed${at ? ` · checked ${at}` : ""}.${note}</p>`;
-  return `<p class="pstat">Availability not checked yet</p>`;
 }
 interface TripView {
   trip: { id: string; organizer: string; title: string; parent?: string };
@@ -135,7 +124,7 @@ export function tripSettings(): Omit<State, "sort"> | null {
 export const tripSeen = (id: string) => !!seenTrips()[id];
 function openTrip(id: string, s: State, toast: (m: string) => void) {
   history.pushState(null, "", `?trip=${encodeURIComponent(id)}`);
-  last = null; confirmed = false;
+  last = null;
   loader?.stop(); loader = null;
   renderMyPick(s); loadTrip(s, toast);
   $("trip-block").classList.remove("collapsed");
@@ -385,7 +374,6 @@ export async function createTrip(s: State, toast: (m: string) => void) {
     explored = true; // the organiser is already exploring: no welcome card for their own new trip
     await loadTrip(s, toast);
     renderMyPick(s);
-    confirmed = true;
     renderTrip(s);
     toast("Trip created. Copy the message below and paste it in your group chats.");
   })();
@@ -402,7 +390,6 @@ export async function addPick(s: State, toast: (m: string) => void) {
   // Straight away, under the pick: the pick is saved and the trip refreshes while they play.
   const saving = (async () => {
     await post({ action: "addPick", trip: tripId(), name: a.name, reason: a.reason, data: pickData(s, p) });
-    confirmed = true;
     toast(`Your pick is in, with your vote. ${last?.trip.organizer || "The organiser"} approves it before it's checked.`);
     await loadTrip(s, toast);
   })();
@@ -420,19 +407,7 @@ async function vote(pick: string, s: State, toast: (m: string) => void, done = "
 
 // ---- the trip panel at the top
 let last: TripView | null = null;
-/** Set once this visitor confirms a selection (creates the trip or adds a pick): then the challenge prompt shows. */
-let confirmed = false;
 
-/** Invite another group of friends to plan their own snow trip; their trip remembers who challenged them. */
-function challengeHtml(trip: TripView["trip"]) {
-  const link = `${location.origin}${location.pathname}?from=${encodeURIComponent(trip.id)}`;
-  const text = `⛷️ We're planning our ski trip on Snowfinder: every resort, week and house priced per person, all in. ` +
-    `Any group of friends up for a snow trip? Plan yours here: ${link}`;
-  return `<div class="tchallenge" id="challenge"><b>🎿 Any other group of friends you want to challenge to a snow trip?</b>` +
-    `<span class="foot">Send them Snowfinder: they plan their own trip, their own way.</span>` +
-    `<div class="tmsg-acts"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener">Challenge a group on WhatsApp</a>` +
-    `<button type="button" class="btn secondary" data-act="copy-challenge" data-text="${esc(text)}">Copy the invite</button></div></div>`;
-}
 let loader: LoaderHandle | null = null;
 // Trips this browser has played the loading games for (or created): those open straight away next time.
 // Each trip's answers and guess are kept, so a return visit opens straight on the pick with them.
@@ -573,8 +548,8 @@ function prosCons(xs: { p: Pick; f: Facts }[]) {
   }));
 }
 const MEDALS = ["🥇", "🥈", "🥉"];
-function votesHtml(trip: TripView["trip"], picks: Pick[], byPick: (id: string) => string[]) {
-  if (!picks.length) return { html: "", update: "" };
+function votesHtml(picks: Pick[], byPick: (id: string) => string[], mine: string) {
+  if (!picks.length) return "";
   const xs = picks.map((p) => ({ p, f: facts(p.data), v: byPick(p.id) })).sort((a, b) => b.v.length - a.v.length);
   const total = xs.reduce((n, x) => n + x.v.length, 0), most = Math.max(1, ...xs.map((x) => x.v.length));
   const pc = total > 1 ? prosCons(xs) : null;
@@ -583,26 +558,12 @@ function votesHtml(trip: TripView["trip"], picks: Pick[], byPick: (id: string) =
     return `<div class="tv-row"><div class="tv-top"><b>${x.v.length ? (MEDALS[i] || "•") + " " : ""}${esc(x.p.data.title)}</b><span class="num">${x.v.length} vote${x.v.length === 1 ? "" : "s"}</span></div>` +
       `<div class="tv-bar" aria-hidden="true"><span style="width:${((x.v.length / most) * 100).toFixed(0)}%"></span></div>` +
       `<small>${esc(x.p.data.resort)} · ${esc(x.p.data.when)}${x.v.length ? ` · ${x.v.map(esc).join(", ")}` : ""}</small>${checkDot(x.p)}` +
-      (c ? `<ul class="tv-pc">${c.pros.map((t) => `<li class="pro">✅ ${esc(t)}</li>`).join("")}${c.cons.map((t) => `<li class="con">⚠️ ${esc(t)}</li>`).join("")}</ul>` : "") + `</div>`;
+      (c ? `<ul class="tv-pc">${c.pros.map((t) => `<li class="pro">✅ ${esc(t)}</li>`).join("")}${c.cons.map((t) => `<li class="con">⚠️ ${esc(t)}</li>`).join("")}</ul>` : "") +
+      `<div class="tv-acts"><button type="button" class="btn${mine === x.p.id ? "" : " secondary"}" data-vote="${esc(x.p.id)}" aria-pressed="${mine === x.p.id}">${mine === x.p.id ? "✓ Your vote" : "Vote for this"}</button>` +
+      (safeUrl(x.p.data.url) ? `<a class="tp-open" href="${esc(safeUrl(x.p.data.url))}" target="_blank" rel="noopener noreferrer">View listing ↗</a>` : "") + `</div></div>`;
   }).join("");
-  const link = tripLink(last!);
-  const msg = pc ? [
-    `🗳️ *Ski trip vote: where we stand*`, trip.title ? `_${trip.title}_` : "", ``,
-    ...xs.flatMap((x, i) => {
-      const c = pc.get(x.p.id)!;
-      return [`${x.v.length ? MEDALS[i] || "•" : "•"} *${x.p.data.title}* (${x.p.data.resort}) · ${x.v.length} vote${x.v.length === 1 ? "" : "s"}${x.v.length ? `: ${x.v.join(", ")}` : ""}`,
-        ...c.pros.map((t) => `✅ ${t}`), ...c.cons.map((t) => `⚠️ ${t}`), ``];
-    }),
-    `👉 Not voted yet? Vote here:`, link,
-  ].filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n") : "";
-  return {
-    html: `<div class="tvotes" id="votes"><h3 class="tsub">🗳️ Votes <span class="foot">${total} so far</span></h3>${rows}` +
-      (pc ? "" : `<p class="foot">Pros and cons of each pick show up from 2 votes.</p>`) + `</div>`,
-    // The vote update for the group chats: it goes in the folded "Share" panel with the trip message.
-    update: pc ? `<div class="tmsg"><label for="tvotes-text">Vote update for your group chats</label><textarea id="tvotes-text" readonly rows="8">${esc(msg)}</textarea>` +
-      `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-votes">Copy vote update</button>` +
-      `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send on WhatsApp</a></div></div>` : "",
-  };
+  return `<div class="tvotes" id="votes"><h3 class="tsub">🗳️ Votes <span class="foot">${total} so far</span></h3>${rows}` +
+      (pc ? "" : `<p class="foot">Pros and cons of each pick show up from 2 votes.</p>`) + `</div>`;
 }
 /** A pick's availability as a dot (green free, amber price changed, red gone or not checked) and when it was checked. */
 function checkDot(p: Pick) {
@@ -614,22 +575,6 @@ function checkDot(p: Pick) {
   return `<span class="tcheck ${cls}"><i class="dot" aria-hidden="true"></i>${esc(text.replace(/ · checked $/, ""))}</span>`;
 }
 
-function pickCard(p: Pick, votes: string[], mine: string, flag: string) {
-  const d = p.data, v = verified(d);
-  return `<article class="tpick${flag ? " pinned" : ""}">` +
-    (flag ? `<div class="tflag">${flag}</div>` : "") +
-    `<div class="tp-main"><a class="tp-photo" href="${esc(safeUrl(d.url) || "#")}" target="_blank" rel="noopener noreferrer">${safeUrl(d.photo) ? `<img src="${esc(safeUrl(d.photo))}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</a>` +
-    `<div class="tp-body"><b>${esc(d.title)}</b><small>${esc(d.resort)} · ${esc(d.walk)} · ${d.bedrooms} bedrooms, sleeps ${d.sleeps}</small>` +
-    `<small>${esc(d.when)} · flying to ${esc(d.airport)}</small>` +
-    (v.known ? `<div class="mp-price"><b>${euro(v.pp)}</b><small>per person all in · ${euro(v.group)} for ${d.people}</small></div>`
-      : `<p class="pstat warn">Not one of the site's houses: price not verified</p>`) + `</div></div>` +
-    pickStatus(p, last?.trip.organizer || "the organiser") +
-    (p.reason ? `<p class="tp-why">“${esc(p.reason)}” <span class="foot">— ${esc(p.name)}</span></p>` : `<p class="foot">Picked by ${esc(p.name)}</p>`) +
-    `<div class="tp-acts"><button type="button" class="btn${mine === p.id ? "" : " secondary"}" data-vote="${esc(p.id)}" aria-pressed="${mine === p.id}">${mine === p.id ? "✓ Your vote" : "Vote for this"}</button>` +
-    `<span class="tp-votes"><b>${votes.length}</b> vote${votes.length === 1 ? "" : "s"}${votes.length ? `: ${votes.map(esc).join(", ")}` : ""}</span>` +
-    `<a class="tp-open" href="?trip=${esc(tripId())}#${esc(d.share)}">Open this plan</a>` +
-    (safeUrl(d.url) ? `<a class="tp-open" href="${esc(safeUrl(d.url))}" target="_blank" rel="noopener noreferrer">View listing ↗</a>` : "") + `</div></article>`;
-}
 
 function renderTrip(_s: State) {
   if (!last) return;
@@ -651,7 +596,6 @@ function renderTrip(_s: State) {
   const found = picks.filter((p) => p !== best && p.data.foundBy && shown(p));
   const rest = picks.filter((p) => p !== best && !p.data.foundBy && shown(p)).sort((a, b) => byPick(b.id).length - byPick(a.id).length);
   const waitingNote = (n: number, what: string) => n ? `<p class="foot">${n} ${what}${n > 1 ? "s" : ""} waiting for ${esc(trip.organizer)}'s OK.</p>` : "";
-  const leader = [...picks].sort((a, b) => byPick(b.id).length - byPick(a.id).length)[0];
   // Step 4's title stays short (one line on a phone); the trip's own name sits on the line below it.
   $("trip-title").innerHTML = `<span class="step">4</span>Confirm availability`;
   // Keep the pressure visible: how many picks are still bookable, and loudly when the best one is gone.
@@ -669,27 +613,17 @@ function renderTrip(_s: State) {
   const link = tripLink(last!);
   const bv = best ? verified(best.data) : null;
   const msg = best ? whatsappText(bv?.known ? { ...best.data, pp: Math.round(bv.pp) } : best.data, link) : `⛷️ Our ski trip: vote here ${link}`;
-  const wa = `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send on WhatsApp</a>`;
-  const box = `<div class="tmsg"><label for="tmsg-text">Message for your group chats</label>` +
-    `<textarea id="tmsg-text" readonly rows="12">${esc(msg)}</textarea>` +
-    `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-msg">Copy message</button>${wa}` +
-    `<button type="button" class="btn secondary" data-act="promo">📸 Image for Instagram</button>` +
-    `<span class="foot">Paste it in each group. The house link shows its photo in WhatsApp.</span></div></div>`;
+  // Two buttons on top: WhatsApp with the message ready, or copy it for any other chat (no text box).
+  const share = `<div class="tshare-top"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Share on WhatsApp</a>` +
+    `<button type="button" class="btn secondary" data-act="copy-msg" data-text="${esc(msg)}">Copy text</button></div>`;
   const lim = last.limits;
   const others = Object.entries(myTrips()).filter(([, id]) => id !== trip.id);
   const limits = (lim ? `<p class="foot">${lim.peopleUsed} of ${lim.people} people on this trip · ${lim.tripsUsed} of ${lim.trips} trips</p>` : "") +
     (others.length ? `<p class="foot">Your other trips: ${others.map(([g, id]) => `<button type="button" class="linkbtn" data-act="open-trip" data-trip="${esc(id)}">${esc(groupLabel(g))}</button>`).join(" · ")}</p>` : "") +
     `<p class="foot">Another group? Pick it in Filters, choose a house and “Create a trip” for it: one trip per group.</p>`;
   const visible = [best, ...found, ...rest].filter((p): p is Pick => !!p);
-  const v = votesHtml(trip, visible, byPick);
-  // Everything to send to the group chats sits folded under one line.
-  const share = `<details class="tshare"${confirmed ? " open" : ""}><summary>📣 Share voting with your friends</summary>${box}${v.update}${confirmed ? challengeHtml(trip) : ""}</details>`;
-  $("trip-body").innerHTML = `<p class="tname">Our trip${trip.title ? ` · ${esc(trip.title)}` : ""}</p>` + alert + pulse + v.html + share +
-    (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
-    found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
-    (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +
-    (rest.length || hiddenPicks.length ? `<h3 class="tsub">Everyone's picks</h3>` + rest.map((p) => pickCard(p, byPick(p.id), mine, "")).join("") + waitingNote(hiddenPicks.length, "pick") : "") +
-    limits;
+  $("trip-body").innerHTML = share + `<p class="tname">Our trip${trip.title ? ` · ${esc(trip.title)}` : ""}</p>` + alert + pulse +
+    votesHtml(visible, byPick, mine) + waitingNote(hiddenPicks.length, "pick") + limits;
   // "I have a better plan": its own section at the end of the page.
   $("better-block").hidden = false;
   $("better-body").innerHTML = `<h3 class="tsub">Pick your own</h3><p class="foot">Open steps 1–3 above: pick a week, “Choose this house”, a flight, then “Add my pick to the trip”.</p>` +
@@ -783,24 +717,9 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       explored = true; $("welcome").hidden = true; renderMyPick(getState()); haptic(10); glide($("grid-block"));
     }
     else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
-    else if (act === "copy-challenge") {
-      const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
-      navigator.clipboard.writeText(text).then(() => toast("Invite copied: paste it to the other group."), () => window.prompt("Copy this invite:", text));
-    }
-    else if (act === "copy-votes") {
-      const ta = $("tvotes-text") as HTMLTextAreaElement;
-      navigator.clipboard.writeText(ta.value).then(() => toast("Vote update copied: paste it in the group chat."), () => { ta.select(); toast("Selected: copy it with your phone's Copy."); });
-    }
-    else if (act === "promo") {
-      // The image of the trip's top pick (the one on the welcome card), with the trip link
-      const sp = sharedPlan(); if (!sp || !last) return;
-      resetCache(); const p = pickSummary(sp.s); resetCache(); if (!p) return;
-      const org = sp.organizer;
-      openPromo(p, { who: /^AI pick/i.test(org) ? "🤖 AI pick" : `👋 ${org.split(/\s+/)[0]} picked this`, link: tripLink(last), toast });
-    }
     else if (act === "copy-msg") {
-      const ta = $("tmsg-text") as HTMLTextAreaElement;
-      navigator.clipboard.writeText(ta.value).then(() => toast("Message copied: paste it in each group chat."), () => { ta.select(); toast("Selected: copy it with your phone's Copy."); });
+      const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
+      navigator.clipboard.writeText(text).then(() => toast("Text copied: paste it in your group chat."), () => window.prompt("Copy this:", text));
     }
     const v = t.closest<HTMLElement>("[data-vote]");
     if (v) vote(v.dataset.vote!, getState(), toast);
