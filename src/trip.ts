@@ -439,7 +439,7 @@ const writeCache = (id: string, t: TripView) => { try { localStorage.setItem(CAC
 
 export async function loadTrip(s: State, toast: (m: string) => void) {
   const id = tripId(), box = $("trip-block");
-  if (!id) { box.hidden = true; $("welcome").hidden = true; return; }
+  if (!id) { box.hidden = true; $("welcome").hidden = true; $("better-block").hidden = true; return; }
   box.hidden = false;
   if (!tripsReady()) { $("trip-body").innerHTML = `<p class="foot">This trip link needs the shared-trip sheet, which isn't set up on this copy of the site.</p>`; return; }
   // First load: the welcome card on top shows the organiser's pick straight away, from the link's snapshot or
@@ -546,7 +546,7 @@ function prosCons(xs: { p: Pick; f: Facts }[]) {
 }
 const MEDALS = ["🥇", "🥈", "🥉"];
 function votesHtml(trip: TripView["trip"], picks: Pick[], byPick: (id: string) => string[]) {
-  if (!picks.length) return "";
+  if (!picks.length) return { html: "", update: "" };
   const xs = picks.map((p) => ({ p, f: facts(p.data), v: byPick(p.id) })).sort((a, b) => b.v.length - a.v.length);
   const total = xs.reduce((n, x) => n + x.v.length, 0), most = Math.max(1, ...xs.map((x) => x.v.length));
   const pc = total > 1 ? prosCons(xs) : null;
@@ -554,7 +554,7 @@ function votesHtml(trip: TripView["trip"], picks: Pick[], byPick: (id: string) =
     const c = pc?.get(x.p.id);
     return `<div class="tv-row"><div class="tv-top"><b>${x.v.length ? (MEDALS[i] || "•") + " " : ""}${esc(x.p.data.title)}</b><span class="num">${x.v.length} vote${x.v.length === 1 ? "" : "s"}</span></div>` +
       `<div class="tv-bar" aria-hidden="true"><span style="width:${((x.v.length / most) * 100).toFixed(0)}%"></span></div>` +
-      `<small>${esc(x.p.data.resort)} · ${esc(x.p.data.when)}${x.v.length ? ` · ${x.v.map(esc).join(", ")}` : ""}</small>` +
+      `<small>${esc(x.p.data.resort)} · ${esc(x.p.data.when)}${x.v.length ? ` · ${x.v.map(esc).join(", ")}` : ""}</small>${checkDot(x.p)}` +
       (c ? `<ul class="tv-pc">${c.pros.map((t) => `<li class="pro">✅ ${esc(t)}</li>`).join("")}${c.cons.map((t) => `<li class="con">⚠️ ${esc(t)}</li>`).join("")}</ul>` : "") + `</div>`;
   }).join("");
   const link = tripLink(last!);
@@ -567,11 +567,23 @@ function votesHtml(trip: TripView["trip"], picks: Pick[], byPick: (id: string) =
     }),
     `👉 Not voted yet? Vote here:`, link,
   ].filter((l, i, a) => !(l === "" && a[i - 1] === "")).join("\n") : "";
-  return `<div class="tvotes" id="votes"><h3 class="tsub">🗳️ Votes <span class="foot">${total} so far</span></h3>${rows}` +
-    (pc ? `<div class="tmsg"><label for="tvotes-text">Vote update for your group chats</label><textarea id="tvotes-text" readonly rows="8">${esc(msg)}</textarea>` +
+  return {
+    html: `<div class="tvotes" id="votes"><h3 class="tsub">🗳️ Votes <span class="foot">${total} so far</span></h3>${rows}` +
+      (pc ? "" : `<p class="foot">Pros and cons of each pick show up from 2 votes.</p>`) + `</div>`,
+    // The vote update for the group chats: it goes in the folded "Share" panel with the trip message.
+    update: pc ? `<div class="tmsg"><label for="tvotes-text">Vote update for your group chats</label><textarea id="tvotes-text" readonly rows="8">${esc(msg)}</textarea>` +
       `<div class="tmsg-acts"><button type="button" class="btn" data-act="copy-votes">Copy vote update</button>` +
-      `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send on WhatsApp</a></div></div>`
-      : `<p class="foot">Pros and cons of each pick show up from 2 votes.</p>`) + `</div>`;
+      `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send on WhatsApp</a></div></div>` : "",
+  };
+}
+/** A pick's availability as a dot (green free, amber price changed, red gone or not checked) and when it was checked. */
+function checkDot(p: Pick) {
+  const at = when(p.checked);
+  const [cls, text] = p.status === "available" ? ["ok", `Free · checked ${at}`]
+    : p.status === "unavailable" ? ["bad", `Gone · checked ${at}`]
+    : p.status === "changed" ? ["warn", `Price changed · checked ${at}`]
+    : ["bad", "Not checked yet"];
+  return `<span class="tcheck ${cls}"><i class="dot" aria-hidden="true"></i>${esc(text.replace(/ · checked $/, ""))}</span>`;
 }
 
 function pickCard(p: Pick, votes: string[], mine: string, flag: string) {
@@ -621,8 +633,10 @@ function renderTrip(_s: State) {
   const alert = best?.status === "unavailable"
     ? `<div class="talert" role="alert">⚠ <b>${esc(trip.organizer)}'s pick is no longer available</b> for these dates. Vote for another pick below or choose a new one: places are going.</div>`
     : picks.some((p) => p.status === "unavailable") ? `<div class="talert warn" role="status">${picks.filter((p) => p.status === "unavailable").length} pick${picks.filter((p) => p.status === "unavailable").length > 1 ? "s are" : " is"} no longer available. Decide soon.</div>` : "";
-  const pulse = `<p class="tpulse"><span class="dot" aria-hidden="true"></span>Availability checked by ${esc(trip.organizer)}` +
-    (checked.length ? ` · <b>${free} of ${checked.length}</b> pick${checked.length > 1 ? "s" : ""} still free · last check ${when(lastIso)}` : " · not checked yet") + `</p>`;
+  // One line: a red dot until the organiser has checked, then green with how many are still free and when.
+  const pulse = checked.length
+    ? `<p class="tpulse"><span class="dot" aria-hidden="true"></span>Availability checked · <b>${free} of ${checked.length}</b> still free · ${when(lastIso)}</p>`
+    : `<p class="tpulse bad"><span class="dot" aria-hidden="true"></span>Availability not checked yet</p>`;
   // Free WhatsApp share: opens WhatsApp with the message ready; the sender picks the chat or group.
   const link = tripLink(last!);
   const bv = best ? verified(best.data) : null;
@@ -638,12 +652,18 @@ function renderTrip(_s: State) {
     (others.length ? `<p class="foot">Your other trips: ${others.map(([g, id]) => `<button type="button" class="linkbtn" data-act="open-trip" data-trip="${esc(id)}">${esc(groupLabel(g))}</button>`).join(" · ")}</p>` : "") +
     `<p class="foot">Another group? Pick it in Filters, choose a house and “Create a trip” for it: one trip per group.</p>`;
   const visible = [best, ...found, ...rest].filter((p): p is Pick => !!p);
-  $("trip-body").innerHTML = `<p class="tname">Our trip${trip.title ? ` · ${esc(trip.title)}` : ""}</p>` + alert + pulse + box + (confirmed ? challengeHtml(trip) : "") + limits + votesHtml(trip, visible, byPick) +
+  const v = votesHtml(trip, visible, byPick);
+  // Everything to send to the group chats sits folded under one line.
+  const share = `<details class="tshare"${confirmed ? " open" : ""}><summary>📣 Share voting with your friends</summary>${box}${v.update}${confirmed ? challengeHtml(trip) : ""}</details>`;
+  $("trip-body").innerHTML = `<p class="tname">Our trip${trip.title ? ` · ${esc(trip.title)}` : ""}</p>` + alert + pulse + v.html + share +
     (best ? pickCard(best, byPick(best.id), mine, `<b>${esc(trip.organizer)}</b> looked into this — best pick for the group`) : "") +
     found.map((p) => pickCard(p, byPick(p.id), mine, `★ Found by <b>${esc(p.data.foundBy!)}</b>`)).join("") +
     (leader && byPick(leader.id).length && leader !== best ? `<p class="foot">Most votes so far: <b>${esc(leader.data.title)}</b>.</p>` : "") +
     (rest.length || hiddenPicks.length ? `<h3 class="tsub">Everyone's picks</h3>` + rest.map((p) => pickCard(p, byPick(p.id), mine, "")).join("") + waitingNote(hiddenPicks.length, "pick") : "") +
-    `<h3 class="tsub">Pick your own</h3><p class="foot">Open steps 1–3 above: pick a week, “Choose this house”, a flight, then “Add my pick to the trip”.</p>` +
+    limits;
+  // "I have a better plan": its own section at the end of the page.
+  $("better-block").hidden = false;
+  $("better-body").innerHTML = `<h3 class="tsub">Pick your own</h3><p class="foot">Open steps 1–3 above: pick a week, “Choose this house”, a flight, then “Add my pick to the trip”.</p>` +
     ideasHtml(ideas.filter(shown)) + waitingNote(ideas.filter((x) => !shown(x)).length, "suggested place");
 }
 

@@ -642,3 +642,12 @@ button.qb-sum{font:inherit;color:inherit;background:none;border:0;padding:2px 0;
 /* Dates' "Let's not complicate": a small pill at the right of the step title that clears the chosen dates */
 .allweeks{flex:none;margin-left:auto;padding:4px 10px;font-size:.75rem;gap:4px}
 .allweeks span{font-size:.8em}
+
+/* Step 5: red dot until availability is checked; per-pick check status in Votes; the folded Share panel */
+.tpulse.bad .dot{background:var(--bad);animation:none}
+.tcheck{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted)}
+.tcheck .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--muted)}
+.tcheck.ok .dot{background:var(--ok)}.tcheck.warn .dot{background:var(--warn)}.tcheck.bad .dot{background:var(--bad)}
+.tshare{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:10px}
+.tshare>summary{cursor:pointer;font-weight:700;color:var(--accent)}
+[data-style="neo"] .tshare{border-radius:24px;border-color:transparent;background:var(--soft)}

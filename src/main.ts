@@ -62,7 +62,7 @@ renderStatic();
 // v5: everyone starts again from the defaults: only step 1 (Dates) open, every other section folded.
 const FOLD_KEY = "snowfinder-folded-v5";
 let folded: string[] = [];
-const FOLDED_AT_START = ["houses-block", "rank-block", "trip-block", "trips-block", "deeper-block"];
+const FOLDED_AT_START = ["houses-block", "rank-block", "trip-block", "trips-block", "deeper-block", "better-block"];
 try { folded = JSON.parse(localStorage.getItem(FOLD_KEY) || JSON.stringify(FOLDED_AT_START)); } catch { /* private mode */ }
 const folds = new Map<string, (closed: boolean) => void>();
 /** Only a tap on a heading is remembered; folding the page does by itself (next step, a trip link) is for this visit. */
