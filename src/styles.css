@@ -44,7 +44,6 @@ section.block{display:grid;gap:12px;min-width:0}
 .quickbar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px 20px;align-items:end;background:var(--bg);padding:8px 0 10px;border-bottom:1px solid var(--line);margin-bottom:10px}
 @media (max-width:640px){
   .quickbar{gap:6px;padding:6px 0 8px}
-  .quickbar .ctl>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   .quickbar .seg button{padding:6px 10px;font-size:.9rem}
 }
 .filters{background:var(--surface);border:1px solid var(--line);border-radius:10px}
@@ -426,3 +425,14 @@ section.block,.mypick{scroll-margin-top:96px}
 .mp-why li span{min-width:0}
 .mp-why li.mp-total{border-top:1px solid var(--line);padding-top:6px;font-weight:700}
 .flypick{margin-top:6px;padding:4px 10px;font-size:.8rem}
+/* NEW · pinned header: labelled, one compact row on phones */
+.quickbar .qb>span{text-transform:none;letter-spacing:0;font-size:.78rem}
+.quickbar #days button{min-width:2.6em;font-weight:700}
+@media (max-width:640px){
+  .quickbar{flex-wrap:nowrap;gap:10px;align-items:end}
+  .quickbar .qb{gap:3px;min-width:0}
+  .quickbar .qb:first-child{flex:1 1 auto}
+  .quickbar #pattern{display:flex;flex-wrap:nowrap}
+  .quickbar #pattern button{flex:1 1 0;padding:6px 4px;font-size:.82rem;white-space:nowrap}
+  .quickbar #days button{padding:6px 0}
+}

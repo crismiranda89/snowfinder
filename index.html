@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Snowfinder · ski trip costs, week by week</title>
+<title>Snowfinder · snow trip explorer</title>
 <meta name="description" content="Compare what a ski trip costs at 6 resorts in the Alps and Andorra, week by week, for your group of couples and friends. Houses by budget, mid and luxury. Free and open source.">
 <meta name="theme-color" content="#1d5dbf">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Snowfinder · ski trip costs, week by week">
+<meta property="og:title" content="Snowfinder · snow trip explorer">
 <meta property="og:description" content="Which resort and which week is cheapest for your group? Flights, car, house, lift pass, rental and food, all in one grid.">
 <meta property="og:image" content="%SITE_URL%og.png">
 <meta property="og:url" content="%SITE_URL%">
@@ -33,7 +33,7 @@
       </div>
     </div>
     <div class="eyebrow" id="eyebrow"></div>
-    <h1>Ski trip cost, week by week</h1>
+    <h1>Snow trip explorer</h1>
   </header>
 
   <dialog id="askdlg" class="askdlg">
@@ -46,11 +46,11 @@
   </dialog>
 
   <div class="quickbar" role="group" aria-label="Dates">
-    <div class="ctl"><span>Stay pattern</span>
+    <div class="ctl qb"><span>🗓 Arrive → leave</span>
       <div class="seg" id="pattern"></div>
     </div>
-    <div class="ctl"><span>Ski days</span>
-      <div class="seg" id="days"><button type="button" data-v="4">4 days</button><button type="button" data-v="5">5 days</button></div>
+    <div class="ctl qb"><span>❄️ Snow days</span>
+      <div class="seg" id="days" aria-label="Snow days"><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button></div>
     </div>
   </div>
 
@@ -183,7 +183,7 @@
         <li>Each resort has a demand level per week (low, normal, high, peak), based on the school holidays of the countries that ski there.</li>
         <li>Houses: −10% at low demand, +30% at high, +60% at peak, versus a normal week. Flights: −10%, +20%, +35%. Car and transfer: +10% at high, +20% at peak.</li>
         <li>Lift passes and ski rental have fixed high-season prices (19 Dec to April), so they don't change by week.</li>
-        <li>With 4 ski days the Wed→Mon, Thu→Tue and Fri→Wed patterns are 5 nights and use 4 days of leave. A 5th ski day adds a night at the end (Thu→Tue becomes Thu→Wed): one more night of house, one more day of food and one more day of leave. In Easter week Good Friday (26 Mar) is a public holiday in Portugal, which brings it down to 3. Weeks marked * include Carnival Tuesday, which many employers in Portugal give off.</li>
+        <li>With 4 snow days the Wed→Mon, Thu→Tue and Fri→Wed patterns are 5 nights and use 4 days of leave. A 5th snow day adds a night at the end (Thu→Tue becomes Thu→Wed): one more night of house, one more day of food and one more day of leave. In Easter week Good Friday (26 Mar) is a public holiday in Portugal, which brings it down to 3. Weeks marked * include Carnival Tuesday, which many employers in Portugal give off.</li>
         <li>From 20 March, low resorts show a spring-snow warning.</li>
         <li>Every table sorts when you tap a column header; tap again to reverse. The resort filter applies to the grid, ranking, houses, detail and comparison.</li>
         <li>Many apartments in France rent Saturday to Saturday. Mid-week 5-night stays are easier to find outside the holiday weeks.</li>
