@@ -153,6 +153,20 @@ $("share").addEventListener("click", async () => {
   }
 });
 
+// Page style (this browser only): classic, piste or après. The <head> applies it before the first paint.
+const STYLE_KEY = "snowfinder-style";
+function setStyle(v: string) {
+  if (v === "piste" || v === "apres") document.documentElement.dataset.style = v; else delete document.documentElement.dataset.style;
+  const cur = document.documentElement.dataset.style || "classic";
+  $("pageStyle").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === cur)));
+}
+setStyle(document.documentElement.dataset.style || "classic");
+$("pageStyle").addEventListener("click", (ev) => {
+  const b = (ev.target as HTMLElement).closest<HTMLElement>("button"); if (!b?.dataset.v) return;
+  setStyle(b.dataset.v);
+  try { localStorage.setItem(STYLE_KEY, b.dataset.v); } catch { /* private mode */ }
+});
+
 initSort(() => state, "heat", () => save(state));
 initSort(() => state, "detail", () => save(state));
 initSort(() => state, "cmp", () => save(state));

@@ -335,3 +335,60 @@ tr.dimrow td{opacity:.45}
 .mp-air select{width:100%;min-width:0;max-width:100%}
 .fitcard .offski{color:var(--ink);border-top:1px solid var(--line);padding-top:6px}
 .fitcard .offski b{font-family:var(--f-body);font-size:.9rem;font-weight:600}
+
+/* NEW · page styles, switched at the bottom of the page (html[data-style]); "classic" is the look above. */
+.stylepick{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.stylepick>span{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* Piste: a light alpine magazine. Paper, serif headlines, one narrow column, numbered sections with
+   rules between them, flat square cards and outlined buttons. Always light. */
+:root[data-style="piste"]{
+  --bg:#f6f1e7; --surface:#fffdf8; --ink:#1d2a24; --muted:#5f6b63; --line:#d9cfbd; --soft:#efe7d8;
+  --accent:#1f5b45; --accent-ink:#fffdf8;
+  --c-flight:#2f6690; --c-ground:#7a5c99; --c-stay:#c46a2b; --c-pass:#2a8a6e; --c-rent:#b5485f; --c-food:#8a8a2a; --c-lesson:#4a6c8c;
+  --ok:#1f7a4c; --ok-bg:#e2f0e5; --warn:#9a5a00; --warn-bg:#f6ead2; --bad:#a8321e; --bad-bg:#f6e0d8;
+  --h0:#dcecdd; --h1:#ecefd3; --h2:#f5e2c2; --h3:#f1cbbb; --h-ink:#1d2a24;
+  --f-display:"Fraunces",Georgia,serif; --f-body:"Figtree",system-ui,sans-serif;
+  color-scheme:light}
+[data-style="piste"] .wrap{max-width:780px;gap:0;counter-reset:sec}
+[data-style="piste"] .wrap>*{padding-block:22px}
+[data-style="piste"] section.block{border-top:2px solid var(--ink);counter-increment:sec}
+[data-style="piste"] section.block>.head>h2::after,[data-style="piste"] section.block>h2::after{content:" " counter(sec,decimal-leading-zero);font-size:.55em;color:var(--muted);font-weight:400;vertical-align:.5em;margin-left:.3em}
+[data-style="piste"] h1{font-size:clamp(2.2rem,7vw,3.6rem);font-weight:600;letter-spacing:-.02em;font-style:italic}
+[data-style="piste"] h2{font-weight:600;letter-spacing:-.01em;font-size:1.75rem}
+[data-style="piste"] .hcard,[data-style="piste"] .fitcard,[data-style="piste"] .filters,[data-style="piste"] .mypick,[data-style="piste"] .tmsg,[data-style="piste"] .tpick{border-radius:0;border-color:var(--ink);box-shadow:none}
+[data-style="piste"] .btn{border-radius:0;background:var(--ink);border-color:var(--ink);color:var(--surface);text-transform:uppercase;letter-spacing:.08em;font-size:.78rem}
+[data-style="piste"] .btn.secondary{background:transparent;color:var(--ink)}
+[data-style="piste"] .seg{border-radius:0;border-color:var(--ink)}
+[data-style="piste"] .seg button+button{border-left-color:var(--ink)}
+[data-style="piste"] .seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+[data-style="piste"] .eyebrow{color:var(--muted);letter-spacing:.2em}
+[data-style="piste"] .quickbar{background:var(--bg);border-bottom-color:var(--ink)}
+[data-style="piste"] .hphoto img{filter:saturate(.85)}
+
+/* Après: dark neon night out. Each section is its own glowing card, round pill buttons, gradient
+   headlines, big radius everywhere. Always dark. */
+:root[data-style="apres"]{
+  --bg:#0c0717; --surface:#170f2a; --ink:#f4efff; --muted:#a99cc8; --line:#2e2350; --soft:#211639;
+  --accent:#ff4fd8; --accent-ink:#13051c; --accent2:#3ee6ff;
+  --c-flight:#3ee6ff; --c-ground:#9b7bff; --c-stay:#ff9b4f; --c-pass:#4fffb0; --c-rent:#ff4f8b; --c-food:#e6ff4f; --c-lesson:#8fb3d6;
+  --ok:#4fffb0; --ok-bg:#0f3326; --warn:#ffcf4f; --warn-bg:#3a2c0c; --bad:#ff6b8b; --bad-bg:#3d1022;
+  --h0:#123d3a; --h1:#2b3a17; --h2:#4a2a17; --h3:#4d1734; --h-ink:#f4efff;
+  --f-display:"Space Grotesk",system-ui,sans-serif; --f-body:"Space Grotesk",system-ui,sans-serif;
+  color-scheme:dark}
+[data-style="apres"] body{background:radial-gradient(1200px 600px at 10% -10%,#3a1060 0,transparent 60%),radial-gradient(900px 500px at 110% 10%,#073a4a 0,transparent 55%),var(--bg);background-attachment:fixed}
+[data-style="apres"] .wrap{gap:18px}
+[data-style="apres"] header{text-align:center}
+[data-style="apres"] .brand{justify-content:center;flex-direction:column}
+[data-style="apres"] h1,[data-style="apres"] h2{text-transform:uppercase;letter-spacing:.02em;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+[data-style="apres"] h1{font-size:clamp(2.2rem,8vw,3.8rem)}
+[data-style="apres"] h2{font-size:1.45rem}
+[data-style="apres"] h2.fold::before{border-color:var(--accent)}
+[data-style="apres"] section.block{background:color-mix(in srgb,var(--surface) 85%,transparent);border:1px solid var(--line);border-radius:22px;padding:18px 16px;box-shadow:0 0 0 1px rgba(255,79,216,.08),0 18px 50px -20px rgba(255,79,216,.35)}
+[data-style="apres"] .hcard,[data-style="apres"] .fitcard,[data-style="apres"] .filters,[data-style="apres"] .mypick,[data-style="apres"] .tmsg,[data-style="apres"] .tpick{border-radius:18px}
+[data-style="apres"] .btn{border-radius:999px;background:linear-gradient(90deg,var(--accent),var(--accent2));border:0;color:var(--accent-ink);font-weight:700}
+[data-style="apres"] .btn.secondary{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+[data-style="apres"] .seg{border-radius:999px}
+[data-style="apres"] .seg button[aria-pressed="true"]{background:linear-gradient(90deg,var(--accent),var(--accent2));color:var(--accent-ink)}
+[data-style="apres"] .quickbar{background:var(--bg);border-bottom-color:var(--line)}
+[data-style="apres"] .hprice b,[data-style="apres"] .tot b{color:var(--accent2)}
