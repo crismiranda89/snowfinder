@@ -33,7 +33,7 @@ export function stayEstimate(season: Season, s: Settings, d: Option, w: number):
 
 export interface StayInfo { total: number; source: "edited" | "houses" | "few" | "estimate"; houses: HouseResult }
 export function stay(season: Season, s: Settings, d: Option, w: number, listings: Listing[]): StayInfo {
-  const h = houses(season, d.mkt, listings, s.group, w, !!s.nearLifts, nights(season, s.days));
+  const h = houses(season, d.mkt, listings, s.group, w, s.liftBand, nights(season, s.days));
   const e = edited(s, d, "stay", w);
   if (e != null) return { total: e, source: "edited", houses: h };
   const fromHouses = stayFromHouses(h, s.house);

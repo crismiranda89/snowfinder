@@ -92,8 +92,7 @@ $("groupPreset").innerHTML = GROUPS.map((g) => `<option value="${g.id}">${g.labe
 $("groupPreset").addEventListener("change", (ev) => { const g = GROUPS.find((x) => x.id === (ev.target as HTMLSelectElement).value); if (g) update((s) => { s.group = { ...g.group }; }); });
 $("foodPlan").addEventListener("change", (ev) => update((s) => { s.foodPlan = (ev.target as HTMLSelectElement).value as State["foodPlan"]; }));
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
-($("nearLifts") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.nearLifts = (ev.target as HTMLInputElement).checked; }));
-($("limit") as HTMLInputElement).addEventListener("change", (ev) => update((s) => { s.limit = (ev.target as HTMLInputElement).checked; }));
+seg("lift", (s, v) => { s.liftBand = v as State["liftBand"]; });
 $("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); } });
 function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; update((s) => { s.week = +cell.dataset.w!; }); } }
 $("houseslede").addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest("[data-act='all-dates']")) { weekChosen = false; render(); } });

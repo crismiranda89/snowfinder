@@ -1,10 +1,10 @@
 // App state: defaults, localStorage (per viewer) and share links (the whole scenario in the URL hash).
-import type { Edits, FoodPlan, Group, Ground, PatternKey, Settings, Tier } from "./types.ts";
+import type { Edits, FoodPlan, Group, Ground, HouseLevel, LiftBand, PatternKey, Settings } from "./types.ts";
 
 export interface State extends Settings {
   v: 1;
   week: number;
-  limit: boolean;
+  limit: boolean; // always false: the transfer-time filter was removed
   dest: string[]; // resort ids; empty = all
   pick?: string;  // listing id of the house this person picks for the group
   air?: string;   // option id (resort + airport) of the flight chosen for that house; cheapest when unset
@@ -27,8 +27,8 @@ export const groupId = (g: Group) => (GROUPS.find((x) => x.group.couples === g.c
 
 export function defaults(): State {
   return {
-    v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, nearLifts: true, foodPlan: "home", food: 40, beg: 0,
-    group: { ...GROUPS[0].group }, house: "mid", dest: [], edits: {}, sort: {},
+    v: 1, pattern: "thu", week: 0, days: 4, ground: "car", limit: false, liftBand: "all", foodPlan: "home", food: 40, beg: 0,
+    group: { ...GROUPS[0].group }, house: "all", dest: [], edits: {}, sort: {},
   };
 }
 
@@ -61,13 +61,13 @@ export function sanitize(raw: unknown, weeks: number): State {
     week: int(r.week, 0, weeks - 1, 0),
     days: int(r.days, 4, 5, 4) as 4 | 5,
     ground: oneOf(r.ground, ["car", "transfer"] as const, "car") as Ground,
-    limit: !!r.limit,
-    nearLifts: typeof r.nearLifts === "boolean" ? r.nearLifts : !!d.nearLifts,
+    limit: false, // the transfer-time filter was removed; old links may still carry it
+    liftBand: oneOf(r.liftBand, ["all", "ski", "5", "10"] as const, d.liftBand!) as LiftBand,
     foodPlan: oneOf(r.foodPlan, ["home", "one", "both", "custom"] as const, d.foodPlan!) as FoodPlan,
     food: Math.max(0, Number.isFinite(+r.food) ? +r.food : d.food),
     beg: 0, // lessons were removed from the site; old links may still carry a number
     group,
-    house: oneOf(r.house, ["budget", "mid", "lux"] as const, "mid") as Tier,
+    house: oneOf(r.house, ["all", "budget", "mid", "lux"] as const, d.house) as HouseLevel,
     dest: Array.isArray(r.dest) ? r.dest.filter((x: unknown) => typeof x === "string") : [],
     edits,
     sort: r.sort && typeof r.sort === "object" ? r.sort : {},

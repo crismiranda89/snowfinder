@@ -74,7 +74,10 @@
       <div class="seg" id="ground"><button type="button" data-v="car">Rental car</button><button type="button" data-v="transfer">Transfer</button></div>
     </div>
     <div class="ctl"><span>House level</span>
-      <div class="seg" id="house"><button type="button" data-v="budget">Budget</button><button type="button" data-v="mid">Mid</button><button type="button" data-v="lux">Luxury</button></div>
+      <div class="seg" id="house"><button type="button" data-v="all">All</button><button type="button" data-v="budget">Budget</button><button type="button" data-v="mid">Mid</button><button type="button" data-v="lux">Luxury</button></div>
+    </div>
+    <div class="ctl"><span>Walk to the lifts</span>
+      <div class="seg" id="lift"><button type="button" data-v="all">All</button><button type="button" data-v="ski">Ski in / out</button><button type="button" data-v="5">Up to 5 min</button><button type="button" data-v="10">Up to 10 min</button></div>
     </div>
     <div class="ctl extra"><label for="foodPlan"><span>Food</span></label>
       <select id="foodPlan" aria-describedby="foodhint">
@@ -86,8 +89,6 @@
       <input id="food" type="number" min="0" step="5" inputmode="numeric" aria-label="Food, € per person per day" hidden>
       <small class="foot" id="foodhint"></small>
     </div>
-    <label class="check"><input id="limit" type="checkbox"> Transfers up to ~2h only</label>
-    <label class="check"><input id="nearLifts" type="checkbox"> Houses within a 10-min walk of the lifts only</label>
     <button type="button" class="ghost" id="reset">Reset prices</button>
     <div class="ctl destctl"><span>Resorts <em id="destcount" class="foot" style="font-style:normal;text-transform:none;letter-spacing:0"></em></span>
       <div class="chips" id="dests" role="group" aria-label="Choose resorts"></div>

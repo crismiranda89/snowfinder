@@ -2,7 +2,7 @@
 // Each listing has one or more price quotes for specific dates. To price it in another week, each quote's
 // nightly price is divided by the stay multiplier of its own week (a "normal-week" price), the median of
 // those is taken, and it is multiplied by the target week's multiplier.
-import type { Group, Listing, Quote, Season, Tier } from "../types.ts";
+import type { Group, HouseLevel, LiftBand, Listing, Quote, Season, Tier } from "../types.ts";
 import { level, weekOfStay } from "./calendar.ts";
 import { bedrooms, people } from "./group.ts";
 
@@ -17,6 +17,16 @@ export const NEAR_LIFT_MIN = 10;
 export const walkMins = (m: number) => Math.max(1, Math.round(m / WALK_M_PER_MIN));
 /** Listings with a known distance within NEAR_LIFT_MIN minutes' walk. Unknown distance doesn't count. */
 export const nearLifts = (l: Listing) => l.toLiftM != null && walkMins(l.toLiftM) <= NEAR_LIFT_MIN;
+/** The lift-distance bands, the same as the Houses section's "By distance to lifts" groups (metres). */
+export const LIFT_BANDS: Record<LiftBand, { max: number; label: string; text: string }> = {
+  all: { max: Infinity, label: "All", text: "" },
+  ski: { max: 100, label: "Ski in / ski out", text: "ski in / ski out" },
+  "5": { max: 375, label: "Up to 5 min", text: "within a 5-min walk of the lifts" },
+  "10": { max: 750, label: "Up to 10 min", text: "within a 10-min walk of the lifts" },
+};
+/** A listing inside the band; with a band set, an unknown distance doesn't count. */
+export const inBand = (l: Listing, band: LiftBand = "all") => band === "all" || (l.toLiftM != null && l.toLiftM <= LIFT_BANDS[band].max);
+export const LEVEL_LABEL: Record<HouseLevel, string> = { all: "Any", budget: "Budget", mid: "Mid", lux: "Luxury" };
 
 export interface Priced { l: Listing; total: number; pp: number; exact: boolean; quote: Quote }
 export interface TierResult { tier: Tier; listings: Priced[]; median: number; medianPP: number; pick: Priced }
@@ -61,9 +71,9 @@ export function bestPick(xs: Priced[]): Priced {
     a.total - b.total)[0];
 }
 
-export function houses(season: Season, market: string, listings: Listing[], g: Group, w: number, onlyNearLifts = false, nights = season.nights): HouseResult {
+export function houses(season: Season, market: string, listings: Listing[], g: Group, w: number, band: LiftBand = "all", nights = season.nights): HouseResult {
   const p = people(g);
-  const eligible = listings.filter((l) => fits(l, g) && (!onlyNearLifts || nearLifts(l))).map((l) => {
+  const eligible = listings.filter((l) => fits(l, g) && inBand(l, band)).map((l) => {
     const pr = priceFor(season, market, l, w, nights);
     return { l, total: pr.total, pp: pr.total / p, exact: pr.exact, quote: pr.quote };
   }).sort((a, b) => a.total - b.total);
@@ -79,9 +89,9 @@ export function houses(season: Season, market: string, listings: Listing[], g: G
   return { ...base, mode: "tiers", tiers };
 }
 
-/** Group stay cost implied by the houses for a chosen tier, or null when there are no fitting houses. */
-export function stayFromHouses(h: HouseResult, tier: Tier): number | null {
-  if (h.mode === "tiers") return h.tiers.find((t) => t.tier === tier)!.median;
-  if (h.mode === "few") return median(h.eligible.map((x) => x.total));
+/** Group stay cost implied by the houses for a chosen level ("all": every fitting house), or null when none fit. */
+export function stayFromHouses(h: HouseResult, tier: HouseLevel): number | null {
+  if (h.mode === "tiers" && tier !== "all") return h.tiers.find((t) => t.tier === tier)!.median;
+  if (h.mode !== "none") return median(h.eligible.map((x) => x.total));
   return null;
 }

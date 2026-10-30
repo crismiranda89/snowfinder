@@ -4,7 +4,7 @@ import { LISTINGS, OPTIONS, RESORTS_FILE, RESORT_BY_ID, SEASON } from "../data.t
 import { LEVELS, MONTHS, closeTxt, extraNights, fmt, foodDays, isClosed, isoOf, late, leaveDays, level, nights, patternLabel, range as seasonRange, softHoliday, weekLevel } from "../model/calendar.ts";
 import { FOOD_PLANS, calc, edited, foodPerDay, val, type Calc } from "../model/cost.ts";
 import { bedrooms, cars, describe, people, transferFactor } from "../model/group.ts";
-import { NEAR_LIFT_MIN, TIER_LABEL, houses, nearLifts, priceFor, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
+import { LEVEL_LABEL, LIFT_BANDS, TIER_LABEL, houses, nearLifts, priceFor, walkMins, type HouseResult, type Priced } from "../model/houses.ts";
 import type { Field, Listing, Option, PatternKey, Resort, Tier } from "../types.ts";
 import { groupId, type State } from "../state.ts";
 import { applySort, sortBtn } from "./sort.ts";
@@ -49,7 +49,7 @@ function withPick(s: State, d: Option, w: number, k: Calc): Calc {
   const stay = total / k.people, pp = k.pp - k.parts.stay + stay;
   return { ...k, parts: { ...k.parts, stay }, pp, group: pp * k.people, stayTotal: total };
 }
-export function visible(s: State) { return OPTIONS.filter((d) => (!s.limit || d.mins <= 125) && picked(s, d.resort)); }
+export function visible(s: State) { return OPTIONS.filter((d) => picked(s, d.resort)); }
 /** The stay's dates for the chosen pattern and number of ski days. */
 const dates = (s: State, w: number) => seasonRange(SEASON, s.pattern, w, s.days);
 function shut(s: State, d: Option, w: number) { return isClosed(SEASON, d, s.pattern, w, s.days); }
@@ -99,10 +99,8 @@ function renderCompareBody() {
 }
 
 export function renderControls(s: State) {
-  const segs: [string, string][] = [["pattern", s.pattern], ["days", String(s.days)], ["ground", s.ground], ["house", s.house]];
+  const segs: [string, string][] = [["pattern", s.pattern], ["days", String(s.days)], ["ground", s.ground], ["house", s.house], ["lift", s.liftBand || "all"]];
   for (const [id, v] of segs) $(id).querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === v)));
-  ($("limit") as HTMLInputElement).checked = s.limit;
-  ($("nearLifts") as HTMLInputElement).checked = !!s.nearLifts;
   const setNum = (id: string, v: number) => { const el = $(id) as HTMLInputElement; if (document.activeElement !== el) el.value = String(v); };
   const first = dates(s, 0).a, last = dates(s, SEASON.weeks.length - 1).b, n = nights(SEASON, s.days), fd = foodDays(SEASON, s.days);
   $("eyebrow").textContent = `From ${SEASON.origin.city} · ${n} nights · ${fmt(first)} – ${fmt(last)} ${last.getUTCFullYear()}`;
@@ -118,8 +116,8 @@ export function renderControls(s: State) {
   ($("groupPreset") as HTMLSelectElement).value = groupId(s.group);
   const p = people(s.group);
   const food = s.foodPlan && s.foodPlan !== "custom" ? FOOD_PLANS[s.foodPlan].label : `food ${euro(s.food)}/day`;
-  $("filtersum").textContent = [describe(s.group).replace(" · ", " (").replace(" · ", ", ") + ")", `${TIER_LABEL[s.house]} house`, food.toLowerCase(),
-    s.ground === "car" ? "rental car" : "transfer", s.nearLifts ? "≤ 10 min to lifts" : "", s.limit ? "transfers ≤ 2h" : "",
+  $("filtersum").textContent = [describe(s.group).replace(" · ", " (").replace(" · ", ", ") + ")", s.house === "all" ? "any house level" : `${LEVEL_LABEL[s.house]} house`, food.toLowerCase(),
+    s.ground === "car" ? "rental car" : "transfer", LIFT_BANDS[s.liftBand || "all"].text,
     s.dest.length ? `${s.dest.length} of ${RESORTS_FILE.resorts.length} resorts` : ""].filter(Boolean).join(" · ");
   const nh = fittingHouses(s).length;
   $("housecount").textContent = `${nh} house${nh === 1 ? "" : "s"} fit`;
@@ -223,7 +221,7 @@ export function renderHeat(s: State) {
 function stayPill(s: State, k: Calc) {
   const st = k.stay;
   if (st.source === "edited") return `<span class="pill p-neutral">Your house price</span>`;
-  if (st.source === "houses") return `<span class="pill p-ok">${TIER_LABEL[s.house]} house · ${st.houses.eligible.length} listed</span>`;
+  if (st.source === "houses") return `<span class="pill p-ok">${LEVEL_LABEL[s.house]} house · ${st.houses.eligible.length} listed</span>`;
   if (st.source === "few") return `<span class="pill p-warn">${st.houses.eligible.length} house${st.houses.eligible.length > 1 ? "s" : ""} listed</span>`;
   return `<span class="pill p-neutral">House price estimated</span>`;
 }
@@ -337,15 +335,16 @@ function searchLinks(r: Resort, s: State) {
   return `<a href="${esc(air)}" target="_blank" rel="noopener">Airbnb ↗</a> · <a href="${esc(bk)}" target="_blank" rel="noopener">Booking ↗</a>`;
 }
 
+const liftText = (s: State) => { const t = LIFT_BANDS[s.liftBand || "all"].text; return t ? `, ${t}` : ""; };
 /** The houses carousel inside a resort's dropdown in the ranking: every fitting house, cheapest first,
  *  labelled with its level; the level picked above is highlighted and sets the house cost. */
 function resortHouses(s: State, r: Resort, h: HouseResult, repo: string) {
   const p = people(s.group), b = bedrooms(s.group);
-  const need = `${s.group.soloRooms === "twin" ? `${p} separate beds` : `${b}+ bedroom${b > 1 ? "s" : ""}, sleeps ${p}`}${s.nearLifts ? `, ≤ ${NEAR_LIFT_MIN} min walk to the lifts` : ""}`;
+  const need = `${s.group.soloRooms === "twin" ? `${p} separate beds` : `${b}+ bedroom${b > 1 ? "s" : ""}, sleeps ${p}`}${liftText(s)}`;
   const add = `https://github.com/${repo}/blob/main/CONTRIBUTING.md#add-a-house`;
   if (h.mode === "none") {
     const all = LISTINGS_BY_RESORT[r.id] || [];
-    const why = all.length ? ` (${all.length} listed, none fit${s.nearLifts ? " or close enough to the lifts" : ""})` : "";
+    const why = all.length ? ` (${all.length} listed, none fit${s.liftBand && s.liftBand !== "all" ? " or close enough to the lifts" : ""})` : "";
     return `<div class="hres hempty"><span class="foot">No houses listed yet for ${need}${why}, so the house price is an estimate. Search ${searchLinks(r, s)} · <a href="${esc(add)}" target="_blank" rel="noopener">add one</a></span></div>`;
   }
   const tierOf = new Map<Priced, Tier>();
@@ -353,7 +352,7 @@ function resortHouses(s: State, r: Resort, h: HouseResult, repo: string) {
   const head = h.mode === "tiers"
     ? `${h.eligible.length} houses fit (${need}) · per person: ` + h.tiers.map((tr) => `<span class="${tr.tier === s.house ? "on" : ""}">${TIER_LABEL[tr.tier]} <b>${euro(tr.medianPP)}</b></span>`).join(" · ")
     : `Only ${h.eligible.length} fitting house${h.eligible.length > 1 ? "s" : ""} (${need}); levels need 3 · find more: ${searchLinks(r, s)}`;
-  const cards = h.eligible.map((x) => {
+  const cards = h.eligible.filter((x) => s.house === "all" || tierOf.get(x) === s.house).map((x) => {
     const tr = tierOf.get(x);
     return card(s, x, tr ? TIER_LABEL[tr] : "Listed", tr === s.house);
   }).join("");
@@ -373,9 +372,9 @@ export function renderTable(s: State) {
     };
     const pf = ("pass" + s.days) as Field, rf = ("rent" + s.days) as Field;
     const closed = shut(s, d, w);
-    const dim = (s.limit && d.mins > 125) || closed ? ` class="dimrow"` : "";
+    const dim = closed ? ` class="dimrow"` : "";
     const nCars = cars(p), tf = transferFactor(p);
-    const stayNote = { edited: "your price", houses: `${TIER_LABEL[s.house].toLowerCase()} houses`, few: "few houses", estimate: `estimate, ${bedrooms(s.group)} bedrooms` }[k.stay.source];
+    const stayNote = { edited: "your price", houses: `${LEVEL_LABEL[s.house].toLowerCase()} houses`, few: "few houses", estimate: `estimate, ${bedrooms(s.group)} bedrooms` }[k.stay.source];
     return `<tr${dim}><td class="dest" data-v="${esc(d.name + " " + d.air)}"><b>${esc(d.name)}</b><small>${esc(d.country)} · ${esc(d.air)}${closed ? ` · <span style="color:var(--bad)">closed (closes ${esc(closeTxt(d))})</span>` : ""}</small></td><td data-v="${d.km}">${esc(d.time)}<br><small class="foot">${d.km} km</small></td>` +
       `<td class="r">${inp("flight")}</td>` +
       `<td class="r">${inp("car")}<br><small class="foot">× ${nCars} = ${euro(val(SEASON, s, d, "car", w) * nCars)}</small></td>` +
@@ -415,7 +414,7 @@ export function combinations(s: State): number {
     SEASON.weeks.forEach((_, w) => {
       for (const d of OPTIONS) {
         if (shut(t, d, w)) continue;
-        n += houses(SEASON, d.mkt, LISTINGS_BY_RESORT[d.resort] || [], s.group, w, !!s.nearLifts, nights(SEASON, s.days)).eligible.length;
+        n += houses(SEASON, d.mkt, LISTINGS_BY_RESORT[d.resort] || [], s.group, w, s.liftBand, nights(SEASON, s.days)).eligible.length;
       }
     });
   }
@@ -428,9 +427,12 @@ export function fittingHousesAllDates(s: State): (Found & { week: number })[] {
     for (const r of RESORTS_FILE.resorts) {
       const d = visible(s).filter((o) => o.resort === r.id && !shut(s, o, w))[0];
       if (!d) continue;
-      for (const x of c(s, d, w).stay.houses.eligible) {
+      const h = c(s, d, w).stay.houses;
+      const tierOf = new Map<Priced, Tier>();
+      if (h.mode === "tiers") for (const t of h.tiers) for (const x of t.listings) tierOf.set(x, t.tier);
+      for (const x of h.eligible) {
         const had = best.get(x.l.id);
-        if (!had || x.pp < had.x.pp) best.set(x.l.id, { x, r, week: w });
+        if (!had || x.pp < had.x.pp) best.set(x.l.id, { x, r, week: w, tier: tierOf.get(x) });
       }
     }
   });
@@ -445,22 +447,22 @@ const DIST = [
 /** allDates: no week picked yet, so each house shows its cheapest week of the season. */
 export function renderHouseSection(s: State, view: HouseView, repo: string, allDates = false) {
   $("houseView").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
-  const all: (Found & { week?: number })[] = allDates ? fittingHousesAllDates(s) : fittingHouses(s);
+  const all: (Found & { week?: number })[] = (allDates ? fittingHousesAllDates(s) : fittingHouses(s)).filter((f) => s.house === "all" || f.tier === s.house);
   const p = people(s.group), b = bedrooms(s.group);
   const resorts = new Set(all.map((f) => f.r.id)).size;
-  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit ${p} people ${s.group.soloRooms === "twin" ? "with a bed each" : `in ${b}+ bedrooms`}${s.nearLifts ? `, within a ${NEAR_LIFT_MIN}-min walk of the lifts` : ""}`;
+  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit${all.length === 1 ? "s" : ""} ${p} people ${s.group.soloRooms === "twin" ? "with a bed each" : `in ${b}+ bedrooms`}${liftText(s)}${s.house === "all" ? "" : `, ${LEVEL_LABEL[s.house].toLowerCase()} level`}`;
   $("houseslede").innerHTML = !all.length ? ""
     : allDates ? `${esc(fit)}, across all dates: each shows its cheapest week. Tap a week in the grid below to price that week. Prices are per person for the whole stay.`
     : `${esc(fit)}, for ${esc(dates(s, s.week).text)}. <button type="button" class="linkbtn" data-act="all-dates">Show all dates</button>`;
   if (!all.length) {
     const add = `https://github.com/${repo}/blob/main/CONTRIBUTING.md#add-a-house`;
-    $("housegroups").innerHTML = `<div class="hempty-big"><b>No houses fit yet.</b><span class="foot">${s.nearLifts ? `Try unticking “within a 10-min walk” in Filters, or pick other resorts.` : "Pick other resorts in Filters."} Found one? <a href="${esc(add)}" target="_blank" rel="noopener">Add it</a>.</span></div>`;
+    $("housegroups").innerHTML = `<div class="hempty-big"><b>No houses fit yet.</b><span class="foot">${s.liftBand && s.liftBand !== "all" || s.house !== "all" ? `Try “All” for the walk to the lifts or the house level in Filters, or pick other resorts.` : "Pick other resorts in Filters."} Found one? <a href="${esc(add)}" target="_blank" rel="noopener">Add it</a>.</span></div>`;
     return;
   }
   let groups: { title: string; hint: string; xs: (Found & { week?: number })[] }[];
   if (view === "price") {
-    const n = all.length, k = n >= 3 ? 3 : 1;
-    const names = k === 3 ? ["Budget", "Mid", "Luxury"] : ["All"];
+    const n = all.length, k = n >= 3 && s.house === "all" ? 3 : 1;
+    const names = k === 3 ? ["Budget", "Mid", "Luxury"] : [s.house === "all" ? "All" : LEVEL_LABEL[s.house]];
     groups = names.map((title, i) => {
       const xs = all.filter((_, j) => Math.floor((k * j) / n) === i);
       return { title, hint: xs.length ? `${euro(xs[0].x.pp)}–${euro(xs[xs.length - 1].x.pp)} per person` : "", xs };

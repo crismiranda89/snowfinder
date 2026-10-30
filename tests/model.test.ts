@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { LISTINGS, OPTIONS, RESORTS_FILE, SEASON } from "../src/data.ts";
 import { bedrooms, cars, people, transferFactor } from "../src/model/group.ts";
-import { fits, houses, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
+import { fits, houses, inBand, median, nearLifts, priceFor, stayFromHouses, walkMins } from "../src/model/houses.ts";
 import { calc, foodPerDay } from "../src/model/cost.ts";
 import { foodDays, isClosed, leaveDays, nights, patternLabel, range, weekOfStay } from "../src/model/calendar.ts";
 import { decodeShare, defaults, encodeShare, sanitize } from "../src/state.ts";
@@ -88,7 +88,7 @@ test("seed: 4 couples + 1 solo in Soldeu, 3–8 Mar, matches the shortlist", () 
   const h = houses(SEASON, "aduk", sol, G(4, 1), W);
   assert.equal(h.mode, "tiers");
   assert.deepEqual(h.tiers.map((t) => t.median), [3443, 3932, 4323]);
-  const s: Settings = { ...defaults(), group: G(4, 1), house: "mid", nearLifts: false }; // all 4 shortlisted houses
+  const s: Settings = { ...defaults(), group: G(4, 1), house: "mid", liftBand: "all" }; // all 4 shortlisted houses
   const opt = OPTIONS.find((o) => o.id === "sol-tls")!;
   const c = calc(SEASON, s, opt, W, sol);
   assert.equal(c.stay.source, "houses");
@@ -112,7 +112,9 @@ test("share link round-trip and sanitising", () => {
   assert.deepEqual(sanitize({ group: G(0, 4, "twin") }, 12).group, G(0, 4, "twin")); // 4 friends, a bed each
   assert.deepEqual(sanitize({ group: G(2, 3) }, 12).group, G(4, 1, "common")); // only the listed group setups exist
   assert.deepEqual(bad.edits, {});
-  assert.equal(bad.nearLifts, true); assert.equal(sanitize({ nearLifts: false }, 12).nearLifts, false);
+  assert.equal(bad.liftBand, "all"); assert.equal(sanitize({ liftBand: "5" }, 12).liftBand, "5"); assert.equal(sanitize({ liftBand: "x" }, 12).liftBand, "all");
+  assert.equal(bad.house, "all"); assert.equal(sanitize({ house: "budget" }, 12).house, "budget");
+  assert.equal(sanitize({ limit: true }, 12).limit, false); // the transfer-time filter was removed
   assert.equal(decodeShare("#s=%%%garbage", 12), null);
 });
 
@@ -140,7 +142,7 @@ test("near the lifts: within a 10-minute walk, unknown distance excluded", () =>
   const at = (toLiftM: number | null) => ({ ...LISTINGS[0], toLiftM });
   assert.ok(nearLifts(at(750))); assert.ok(!nearLifts(at(900))); assert.ok(!nearLifts(at(null)));
   const sol = LISTINGS.filter((l) => l.resort === "soldeu");
-  const all = houses(SEASON, "aduk", sol, G(4, 1), 6), near = houses(SEASON, "aduk", sol, G(4, 1), 6, true);
+  const all = houses(SEASON, "aduk", sol, G(4, 1), 6), near = houses(SEASON, "aduk", sol, G(4, 1), 6, "10");
   assert.ok(near.eligible.every((x) => nearLifts(x.l)));
   assert.ok(near.eligible.length < all.eligible.length);
 });
@@ -185,4 +187,22 @@ test("4 separate beds, any rooms: a listing needs 4 beds, or 4 bedrooms; an unkn
   assert.equal(fits(l(4, 1), g), true); // all four beds in one room is fine
   assert.equal(bedrooms(g), 1);
   assert.equal(fits(l(3), G(0, 4, "shared")), true);
+});
+
+test("lift bands match the Houses section: ski in/out ≤ 100 m, 5 min ≤ 375 m, 10 min ≤ 750 m; unknown only under All", () => {
+  const at = (toLiftM: number | null) => ({ ...LISTINGS[0], toLiftM });
+  assert.ok(inBand(at(100), "ski") && !inBand(at(101), "ski"));
+  assert.ok(inBand(at(375), "5") && !inBand(at(376), "5"));
+  assert.ok(inBand(at(750), "10") && !inBand(at(751), "10"));
+  assert.ok(inBand(at(null), "all") && !inBand(at(null), "10"));
+  const sol = LISTINGS.filter((l) => l.resort === "soldeu");
+  const n = (b: "all" | "ski" | "5" | "10") => houses(SEASON, "aduk", sol, G(4, 1), 6, b).eligible.length;
+  assert.ok(n("ski") <= n("5") && n("5") <= n("10") && n("10") <= n("all"));
+});
+
+test("house level All prices the stay at the median of every fitting house", () => {
+  const sol = LISTINGS.filter((l) => l.resort === "soldeu");
+  const h = houses(SEASON, "aduk", sol, G(4, 1), 6);
+  assert.equal(stayFromHouses(h, "all"), median(h.eligible.map((x) => x.total)));
+  assert.equal(stayFromHouses(h, "budget"), h.tiers[0].median);
 });

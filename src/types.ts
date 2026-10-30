@@ -5,6 +5,10 @@ export type Level = 0 | 1 | 2 | 3;
 export type PatternKey = "wed" | "thu" | "fri";
 export type Ground = "car" | "transfer";
 export type Tier = "budget" | "mid" | "lux";
+/** House level filter: one third of the fitting houses, or all of them. */
+export type HouseLevel = Tier | "all";
+/** Walk to the lifts filter: any distance, ski in / ski out (≤ 100 m), up to 5 or 10 minutes. */
+export type LiftBand = "all" | "ski" | "5" | "10";
 export type Field = "flight" | "car" | "transfer" | "stay" | "pass4" | "pass5" | "rent4" | "rent5" | "lesson";
 
 export interface Pattern { from: number; to: number; label: string }
@@ -96,11 +100,11 @@ export interface Settings {
   ground: Ground;
   /** How the group eats; "custom" (or missing) uses `food` € per person per day. */
   foodPlan?: FoodPlan;
-  /** Only count houses within a 10-minute walk of the lifts. */
-  nearLifts?: boolean;
+  /** Only count houses this close to the lifts; missing = any distance. */
+  liftBand?: LiftBand;
   food: number;
   beg: number;
   group: Group;
-  house: Tier;
+  house: HouseLevel;
   edits: Edits;
 }
