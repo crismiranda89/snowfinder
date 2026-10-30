@@ -193,13 +193,14 @@ $("rank").addEventListener("toggle", (ev) => {
   const d = ev.target as HTMLDetailsElement; const k = d.dataset?.k; if (!k) return;
   if (d.open) rankOpen.add(k); else rankOpen.delete(k);
 }, true);
-// Food's (i): how the daily amount is worked out, shown on tap (phone) or click (desktop).
-$("foodinfo").addEventListener("click", () => {
-  const h = $("foodhint"), open = h.hidden; h.hidden = !open; $("foodinfo").setAttribute("aria-expanded", String(open)); haptic(8);
-});
+// The (i) buttons (Food, Dates): a tap opens the explanation next to it; a tap anywhere else closes it.
 document.addEventListener("click", (ev) => {
-  if ((ev.target as HTMLElement).closest("#foodinfo, #foodhint")) return;
-  $("foodhint").hidden = true; $("foodinfo").setAttribute("aria-expanded", "false");
+  const t = ev.target as HTMLElement, b = t.closest<HTMLElement>(".infobtn");
+  document.querySelectorAll<HTMLElement>(".infobtn").forEach((x) => {
+    const h = document.getElementById(x.getAttribute("aria-controls")!)!;
+    if (x === b) { const open = h.hidden; h.hidden = !open; x.setAttribute("aria-expanded", String(open)); haptic(8); }
+    else if (!h.contains(t)) { h.hidden = true; x.setAttribute("aria-expanded", "false"); }
+  });
 });
 
 // Photos that fail to load (moved listing, hotlink blocked) fall back to the placeholder.

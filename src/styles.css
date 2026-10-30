@@ -635,7 +635,7 @@ button.qb-sum{font:inherit;color:inherit;background:none;border:0;padding:2px 0;
 .infobtn{display:inline-grid;place-items:center;width:16px;height:16px;margin-left:4px;padding:0;border-radius:50%;border:1px solid currentColor;background:none;color:var(--muted);font-size:10px;font-weight:600;line-height:1;font-style:italic;text-transform:none;letter-spacing:0;cursor:pointer;vertical-align:1px}
 .infobtn[aria-expanded="true"]{background:var(--accent);border-color:transparent;color:var(--accent-ink)}
 .ctl.extra{position:relative}
-.foodhint{position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:min(300px,calc(100vw - 48px));padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgb(0 0 0 / .25);color:var(--ink);font-size:.8rem;line-height:1.4}
+.infohint{position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:min(300px,calc(100vw - 48px));padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);box-shadow:0 8px 24px rgb(0 0 0 / .25);color:var(--ink);font-size:.8rem;line-height:1.4}
 /* The per-resort food lines in Food's (i) */
 .fh-rows{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;margin:6px 0;font-size:.95em}
 .fh-rows b{text-align:right}
@@ -651,3 +651,6 @@ button.qb-sum{font:inherit;color:inherit;background:none;border:0;padding:2px 0;
 .tshare{border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:grid;gap:10px}
 .tshare>summary{cursor:pointer;font-weight:700;color:var(--accent)}
 [data-style="neo"] .tshare{border-radius:24px;border-color:transparent;background:var(--soft)}
+#grid-block>.head{position:relative;justify-content:flex-start;column-gap:8px}
+#gridhint{top:calc(1.6em + 10px)}
+#gridinfo{align-self:center;margin-left:-4px}
