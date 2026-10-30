@@ -521,3 +521,5 @@ section.block,.mypick{scroll-margin-top:96px}
 [data-style="neo"] .hphoto .tier,[data-style="neo"] .hphoto .hrate{background:rgba(0,0,0,.6);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 [data-style="neo"] .ld-opt{background:var(--surface)}
 [data-style="neo"] .ld-opt.picked,[data-style="neo"] .ld-lock{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+/* NEW · footer actions (Share this plan, GitHub) next to the page style */
+.foot-acts{display:flex;flex-wrap:wrap;gap:8px}

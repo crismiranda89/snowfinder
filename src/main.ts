@@ -6,7 +6,7 @@ import { rankOpen, renderHouseSection, type HouseView, renderControls, renderDes
 import { applySort, initSort, wrapHeaders } from "./ui/sort.ts";
 import { loadTrip, renderMyPick, renderTripsByGroup, tripSettings, wireTrip } from "./trip.ts";
 
-const REPO = (document.querySelector('a.btn.secondary') as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
+const REPO = (document.getElementById("githubLink") as HTMLAnchorElement | null)?.href.split("github.com/")[1] || "snowfinder/snowfinder";
 const WEEKS = SEASON.weeks.length;
 const $ = (id: string) => document.getElementById(id)!;
 
@@ -175,7 +175,7 @@ $("share").addEventListener("click", async () => {
   }
 });
 
-// Page style (this browser only): classic, piste, après or neo. The <head> applies it before the first paint.
+// Page style (this browser only): classic, piste, après or neo (the default). The <head> applies it before the first paint.
 const STYLE_KEY = "snowfinder-style";
 function setStyle(v: string) {
   if (v === "piste" || v === "apres" || v === "neo") document.documentElement.dataset.style = v; else delete document.documentElement.dataset.style;
