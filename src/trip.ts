@@ -159,7 +159,7 @@ export function whatsappText(d: PickData, link: string): string {
   const n = s ? nights(SEASON, s.days) : 5;
   const country = RESORTS_FILE.resorts.find((r) => r.name === d.resort)?.country || "";
   return [
-    `⛷️ *Ski trip – let's decide!*`,
+    `*Let's plan a snow trip together?* ❄️⛷️🏂`,
     ``,
     combos > 1 ? `I compared *${combos.toLocaleString("en-GB")} combinations* of house, week, start day and flight across ${RESORTS_FILE.resorts.length} resorts for ${group.toLowerCase()}. The winner:` : `My pick for ${group.toLowerCase()}:`,
     `🏠 *${d.title}*${country ? ` (${d.resort}, ${country})` : ` (${d.resort})`}`,
