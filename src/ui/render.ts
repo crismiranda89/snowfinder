@@ -111,10 +111,15 @@ export function renderControls(s: State) {
   const plan = s.foodPlan || "custom";
   renderDeck($("foodPlan"), [...(Object.keys(FOOD_PLANS) as (keyof typeof FOOD_PLANS)[]).map((v) => ({ v, label: FOOD_PLANS[v].label })), { v: "custom", label: "Custom €/person/day" }], plan);
   ($("food") as HTMLInputElement).hidden = plan !== "custom";
-  const perDay = OPTIONS.map((d) => foodPerDay(s, d));
-  $("foodhint").textContent = plan === "custom" ? `Your amount per person per day × ${fd} days, arrival to departure.`
-    : `${euro(Math.min(...perDay))}–${euro(Math.max(...perDay))} per person per day, by resort, × ${fd} days (arrival to departure). ` +
-      `Priced from each resort's meal-out cost: cooking at home with slope snacks is about 0.6 of a meal out, one meal out a day about 1.4, lunch and dinner out about 2.2.`;
+  // The (i) pop-up: the meal-out price behind each resort (one typical figure, set by hand, not a median), the
+  // multiplier for the chosen plan, and what that makes per day.
+  const mult = plan === "custom" ? null : FOOD_PLANS[plan].meals;
+  $("foodhint").innerHTML = mult == null
+    ? `Your own amount: ${euro(+s.food || 0)} per person per day × ${fd} days, arrival to departure.`
+    : `<b>${esc(FOOD_PLANS[plan as keyof typeof FOOD_PLANS].label)}</b> = ${mult} × a meal out, per person per day, × ${fd} days (arrival to departure).` +
+      `<span class="fh-rows">${RESORTS_FILE.resorts.map((r) => `<span>${esc(r.compareName || r.name)}</span><span>meal ${euro(r.compare.meal[0])}</span><b>${euro(Math.round(mult * r.compare.meal[0]))}/day</b>`).join("")}</span>` +
+      `Meal out = one typical price per resort for a main course and a drink in a mid-range restaurant (our estimate, not a median of menus). ` +
+      `Cook at home is 0.6 × (groceries and slope snacks), one meal out 1.4 ×, lunch and dinner out 2.2 ×.`;
   setNum("food", s.food);
   $("nCouples").textContent = String(s.group.couples); $("nSolo").textContent = String(s.group.solo);
   renderDeck($("rooms"), [{ v: "shared", label: "Share a room" }, { v: "own", label: "Own room" }, { v: "twin", label: "Own bed, any room" }], s.group.soloRooms);
