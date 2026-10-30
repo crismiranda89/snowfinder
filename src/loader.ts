@@ -40,6 +40,9 @@ export interface LoaderOpts {
   target: HTMLElement;
   /** Called once, when the trip opens; `result` is the lines to show on top of it. */
   onReveal: (result: string) => void;
+  /** The first card's heading and the line under it (default: opening the trip). */
+  title?: string;
+  intro?: string;
   /** Called once both games are done, with what to save. */
   onDone: (answers: string[], guess: number) => void;
 }
@@ -54,10 +57,10 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
   const answers: string[] = [];
   let gate = o.gate;
   let guess = 1200, locked = false, loaded = false, real: number | null = null, revealed = false, saved = false;
-  const games = o.gate ? `<span class="ld-gate">2 quick games before your trip opens →</span>` : `<span class="foot">Swipe for a quick game →</span>`;
+  const games = o.intro ? `<span class="ld-gate">${esc(o.intro)}</span>` : o.gate ? `<span class="ld-gate">2 quick games before your trip opens →</span>` : `<span class="foot">Swipe for a quick game →</span>`;
   el.innerHTML = `<div class="ld" role="status" aria-label="Loading the trip">` +
     `<div class="ld-slider">` +
-    `<section class="ld-pane ld-snow"><div class="ld-flakes" aria-hidden="true">${flakes}</div><b>❄️ Opening your trip</b><span class="ld-line">${LINES[0]}</span>${games}</section>` +
+    `<section class="ld-pane ld-snow"><div class="ld-flakes" aria-hidden="true">${flakes}</div><b>${esc(o.title || "❄️ Opening your trip")}</b><span class="ld-line">${LINES[0]}</span>${games}</section>` +
     `<section class="ld-pane ld-duel"><div class="ld-card"></div></section>` +
     `<section class="ld-pane ld-guess"><div class="ld-card"></div></section></div>` +
     `<div class="ld-dots">${ORDER.map((k, i) => `<button type="button" data-go="${i}" aria-label="Show ${k}"></button>`).join("")}</div>` +

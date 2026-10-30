@@ -73,12 +73,11 @@
     <div class="ctl"><span>Walk to the lifts</span>
       <div id="lift"></div>
     </div>
-    <div class="ctl extra"><span>Food</span>
+    <div class="ctl extra"><span>Food <button type="button" class="infobtn" id="foodinfo" aria-expanded="false" aria-controls="foodhint" aria-label="How food is priced">i</button></span>
       <div id="foodPlan" aria-describedby="foodhint"></div>
       <input id="food" type="number" min="0" step="5" inputmode="numeric" aria-label="Food, € per person per day" hidden>
-      <small class="foot" id="foodhint"></small>
+      <small class="foot foodhint" id="foodhint" hidden></small>
     </div>
-    <button type="button" class="btn secondary resetbtn" id="reset"><span aria-hidden="true">↺</span> Reset prices</button>
     <div class="ctl destctl"><span>Resorts <em id="destcount" class="foot" style="font-style:normal;text-transform:none;letter-spacing:0"></em></span>
       <div class="chips" id="dests" role="group" aria-label="Choose resorts"></div>
     </div>

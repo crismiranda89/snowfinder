@@ -205,19 +205,20 @@ function priceBreakdown(s: State, p: PickSummary) {
 // ---- the welcome card on a shared trip link: the organiser's pick, laid out like "Your pick", with the
 // exact flight of the shared plan. While the trip loads (and on a first visit until the games are done) the
 // loading games play inside it instead, so the price isn't given away before the guess.
-let explored = false; // set by Explore: the card stays closed for the rest of the visit
+let welcomeHtml = "";
+let explored = false; // set by Explore (or creating a trip): the card stays closed for the rest of the visit
 function renderWelcome(result = "") {
   const box = $("welcome"), sp = sharedPlan(); if (!sp) return;
   if (explored) { box.hidden = true; return; }
   const { s } = sp;
   resetCache(); const p = pickSummary(s); resetCache();
-  if (!p) { box.innerHTML = ""; box.hidden = true; return; }
+  if (!p) { box.innerHTML = welcomeHtml = ""; box.hidden = true; return; }
   const org = sp.organizer, who = /^AI pick/i.test(org) ? `🤖 ${esc(org)}` : `👋 ${esc(org.split(/\s+/)[0])} picked this`;
   const t = SEASON.flightTimes[p.option.code], rg = seasonRange(SEASON, s.pattern, s.week, s.days), o = SEASON.origin;
   const ci = isoOf(rg.a), co = isoOf(rg.b);
   const gf = `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${o.code} to ${p.option.code} on ${ci} returning ${co}`)}`;
   box.hidden = false;
-  box.innerHTML = `<div class="mypick welcomecard">` +
+  const html = `<div class="mypick welcomecard">` +
     `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
     `<div class="mp-body"><span class="eyebrow">${who}</span><b>${esc(p.listing.title)}</b>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
@@ -227,6 +228,8 @@ function renderWelcome(result = "") {
     `<a href="${esc(gf)}" target="_blank" rel="noopener noreferrer">See flights and times for these dates ↗</a></div>` +
     priceBreakdown(s, p) + result +
     `<div class="mp-acts"><button type="button" class="btn wc-explore" data-act="explore">Explore</button></div></div>`;
+  // Redraw only when something changed: the sheet answering with the same pick mustn't swallow a tap on Explore.
+  if (html !== welcomeHtml) { welcomeHtml = html; box.innerHTML = html; }
 }
 
 // ---- the "Your pick" bar, shown once a house is chosen
@@ -302,12 +305,13 @@ export async function createTrip(s: State, toast: (m: string) => void) {
     rememberTrip(groupId(s.group), trip);
     history.pushState(null, "", `?trip=${trip}`);
     last = null;
+    explored = true; // the organiser is already exploring: no welcome card for their own new trip
     await loadTrip(s, toast);
     renderMyPick(s);
     confirmed = true;
     renderTrip(s);
     toast("Trip created. Copy the message below and paste it in your group chats.");
-    document.getElementById("tmsg-text")?.scrollIntoView({ block: "center", behavior: "smooth" });
+    playGames();
   } catch (e) {
     const old = (e as { trip?: string }).trip;
     if (old) { rememberTrip(groupId(s.group), old); toast(`${(e as Error).message} Opening it.`); openTrip(old, s, toast); return; }
@@ -322,7 +326,7 @@ export async function addPick(s: State, toast: (m: string) => void) {
     confirmed = true;
     toast(`Your pick is in, with your vote. ${last?.trip.organizer || "The organiser"} approves it before it's checked.`);
     await loadTrip(s, toast);
-    document.getElementById("challenge")?.scrollIntoView({ block: "center", behavior: "smooth" });
+    playGames();
   }
   catch (e) { toast(`Couldn't add your pick: ${(e as Error).message}`); }
 }
@@ -379,73 +383,64 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
   if (!id) { box.hidden = true; $("welcome").hidden = true; return; }
   box.hidden = false;
   if (!tripsReady()) { $("trip-body").innerHTML = `<p class="foot">This trip link needs the shared-trip sheet, which isn't set up on this copy of the site.</p>`; return; }
-  // First load. Someone who already played (or made the trip here) goes straight to the pick, from this device's
-  // copy while the sheet answers. Anyone else gets the loading games in the welcome card: on a first visit the trip
-  // stays hidden (prices blurred) until both games are done. With the link's snapshot the card needs no sheet.
+  // First load: the welcome card on top shows the organiser's pick straight away, from the link's snapshot or
+  // this device's copy, while the sheet answers. The loading games no longer play here: they come after you
+  // add a pick (or create the trip), below in step 5 (see playGames).
   const first = !last, body = $("trip-body"), welcome = $("welcome");
-  const norm = (x: string) => x.normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
-  const isOrg = (org: string) => Object.values(myTrips()).includes(id) || (!!myName() && norm(myName()) === norm(org));
-  // The card's lines: the organiser's guess and ski style under their name; the visitor's own only when the organiser has none.
-  const lines = () => {
-    const sp = sharedPlan(); if (!sp) return "";
-    resetCache(); const pp = pickSummary(sp.s)?.pp ?? null; resetCache();
-    const who = /^AI pick/i.test(sp.organizer) ? "The AI" : sp.organizer.split(/\s+/)[0];
-    const oq = organizerQuiz(), mine = playedAll()[id], me = isOrg(sp.organizer);
-    let out = oq ? loaderResult(oq.answers, oq.guess, pp, who) : "";
-    if (mine && !oq) out += loaderResult(mine.answers, mine.guess, pp, me ? who : "");
-    return out;
-  };
-  let revealed = false, readied = false;
-  const showPick = () => { revealed = true; renderWelcome(lines()); renderMyPick(s); };
-  const ready = (org: string) => {
-    if (readied || !loader) return;
-    readied = true;
-    const sp = sharedPlan(); resetCache(); const pp = sp ? pickSummary(sp.s)?.pp ?? null : null; resetCache();
-    if (isOrg(org)) document.documentElement.classList.remove("gated");
-    loader.ready(pp, isOrg(org));
-  };
   let instant = false;
   if (first) {
-    loader?.stop(); body.innerHTML = ""; welcome.hidden = false;
-    const known = !!playedAll()[id] || Object.values(myTrips()).includes(id), cached = known ? readCache(id) : null;
-    if (cached) {
-      instant = true; last = cached; body.hidden = false; document.documentElement.classList.remove("gated");
-      renderTrip(s); showPick();
-    } else {
-      const gate = !known;
-      body.hidden = gate;
-      document.documentElement.classList.toggle("gated", gate);
-      loader = startLoader(welcome, {
-        gate, first: loaderVariant(), target: welcome,
-        // After the games, the price reveal (and any confetti) plays for a moment before the card turns into the pick.
-        onReveal: (result) => setTimeout(() => {
-          loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated"); showPick();
-        }, gate && result ? 2400 : 0),
-        // Saved under the visitor's name; the organiser's own play goes under the organiser's name (it shows on the card).
-        onDone: (answers, guess) => {
-          markPlayed(id, answers, guess);
-          const org = sharedPlan()?.organizer || "", name = org && isOrg(org) ? org : myName();
-          post({ action: "quiz", trip: id, name, answers, guess }).catch(() => { /* the trip still opens */ });
-        },
-      });
-      // The link's snapshot already has the pick: no need to wait for the sheet to open the card.
-      const sn = snapshot(); if (sn) ready(sn.o);
-    }
+    loader?.stop(); $("trip-loader").innerHTML = ""; body.innerHTML = ""; body.hidden = false;
+    const cached = readCache(id);
+    if (cached) { instant = true; last = cached; renderTrip(s); }
+    if (cached || snapshot()) renderWelcome(welcomeLines());
+    else if (!explored) { welcome.hidden = false; welcomeHtml = ""; welcome.innerHTML = `<div class="mypick welcomecard"><span class="foot">❄️ Opening the trip…</span></div>`; }
   }
   try {
     const t = await get(id); last = t; writeCache(id, t); renderTrip(s); renderMyPick(s);
-    // Played here before answers were kept on the device: fetch this browser's own answers back from the sheet.
-    if (first && playedAll()[id] && !playedAll()[id].answers.length) {
-      const r = await post({ action: "myQuiz", trip: id }).catch(() => null);
-      if (r?.found) markPlayed(id, r.answers, r.guess);
-    }
-    if (first) { if (instant || revealed) showPick(); else ready(t.trip.organizer); }
+    if (first) { renderWelcome(welcomeLines()); renderMyPick(s); }
   }
   catch (e) {
-    loader?.stop(); body.hidden = false; document.documentElement.classList.remove("gated");
+    if (first && !instant && !snapshot()) welcome.hidden = true;
     if (!instant) body.innerHTML = `<p class="foot">Couldn't load this trip: ${esc((e as Error).message)}.</p>`;
     else toast("Showing the last copy of this trip: couldn't refresh it.");
   }
+}
+
+/** The price of the trip's shared pick (the one on the welcome card), per person. */
+function sharedPP(): number | null {
+  const sp = sharedPlan(); if (!sp) return null;
+  resetCache(); const pp = pickSummary(sp.s)?.pp ?? null; resetCache();
+  return pp;
+}
+// The welcome card's lines: the organiser's guess and ski style, under their name. Only the organiser's:
+// a visitor's own answers show below, in step 5, after they add a pick.
+function welcomeLines() {
+  const sp = sharedPlan(), oq = organizerQuiz(); if (!sp || !oq) return "";
+  const who = /^AI pick/i.test(sp.organizer) ? "The AI" : sp.organizer.split(/\s+/)[0];
+  return loaderResult(oq.answers, oq.guess, sharedPP(), who);
+}
+
+/** After adding a pick (or creating the trip): the ski-style questions and the price guess, in step 5.
+ *  Once both are done, the price reveal plays and the visitor's own lines stay there. */
+function playGames() {
+  const id = tripId(), el = $("trip-loader"); if (!id) return;
+  loader?.stop();
+  $("trip-block").classList.remove("collapsed");
+  loader = startLoader(el, {
+    gate: true, first: "duel", target: el,
+    title: "🎉 Your pick is in", intro: "2 quick games while it's saved →",
+    onReveal: (result) => setTimeout(() => {
+      loader?.stop(); loader = null;
+      el.innerHTML = `<div class="mypick ld-mine">${result}</div>`;
+    }, result ? 2400 : 0),
+    // The organiser's play goes under the organiser's name: it shows on the welcome card for everyone.
+    onDone: (answers, guess) => {
+      markPlayed(id, answers, guess);
+      post({ action: "quiz", trip: id, name: myName(), answers, guess }).catch(() => { /* saved on this device anyway */ });
+    },
+  });
+  loader.ready(sharedPP());
+  glide(el);
 }
 
 /** Prices on a pick card come from the site's own data (the house and the pick's settings), never from what

@@ -112,8 +112,9 @@ export function renderControls(s: State) {
   renderDeck($("foodPlan"), [...(Object.keys(FOOD_PLANS) as (keyof typeof FOOD_PLANS)[]).map((v) => ({ v, label: FOOD_PLANS[v].label })), { v: "custom", label: "Custom €/person/day" }], plan);
   ($("food") as HTMLInputElement).hidden = plan !== "custom";
   const perDay = OPTIONS.map((d) => foodPerDay(s, d));
-  $("foodhint").textContent = plan === "custom" ? `× ${fd} days, arrival to departure`
-    : `${euro(Math.min(...perDay))}–${euro(Math.max(...perDay))} per person per day, by resort, × ${fd} days`;
+  $("foodhint").textContent = plan === "custom" ? `Your amount per person per day × ${fd} days, arrival to departure.`
+    : `${euro(Math.min(...perDay))}–${euro(Math.max(...perDay))} per person per day, by resort, × ${fd} days (arrival to departure). ` +
+      `Priced from each resort's meal-out cost: cooking at home with slope snacks is about 0.6 of a meal out, one meal out a day about 1.4, lunch and dinner out about 2.2.`;
   setNum("food", s.food);
   $("nCouples").textContent = String(s.group.couples); $("nSolo").textContent = String(s.group.solo);
   renderDeck($("rooms"), [{ v: "shared", label: "Share a room" }, { v: "own", label: "Own room" }, { v: "twin", label: "Own bed, any room" }], s.group.soloRooms);

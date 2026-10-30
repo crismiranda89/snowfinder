@@ -190,7 +190,14 @@ $("rank").addEventListener("toggle", (ev) => {
   const d = ev.target as HTMLDetailsElement; const k = d.dataset?.k; if (!k) return;
   if (d.open) rankOpen.add(k); else rankOpen.delete(k);
 }, true);
-$("reset").addEventListener("click",() => update((s) => { s.edits = {}; s.food = 40; }));
+// Food's (i): how the daily amount is worked out, shown on tap (phone) or click (desktop).
+$("foodinfo").addEventListener("click", () => {
+  const h = $("foodhint"), open = h.hidden; h.hidden = !open; $("foodinfo").setAttribute("aria-expanded", String(open)); haptic(8);
+});
+document.addEventListener("click", (ev) => {
+  if ((ev.target as HTMLElement).closest("#foodinfo, #foodhint")) return;
+  $("foodhint").hidden = true; $("foodinfo").setAttribute("aria-expanded", "false");
+});
 
 // Photos that fail to load (moved listing, hotlink blocked) fall back to the placeholder.
 $("houseView").addEventListener("click", (ev) => {
@@ -243,7 +250,7 @@ wireTrip(() => state, update, toast);
 const onTrip = !!new URLSearchParams(location.search).get("trip");
 // A trip link starts the same way for this visit: the welcome card on top, then only Dates open.
 if (onTrip) { fold("grid-block", false, false); for (const k of FOLDED_AT_START) fold(k, true, false); }
-// The loading games, then the organiser's pick, show in the welcome card at the top (trip.ts).
+// The organiser's pick shows in the welcome card at the top; the games come after adding a pick (trip.ts).
 // A first visit to a trip (or no pick of your own yet) takes on the shared plan: dates, group, house, flight,
 // food and filters, so the pinned bar shows exactly what was shared.
 const tripParam = new URLSearchParams(location.search).get("trip") || "";
