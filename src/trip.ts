@@ -196,6 +196,10 @@ function priceBreakdown(s: State, p: PickSummary) {
 // exact flight of the shared plan. While the trip loads (and on a first visit until the games are done) the
 // loading games play inside it instead, so the price isn't given away before the guess.
 let welcomeHtml = "";
+// While the suggested trip loads: a card shaped like the pick (photo, name, price) shimmering, with snow falling.
+const WELCOME_LOADING = `<div class="mypick welcomecard wc-loading" role="status" aria-label="Loading the suggested trip">` +
+  `<div class="mp-photo wc-sk"><span class="wc-flakes" aria-hidden="true">${"<i>❄</i>".repeat(6)}</span></div>` +
+  `<div class="mp-body"><span class="eyebrow">🎿 Loading the suggested trip…</span><span class="wc-sk wc-line"></span><span class="wc-sk wc-line short"></span><span class="wc-sk wc-price"></span></div></div>`;
 let explored = false; // set by Explore (or creating a trip): the card stays closed for the rest of the visit
 function renderWelcome(result = "") {
   const box = $("welcome"), sp = sharedPlan(); if (!sp) return;
@@ -384,8 +388,8 @@ export async function addPick(s: State, toast: (m: string) => void) {
     await post({ action: "addPick", trip: tripId(), name: a.name, reason: a.reason, data: pickData(s, p) });
     confirmed = true;
     toast(`Your pick is in, with your vote. ${last?.trip.organizer || "The organiser"} approves it before it's checked.`);
+    playGames(); // straight away, under the pick: the trip refreshes while they play
     await loadTrip(s, toast);
-    playGames();
   }
   catch (e) { toast(`Couldn't add your pick: ${(e as Error).message}`); }
 }
@@ -452,7 +456,7 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
     const cached = readCache(id);
     if (cached) { instant = true; last = cached; renderTrip(s); }
     if (cached || snapshot()) renderWelcome(welcomeLines());
-    else if (!explored) { welcome.hidden = false; welcomeHtml = ""; welcome.innerHTML = `<div class="mypick welcomecard"><span class="foot">❄️ Opening the trip…</span></div>`; }
+    else if (!explored) { welcome.hidden = false; welcomeHtml = ""; welcome.innerHTML = WELCOME_LOADING; }
   }
   try {
     const t = await get(id); last = t; writeCache(id, t); renderTrip(s); renderMyPick(s);
@@ -479,19 +483,23 @@ function welcomeLines() {
   return loaderResult(oq.answers, oq.guess, sharedPP(), who);
 }
 
-/** After adding a pick (or creating the trip): the ski-style questions and the price guess, in step 5.
- *  Once both are done, the price reveal plays and the visitor's own lines stay there. */
+/** After adding a pick (or creating the trip): the ski-style questions and the price guess, right under the
+ *  pick (step 4). Once both are done the price reveal plays, the games go away, and step 5 opens with the
+ *  visitor's own lines on top. */
 function playGames() {
-  const id = tripId(), el = $("trip-loader"); if (!id) return;
+  const id = tripId(), el = $("pick-games"); if (!id) return;
   loader?.stop();
-  $("trip-block").classList.remove("collapsed");
   loader = startLoader(el, {
     gate: true, first: "duel", target: el,
     title: "🎉 Your pick is in", intro: "2 quick games while it's saved →",
+    gateLine: "🎯 Answer the questions and lock your guess to see the votes",
+    doneLine: "✅ All done: opening the votes ↓",
     onReveal: (result) => setTimeout(() => {
-      loader?.stop(); loader = null;
-      el.innerHTML = `<div class="mypick ld-mine">${result}</div>`;
-    }, result ? 2400 : 0),
+      loader?.stop(); loader = null; el.innerHTML = "";
+      $("trip-loader").innerHTML = result ? `<div class="mypick ld-mine">${result}</div>` : "";
+      $("trip-block").classList.remove("collapsed");
+      glide($("trip-block"));
+    }, result ? 2600 : 0),
     // The organiser's play goes under the organiser's name: it shows on the welcome card for everyone.
     onDone: (answers, guess) => {
       markPlayed(id, answers, guess);

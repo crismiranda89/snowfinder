@@ -43,6 +43,9 @@ export interface LoaderOpts {
   /** The first card's heading and the line under it (default: opening the trip). */
   title?: string;
   intro?: string;
+  /** The line under the slider while the games aren't done, and once they are (default: about opening the trip). */
+  gateLine?: string;
+  doneLine?: string;
   /** Called once both games are done, with what to save. */
   onDone: (answers: string[], guess: number) => void;
 }
@@ -111,13 +114,13 @@ export function startLoader(el: HTMLElement, o: LoaderOpts): LoaderHandle {
     if (done && !saved) { saved = true; o.onDone(answers.slice(), guess); }
     if (!loaded || revealed) return;
     if (gate && !done) {
-      foot.innerHTML = `<span class="ld-gate">🔓 Your trip is ready: ${answers.length < QUESTIONS.length ? "answer the questions" : "lock your guess"} to open it</span>`;
+      foot.innerHTML = `<span class="ld-gate">${esc(o.gateLine || `🔓 Your trip is ready: ${answers.length < QUESTIONS.length ? "answer the questions" : "lock your guess"} to open it`)}</span>`;
       go(answers.length < QUESTIONS.length ? 1 : 2);
       return;
     }
     revealed = true;
     el.querySelector(".ld")!.classList.add("ready");
-    foot.innerHTML = `<button type="button" class="ld-nudge" data-act="to-trip">✅ Your trip is ready ↓</button>`;
+    foot.innerHTML = `<button type="button" class="ld-nudge" data-act="to-trip">${esc(o.doneLine || "✅ Your trip is ready ↓")}</button>`;
     o.onReveal(loaderResult(answers, locked ? guess : null, real));
     setTimeout(() => glide(o.target), locked && real != null && real < guess ? 1800 : 900);
   };

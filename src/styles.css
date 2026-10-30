@@ -654,3 +654,18 @@ button.qb-sum{font:inherit;color:inherit;background:none;border:0;padding:2px 0;
 #grid-block>.head{position:relative;justify-content:flex-start;column-gap:8px}
 #gridhint{top:calc(1.6em + 10px)}
 #gridinfo{align-self:center;margin-left:-4px}
+
+/* The welcome card while the suggested trip loads: a shimmering skeleton of the pick, snow falling on the photo */
+.wc-sk{position:relative;overflow:hidden;background:var(--line);border-radius:10px}
+.wc-sk::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgb(255 255 255 / .12),transparent);transform:translateX(-100%);animation:wc-shimmer 1.3s ease-in-out infinite}
+.wc-line{display:block;height:14px;width:80%;margin-top:6px}.wc-line.short{width:55%}
+.wc-price{display:block;height:26px;width:40%;margin-top:10px}
+.wc-loading .mp-photo{min-height:90px}
+.wc-flakes i{position:absolute;top:-12px;font-style:normal;color:#fff;opacity:.8;font-size:12px;animation:wc-fall 2.6s linear infinite}
+.wc-flakes i:nth-child(1){left:12%;animation-delay:0s}.wc-flakes i:nth-child(2){left:30%;animation-delay:.6s}.wc-flakes i:nth-child(3){left:48%;animation-delay:1.2s}
+.wc-flakes i:nth-child(4){left:64%;animation-delay:.3s}.wc-flakes i:nth-child(5){left:80%;animation-delay:.9s}.wc-flakes i:nth-child(6){left:92%;animation-delay:1.6s}
+@keyframes wc-shimmer{to{transform:translateX(100%)}}
+@keyframes wc-fall{to{transform:translateY(120px) rotate(120deg);opacity:0}}
+@media (prefers-reduced-motion:reduce){.wc-sk::after,.wc-flakes i{animation:none}}
+.pick-games:empty{display:none}
+.pick-games{margin:10px 0}

@@ -168,7 +168,7 @@ document.addEventListener("click", (ev) => {
   const b = (ev.target as HTMLElement).closest<HTMLElement>("[data-act='pick-air']"); if (!b) return;
   haptic(12);
   update((s) => { s.air = b.dataset.air; });
-  advance("rank-block", "trip-block", "mypick");
+  advance("rank-block", null, "mypick"); // step 5 stays closed: it opens after "Add my pick" and the games
 });
 $("heatbody").addEventListener("click", pickCell);
 $("allWeeks").addEventListener("click", () => { weekChosen = false; render(); });
@@ -254,6 +254,8 @@ wireTrip(() => state, update, toast);
 const onTrip = !!new URLSearchParams(location.search).get("trip");
 // A trip link starts the same way for this visit: the welcome card on top, then only Dates open.
 if (onTrip) { fold("grid-block", false, false); for (const k of FOLDED_AT_START) fold(k, true, false); }
+// Step 5 always starts closed, whatever was left open last time.
+else fold("trip-block", true, false);
 // The organiser's pick shows in the welcome card at the top; the games come after adding a pick (trip.ts).
 // A first visit to a trip (or no pick of your own yet) takes on the shared plan: dates, group, house, flight,
 // food and filters, so the pinned bar shows exactly what was shared.
