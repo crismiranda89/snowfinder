@@ -205,8 +205,10 @@ function priceBreakdown(s: State, p: PickSummary) {
 // ---- the welcome card on a shared trip link: the organiser's pick, laid out like "Your pick", with the
 // exact flight of the shared plan. While the trip loads (and on a first visit until the games are done) the
 // loading games play inside it instead, so the price isn't given away before the guess.
+let explored = false; // set by Explore: the card stays closed for the rest of the visit
 function renderWelcome(result = "") {
   const box = $("welcome"), sp = sharedPlan(); if (!sp) return;
+  if (explored) { box.hidden = true; return; }
   const { s } = sp;
   resetCache(); const p = pickSummary(s); resetCache();
   if (!p) { box.innerHTML = ""; box.hidden = true; return; }
@@ -383,14 +385,14 @@ export async function loadTrip(s: State, toast: (m: string) => void) {
   const first = !last, body = $("trip-body"), welcome = $("welcome");
   const norm = (x: string) => x.normalize("NFKC").trim().toLowerCase().replace(/\s+/g, " ");
   const isOrg = (org: string) => Object.values(myTrips()).includes(id) || (!!myName() && norm(myName()) === norm(org));
-  // The card's lines: the organiser's guess and ski style under their name, then the visitor's own.
+  // The card's lines: the organiser's guess and ski style under their name; the visitor's own only when the organiser has none.
   const lines = () => {
     const sp = sharedPlan(); if (!sp) return "";
     resetCache(); const pp = pickSummary(sp.s)?.pp ?? null; resetCache();
     const who = /^AI pick/i.test(sp.organizer) ? "The AI" : sp.organizer.split(/\s+/)[0];
     const oq = organizerQuiz(), mine = playedAll()[id], me = isOrg(sp.organizer);
     let out = oq ? loaderResult(oq.answers, oq.guess, pp, who) : "";
-    if (mine && (!me || !oq)) out += loaderResult(mine.answers, mine.guess, pp, me ? who : "");
+    if (mine && !oq) out += loaderResult(mine.answers, mine.guess, pp, me ? who : "");
     return out;
   };
   let revealed = false, readied = false;
@@ -654,7 +656,10 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       }
     }
     else if (act === "open-trip") openTrip(t.closest<HTMLElement>("[data-trip]")!.dataset.trip!, getState(), toast);
-    else if (act === "explore") { const b = $("trip-block"); b.classList.remove("collapsed"); haptic(10); glide(b); }
+    else if (act === "explore") {
+      // Close the card and let them look around from Dates; their "Your pick" bar comes back in step 4.
+      explored = true; $("welcome").hidden = true; renderMyPick(getState()); haptic(10); glide($("grid-block"));
+    }
     else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
     else if (act === "copy-challenge") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
