@@ -50,7 +50,8 @@ rest of the site works the same.
 5. **Step 3 Flights and others** (`#rank-block`): airport options for the chosen house. Choosing one folds
    step 3 and scrolls to the pick (on a trip link, to the welcome card when it's the organiser's own house
    and flight).
-6. **My pick** (`#mypick`) with "Create our trip" / "Add my pick to the trip".
+6. **My pick** (`#mypick`) with "Create our trip" / "Add my pick to the trip". A pick already in the trip
+   (same house, flight and dates) shows 🔒 Lock it instead, then "✓ In the trip, with your vote".
 7. **Games** (`#pick-games`): as soon as the name is saved, two quick games play right under the pick while
    the sheet saves it (`playGames(title, saving)`). When both are done and the save is in, the price reveal
    plays, the games are removed, the result lines move into `#trip-loader`, and step 4 opens.
@@ -78,7 +79,7 @@ rest of the site works the same.
    `?trip=<id>`; the share hash carries the whole plan.
 2. A friend opens the link: welcome card → 🔒 *Lock it* (a `POST vote` for the organiser's pick) or
    *Explore other options* → choose their own → *Add my pick* → `POST addPick` (waits for the organiser's
-   `yes` in the sheet) → games → step 4. Votes are `POST vote`.
+   `yes` in the sheet) → games → step 4. Votes are `POST vote`; after Lock it, step 4 opens on the votes.
 3. Game answers and price guesses go to `POST quiz` (one row per browser per trip).
 4. Shared links open with all resorts selected (`dest = []`).
 

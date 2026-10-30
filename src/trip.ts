@@ -240,6 +240,10 @@ export function renderMyPick(s: State) {
   box.hidden = false;
   // In a trip of the same group you add your pick to it; for another group you start (or open) that group's trip.
   const g = groupId(s.group), inTrip = !!tripId() && (!last || tripGroup() === g || !tripGroup()), own = myTrips()[g];
+  // The same house, flight and dates as a pick already in the trip (the organiser's own, just after creating it).
+  const added = inTrip ? last?.picks.find((x) => x.data.listingId === s.pick && x.data.airport === p.option.air && x.data.when === p.when) : undefined;
+  // Already in the trip: your vote for it is one tap (Lock it), or done.
+  const me = myName().toLowerCase(), votedIt = !!added && !!me && !!last?.votes.some((v) => v.pick === added.id && v.name.toLowerCase() === me);
   box.innerHTML = `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
     `<div class="mp-body"><span class="eyebrow">Your pick</span><b>${esc(p.listing.title)}</b>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
@@ -250,7 +254,9 @@ export function renderMyPick(s: State) {
     }).join("")}</select></label></div>` +
     priceBreakdown(s, p) +
     `<div class="mp-acts">${tripsReady()
-      ? inTrip ? `<button type="button" class="btn" data-act="add-pick">Add my pick to the trip</button>`
+      ? added ? votedIt ? `<span class="foot">✓ In the trip, with your vote</span>`
+          : `<button type="button" class="btn wc-lock" data-act="lock-it" data-pick="${esc(added.id)}">🔒 Lock it</button><span class="foot">This pick is in the trip</span>`
+        : inTrip ? `<button type="button" class="btn" data-act="add-pick">Add my pick to the trip</button>`
         : own ? `<button type="button" class="btn" data-act="open-trip" data-trip="${esc(own)}">Open our ${esc(groupLabel(g).toLowerCase())} trip</button>`
         : `<button type="button" class="btn" data-act="create-trip">Create a trip for ${esc(groupLabel(g).toLowerCase())}</button>`
       : `<span class="foot">Shared trips aren't set up on this site yet.</span>`}` +
@@ -402,10 +408,11 @@ export async function addPick(s: State, toast: (m: string) => void) {
   playGames("🎉 Adding your pick", saving);
   try { await saving; } catch (e) { toast(`Couldn't add your pick: ${(e as Error).message}`); }
 }
-async function vote(pick: string, s: State, toast: (m: string) => void, done = "") {
+async function vote(pick: string, s: State, toast: (m: string) => void, done = "", sending?: () => void) {
   haptic(12);
   let name = myName();
   if (!name) { const a = await ask("Your name, to vote", null); if (!a) return; name = a.name; }
+  sending?.();
   try { await post({ action: "vote", trip: tripId(), name, pick }); if (done) toast(done); await loadTrip(s, toast); }
   catch (e) { toast(`Couldn't vote: ${(e as Error).message}`); }
 }
@@ -756,11 +763,17 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       const pick = t.closest<HTMLElement>("[data-pick]")?.dataset.pick;
       if (!pick) toast("One second: the trip is still loading.");
       else {
-        const org = last?.trip.organizer || "", whose = /^AI pick/i.test(org) ? "the AI's" : org ? `${org.split(/\s+/)[0]}'s` : "the organiser's";
+        // Whoever added that pick (the organiser's, on the welcome card)
+        const by = last?.picks.find((x) => x.id === pick)?.name || last?.trip.organizer || "";
+        const whose = /^AI pick/i.test(by) ? "the AI's" : by ? `${by.split(/\s+/)[0]}'s` : "the organiser's";
         // "Locking…" at once (the sheet takes a few seconds), then "✓ Locked in" once the trip comes back with
         // the vote, or "Lock it" again if it didn't go through.
-        const b = t.closest<HTMLButtonElement>("button")!; b.disabled = true; b.textContent = "🔒 Locking…";
-        vote(pick, getState(), toast, `🔒 Locked in: your vote is on ${whose} pick.`).then(() => { welcomeHtml = ""; if (!$("welcome").hidden) renderWelcome(welcomeLines()); });
+        const b = t.closest<HTMLButtonElement>("button")!;
+        vote(pick, getState(), toast, `🔒 Locked in: your vote is on ${whose} pick.`, () => { b.disabled = true; b.textContent = "🔒 Locking…"; }).then(() => {
+          welcomeHtml = ""; if (!$("welcome").hidden) renderWelcome(welcomeLines());
+          // Locked: a moment on the tick, then on to the votes in step 4.
+          if ($("welcome").querySelector(".wc-lock[aria-pressed='true']") || $("mypick").textContent!.includes("with your vote")) setTimeout(() => { $("trip-block").classList.remove("collapsed"); glide($("trip-block")); }, 1200);
+        });
       }
     }
     else if (act === "explore") {
