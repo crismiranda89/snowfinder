@@ -222,7 +222,25 @@ function renderWelcome(result = "") {
 }
 
 // ---- the "Your pick" bar, shown once a house is chosen
+/** What step 4 shares: "Your pick" when it's for this trip's group, else null (then the trip's top pick). */
+function myTripPick(s: State) {
+  resetCache(); const p = pickSummary(s); resetCache();
+  return p && (!tripGroup() || tripGroup() === groupId(s.group)) ? p : null;
+}
+/** Step 4's three buttons, with the group message for your pick (or the trip's top pick): redrawn with "Your pick". */
+function shareButtons(s: State) {
+  const box = document.getElementById("tshare"); if (!box || !last) return;
+  const link = tripLink(last), mine = myTripPick(s);
+  const best = last.picks.find((p) => p.name === last!.trip.organizer) || last.picks[0], bv = best ? verified(best.data) : null;
+  const msg = mine ? whatsappText(pickData(s, mine), link)
+    : best ? whatsappText(bv?.known ? { ...best.data, pp: Math.round(bv.pp) } : best.data, link) : `⛷️ Our ski trip: vote here ${link}`;
+  box.innerHTML = `<a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>` +
+    `<button type="button" class="btn secondary" data-act="promo">📸 Instagram</button>` +
+    `<button type="button" class="btn secondary" data-act="copy-msg" data-text="${esc(msg)}">Copy text</button>`;
+}
+
 export function renderMyPick(s: State) {
+  shareButtons(s);
   const box = $("mypick"), p = pickSummary(s), sp = tripId() ? sharedPlan() : null;
   // On a trip, the organiser's pick (house and flight) is already the welcome card at the top: no second copy here.
   if (!p || (sp && sp.listingId === s.pick && (sp.s.air || "") === (s.air || "") && !$("welcome").hidden)) { box.hidden = true; box.innerHTML = ""; return; }
@@ -608,14 +626,9 @@ function renderTrip(_s: State) {
   const pulse = checked.length
     ? `<p class="tpulse"><span class="dot" aria-hidden="true"></span>Availability checked · <b>${free} of ${checked.length}</b> still free · ${when(lastIso)}</p>`
     : `<p class="tpulse bad"><span class="dot" aria-hidden="true"></span>Availability not checked yet</p>`;
-  // Free WhatsApp share: opens WhatsApp with the message ready; the sender picks the chat or group.
-  const link = tripLink(last!);
-  const bv = best ? verified(best.data) : null;
-  const msg = best ? whatsappText(bv?.known ? { ...best.data, pp: Math.round(bv.pp) } : best.data, link) : `⛷️ Our ski trip: vote here ${link}`;
-  // Three buttons on top: WhatsApp with the message ready, the promo image (Instagram) and the message to copy.
-  const share = `<div class="tshare-top"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>` +
-    `<button type="button" class="btn secondary" data-act="promo">📸 Instagram</button>` +
-    `<button type="button" class="btn secondary" data-act="copy-msg" data-text="${esc(msg)}">Copy text</button></div>`;
+  // Three buttons on top: WhatsApp with the message ready, the promo image (Instagram) and the message to copy
+  // (filled by shareButtons, for your pick or the trip's top pick).
+  const share = `<div class="tshare-top" id="tshare"></div>`;
   const lim = last.limits;
   const others = Object.entries(myTrips()).filter(([, id]) => id !== trip.id);
   const limits = (lim ? `<p class="foot">${lim.peopleUsed} of ${lim.people} people on this trip · ${lim.tripsUsed} of ${lim.trips} trips</p>` : "") +
@@ -624,6 +637,7 @@ function renderTrip(_s: State) {
   const visible = [best, ...found, ...rest].filter((p): p is Pick => !!p);
   $("trip-body").innerHTML = share + `<p class="tname">Our trip${trip.title ? ` · ${esc(trip.title)}` : ""}</p>` + alert + pulse +
     votesHtml(visible, byPick, mine) + waitingNote(hiddenPicks.length, "pick") + limits;
+  shareButtons(_s);
   // "I have a better plan": its own section at the end of the page.
   $("better-block").hidden = false;
   $("better-body").innerHTML = `<h3 class="tsub">Pick your own</h3><p class="foot">Open steps 1–3 above: pick a week, “Choose this house”, a flight, then “Add my pick to the trip”.</p>` +
@@ -721,14 +735,12 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       // The image of what you have chosen now ("Your pick"); with nothing chosen, the trip's top pick (the welcome
       // card). Both go with the trip link.
       const sp = sharedPlan(); if (!sp || !last) return;
-      const s = getState(), link = tripLink(last);
-      resetCache(); const mine = pickSummary(s); resetCache();
+      const s = getState(), link = tripLink(last), mine = myTripPick(s);
       resetCache(); const p = mine || pickSummary(sp.s); resetCache(); if (!p) return;
       const by = mine ? myName() || "" : sp.organizer;
       const who = /^AI pick/i.test(by) ? "🤖 AI pick" : by ? `👋 ${by.split(/\s+/)[0]} picked this` : "⛷️ Our ski trip plan";
-      // The message to send with it, picked in the preview: the group message for this pick, or a vote nudge
-      const invite = mine ? whatsappText(pickData(s, mine), link)
-        : t.closest<HTMLElement>(".tshare-top")?.querySelector<HTMLElement>("[data-act='copy-msg']")?.dataset.text;
+      // The message to send with it, picked in the preview: the group message (the same as WhatsApp's), or a vote nudge
+      const invite = t.closest<HTMLElement>(".tshare-top")?.querySelector<HTMLElement>("[data-act='copy-msg']")?.dataset.text;
       openPromo(p, { who, link, toast, invite, vote: `🗳️ Haven't voted yet? Choose our snow trip here ❄️ ${link}` });
     }
     else if (act === "copy-msg") {
