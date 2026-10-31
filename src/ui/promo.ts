@@ -145,12 +145,16 @@ export async function promoImage(p: PickSummary, o: PromoText): Promise<Blob> {
   return new Promise((res, rej) => cv.toBlob((b) => (b ? res(b) : rej(new Error("no image"))), "image/png"));
 }
 
-/** The preview: the image with Share (phones), Save image and Copy link. */
-export async function openPromo(p: PickSummary, o: PromoText & { link: string; toast: (m: string) => void }) {
+/** Messages to send with the image, besides the short one made here: the full group message and a vote nudge. */
+export interface PromoMessages { invite?: string; vote?: string }
+
+/** The preview: the image, a choice of message (Invite / Short / Vote), then Share (phones), Save image and Copy text. */
+export async function openPromo(p: PickSummary, o: PromoText & PromoMessages & { link: string; toast: (m: string) => void }) {
   let d = document.getElementById("promodlg") as HTMLDialogElement | null;
   if (!d) {
     document.body.insertAdjacentHTML("beforeend", `<dialog id="promodlg" class="askdlg promodlg"><div class="promo-img" aria-live="polite"></div>` +
-      `<div class="ask-acts"><button type="button" class="ghost" data-pr="close">Close</button><button type="button" class="btn secondary" data-pr="copy">Copy link</button>` +
+      `<div class="promo-msg"><div class="seg" role="group" aria-label="Message to send with the image"></div><p class="promo-text"></p></div>` +
+      `<div class="ask-acts"><button type="button" class="ghost" data-pr="close">Close</button><button type="button" class="btn secondary" data-pr="copy">Copy text</button>` +
       `<button type="button" class="btn secondary" data-pr="save">Save image</button><button type="button" class="btn" data-pr="share">Share</button></div></dialog>`);
     d = document.getElementById("promodlg") as HTMLDialogElement;
   }
@@ -161,15 +165,28 @@ export async function openPromo(p: PickSummary, o: PromoText & { link: string; t
   try { blob = await promoImage(p, o); } catch { box.innerHTML = `<span class="foot">Couldn't make the image on this phone.</span>`; return; }
   const name = `snowfinder-${p.resort.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}.png`;
   const file = new File([blob], name, { type: "image/png" }), url = URL.createObjectURL(blob);
-  const text = `⛷️ ${p.resort.name}, ${p.when}: ${euro(p.pp)} per person, all in. Vote here: ${o.link}`;
+  // The message goes with the image: picked here, the first one ready (Instagram itself keeps only the image)
+  const msgs = ([["Invite", o.invite], ["Short", `⛷️ ${p.resort.name}, ${p.when}: ${euro(p.pp)} per person, all in. Vote here: ${o.link}`], ["Vote", o.vote]]
+    .filter((m) => m[1]) as [string, string][]);
+  let text = msgs[0][1];
+  const seg = d.querySelector<HTMLElement>(".promo-msg .seg")!, shown = d.querySelector<HTMLElement>(".promo-text")!;
+  const pick = (i: number) => {
+    text = msgs[i][1]; shown.textContent = text;
+    seg.querySelectorAll("button").forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+  };
+  seg.innerHTML = msgs.map(([label], i) => `<button type="button" data-msg="${i}">${label}</button>`).join("");
+  seg.hidden = msgs.length < 2; // one message (no trip yet): nothing to pick, the text still shows
+  pick(0);
   box.innerHTML = `<img src="${url}" alt="${esc(`${p.listing.title}, ${p.resort.name}: ${euro(p.pp)} per person`)}">`;
   const canShare = !!navigator.canShare?.({ files: [file] });
   d.querySelector<HTMLElement>("[data-pr='share']")!.hidden = !canShare;
   d.onclick = async (ev) => {
     const b = (ev.target as HTMLElement).closest<HTMLElement>("[data-pr]")?.dataset.pr;
+    const m = (ev.target as HTMLElement).closest<HTMLElement>("[data-msg]");
+    if (m) { pick(+m.dataset.msg!); return; }
     if (b === "close" || ev.target === d) d!.close();
     else if (b === "save") { const a = document.createElement("a"); a.href = url; a.download = name; a.click(); }
-    else if (b === "copy") navigator.clipboard.writeText(text).then(() => o.toast("Link copied: paste it with the image."), () => window.prompt("Copy this:", text));
+    else if (b === "copy") navigator.clipboard.writeText(text).then(() => o.toast("Text copied: paste it with the image."), () => window.prompt("Copy this:", text));
     // Instagram takes the image only; the text (with the link) goes to apps that take both
     else if (b === "share") navigator.share({ files: [file], text }).catch(() => { /* closed the share sheet */ });
   };

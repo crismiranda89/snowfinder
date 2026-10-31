@@ -721,8 +721,11 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       // The image of the trip's top pick (the one on the welcome card), with the trip link
       const sp = sharedPlan(); if (!sp || !last) return;
       resetCache(); const p = pickSummary(sp.s); resetCache(); if (!p) return;
-      const org = sp.organizer;
-      openPromo(p, { who: /^AI pick/i.test(org) ? "🤖 AI pick" : `👋 ${org.split(/\s+/)[0]} picked this`, link: tripLink(last), toast });
+      const org = sp.organizer, link = tripLink(last);
+      // The message to send with it, picked in the preview: the group message (as on WhatsApp) or a vote nudge
+      const invite = t.closest<HTMLElement>(".tshare-top")?.querySelector<HTMLElement>("[data-act='copy-msg']")?.dataset.text;
+      openPromo(p, { who: /^AI pick/i.test(org) ? "🤖 AI pick" : `👋 ${org.split(/\s+/)[0]} picked this`, link, toast,
+        invite, vote: `🗳️ Haven't voted yet? Choose our snow trip here ❄️ ${link}` });
     }
     else if (act === "copy-msg") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
