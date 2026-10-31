@@ -18,7 +18,7 @@ Budget / Mid / Luxury houses that actually fit your group, with photos.
 - **Editable**: type in a real quote for any week and it replaces the estimate.
 - **Share**: one link carries your whole plan (group, week, prices you typed) to your friends.
 - **Shared trips** (optional): the organiser creates a trip from their pick; friends open the link, add
-  their own pick, play two quick games (ski style, guess the price) and vote. Everything a friend posts
+  their own pick, play a quick ski-style game and vote. Everything a friend posts
   waits for the organiser's OK. Stored in a Google Sheet, see [`sheet/`](sheet/README.md).
 - **Telegram votes** (optional): a bot that runs the group's decisions with agreed thresholds and deadlines.
   See [`bot/`](bot/README.md).

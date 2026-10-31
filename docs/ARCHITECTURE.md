@@ -35,7 +35,7 @@ rest of the site works the same.
 | `ui/haptic.ts` | Short vibration on taps (Android only) |
 | `ui/promo.ts` | The 1080×1350 promo image (house photo split diagonally with the resort, details card) and its preview: pick the message to send with it (Invite = the group message, Short, Vote), then Share / Save image / Copy text; from "Share this plan" and step 4's "📸 Instagram" |
 | `trip.ts` | Shared trips: welcome card, "My pick", create/add pick, votes, step 4, Top picks, "I have a better plan" |
-| `loader.ts` | The card slider used for the games (ski style duel + price guess) and the reveal |
+| `loader.ts` | The card slider used for the game (four ski-style questions) while a pick saves |
 | `styles.css` | All styles, one file |
 
 ## Page, top to bottom
@@ -53,9 +53,9 @@ rest of the site works the same.
    and flight).
 6. **My pick** (`#mypick`) with "Create our trip" / "Add my pick to the trip". A pick already in the trip
    (same house, flight and dates) shows 🔒 Lock it instead, then "✓ In the trip, with your vote".
-7. **Games** (`#pick-games`): as soon as the name is saved, two quick games play right under the pick while
-   the sheet saves it (`playGames(title, saving)`). When both are done and the save is in, the price reveal
-   plays, the games are removed, the result lines move into `#trip-loader`, and step 4 opens.
+7. **Game** (`#pick-games`): as soon as the name is saved, four ski-style questions play right under the pick
+   while the sheet saves it (`playGames(title, saving)`). When they're answered and the save is in, the game
+   goes away, the "Your ski style" line moves into `#trip-loader`, and step 4 opens.
 8. **Step 4 Confirm availability** (`#trip-block`): "WhatsApp", "📸 Instagram" (the promo image) and
    "Copy text" on top (the group-chat message, no text box), all for "Your pick" when it's for this trip's
    group, else the trip's top pick (`shareButtons`, redrawn with "Your pick"), trip name, availability dot (red "not checked yet" or green
@@ -84,7 +84,8 @@ rest of the site works the same.
 2. A friend opens the link: welcome card → 🔒 *Lock it* (a `POST vote` for the organiser's pick) or
    *Explore other options* → choose their own → *Add my pick* → `POST addPick` (waits for the organiser's
    `yes` in the sheet) → games → step 4. Votes are `POST vote`; after Lock it, step 4 opens on the votes.
-3. Game answers and price guesses go to `POST quiz` (one row per browser per trip).
+3. Game answers go to `POST quiz` (one row per browser per trip). There is no price guess any more (the price
+   is already on the pick); old rows may still have one and it isn't shown.
 4. Shared links open with all resorts selected (`dest = []`).
 
 The sheet enforces the rules (name ownership per browser, caps, Airbnb/Booking links only, plain text).

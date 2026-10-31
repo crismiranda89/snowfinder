@@ -476,8 +476,6 @@ section.block,.mypick{scroll-margin-top:96px}
 @keyframes ld-fall{to{transform:translateY(260px) rotate(180deg)}}
 .ld-acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
 .ld-acts .btn{font-size:1rem;padding:10px 18px}
-.ld-val{font-family:var(--f-display);font-size:2.2rem;font-weight:700;color:var(--accent)}
-.ld-guess input[type=range]{width:min(300px,90%);accent-color:var(--accent)}
 .ld-result{margin:0;padding:10px 12px;border-radius:10px;background:var(--ok-bg);color:var(--ink)}
 @media (prefers-reduced-motion:reduce){.ld-flakes{display:none}.ld-bar span{animation:none;width:60%}}
 .ld-nudge{justify-self:center;font:inherit;font-weight:700;border:0;border-radius:999px;padding:8px 16px;background:var(--ok-bg);color:var(--ok);cursor:pointer;animation:ld-pop .35s ease-out}
@@ -499,19 +497,8 @@ section.block,.mypick{scroll-margin-top:96px}
 .ld-steps i{width:22px;height:4px;border-radius:999px;background:var(--line);transition:background .3s}
 .ld-steps i.on{background:var(--accent)}
 .ld-check{display:grid;place-items:center;width:52px;height:52px;border-radius:999px;background:var(--ok-bg);color:var(--ok);font-size:1.6rem;font-weight:700;animation:ld-spring .5s cubic-bezier(.3,1.6,.5,1)}
-.ld-lock{font:inherit;font-weight:700;border:0;border-radius:999px;padding:12px 24px;background:var(--accent);color:var(--accent-ink);cursor:pointer;transition:transform .18s cubic-bezier(.3,1.6,.5,1),background .2s}
-.ld-lock:active{transform:scale(.94)}
-.ld-lock.locked{background:var(--ok);animation:ld-spring .42s cubic-bezier(.3,1.6,.5,1)}
-.ld-count{font-variant-numeric:tabular-nums;transition:color .3s,transform .3s}
-.ld-count.win{color:var(--ok);animation:ld-spring .5s cubic-bezier(.3,1.6,.5,1)}
-.ld-verdict{font-family:var(--f-body)!important;font-size:1.05rem!important}
 .ld-gate{font-weight:600;color:var(--accent)}
 .ld-foot{display:grid;justify-items:center;min-height:1.2em;padding:0 12px;text-align:center}
-.ld-guess .ld-card{position:relative}
-.ld-confetti{position:absolute;left:50%;top:40%;pointer-events:none}
-.ld-confetti i{position:absolute;width:8px;height:12px;border-radius:2px;animation:ld-burst 1.5s cubic-bezier(.2,.8,.3,1) forwards}
-@keyframes ld-burst{0%{transform:translate(0,0) rotate(0);opacity:1}60%{opacity:1}100%{transform:translate(var(--x),calc(var(--y) + 120px)) rotate(540deg);opacity:0}}
-.ld-result.win{background:var(--ok-bg);border:1px solid var(--ok)}
 
 /* Neo: a fintech-app look. Pure black, Inter everywhere, huge bold numbers, sections as soft cards with
    big radius, pill controls, a blue-to-violet accent and glassy pinned bar. Always dark. */
@@ -536,13 +523,13 @@ section.block,.mypick{scroll-margin-top:96px}
 [data-style="neo"] .seg button{border-radius:999px;border:0!important;transition:background .2s,color .2s}
 [data-style="neo"] .seg button[aria-pressed="true"]{background:#fff;color:#000}
 [data-style="neo"] .quickbar{background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom-color:var(--line)}
-[data-style="neo"] .hprice b,[data-style="neo"] .tot b,[data-style="neo"] .mp-price b,[data-style="neo"] .ld-val{font-weight:800;letter-spacing:-.04em}
+[data-style="neo"] .hprice b,[data-style="neo"] .tot b,[data-style="neo"] .mp-price b{font-weight:800;letter-spacing:-.04em}
 [data-style="neo"] .mp-price b{font-size:2rem}
 [data-style="neo"] .step{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-text-fill-color:#fff}
 .step.emo,[data-style="neo"] .step.emo{background:none;font-size:.9em;-webkit-text-fill-color:initial}
 [data-style="neo"] .hphoto .tier,[data-style="neo"] .hphoto .hrate{background:rgba(0,0,0,.6);color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 [data-style="neo"] .ld-opt{background:var(--surface)}
-[data-style="neo"] .ld-opt.picked,[data-style="neo"] .ld-lock{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+[data-style="neo"] .ld-opt.picked{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
 /* NEW · footer actions (Share this plan, GitHub) next to the page style */
 .foot-acts{display:flex;flex-wrap:wrap;gap:8px}
 
