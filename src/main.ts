@@ -152,7 +152,6 @@ $("groupctl").addEventListener("click", (ev) => {
 $("food").addEventListener("input", (ev) => { const v = +(ev.target as HTMLInputElement).value; if (!Number.isFinite(v) || v < 0) return; update((s) => { s.food = v; }); });
 $("weekinfo").addEventListener("click", (ev) => { const b = (ev.target as HTMLElement).closest<HTMLElement>(".linkbtn"); if (b) { weekChosen = true; update((s) => { s.week = +b.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } });
 function pickCell(ev: Event) { const cell = (ev.target as HTMLElement).closest<HTMLElement>("td.cell"); if (cell) { weekChosen = true; haptic(8); update((s) => { s.week = +cell.dataset.w!; }); advance("grid-block", "houses-block", "houses-block"); } }
-$("houseslede").addEventListener("click", (ev) => { if ((ev.target as HTMLElement).closest("[data-act='all-dates']")) { weekChosen = false; render(); } });
 // Choosing a house sets its week, and its quote's start day and length when it has one (trip.ts), so the
 // houses, grid and ranking all show those dates; its resort opens in the ranking.
 document.addEventListener("click", (ev) => {

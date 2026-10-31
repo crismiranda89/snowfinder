@@ -342,13 +342,15 @@ function card(s: State, x: Priced, label: string, selected: boolean, week?: numb
     (routeUrl ? `<a href="${esc(routeUrl)}" target="_blank" rel="noopener noreferrer">Walking route to the lift ↗</a>` : "") + `</span>`;
   return `<article class="hcard${selected || s.pick === l.id ? " sel" : ""}" role="listitem">` +
     `<a class="hphoto" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${photo}<span class="tier">${esc(label)}</span>${l.rating != null ? `<span class="hrate" aria-label="Rated ${l.rating.toFixed(1)} out of 10">★ ${l.rating.toFixed(1)}</span>` : ""}</a>` +
-    `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
+    // What decides it first (name, walk, week, price) and the button right under it; the details below
+    `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}` +
     (week != null ? `<span class="cheapwk">📅 Cheapest week: ${esc(seasonRange(SEASON, s.pattern, week, s.days).text)}</span>` : "") +
     `<div class="hprice"><b>${euro(x.pp)}</b><small>per person, house only · ${euro(x.total)} for the house</small></div>` +
-    (trip ? `<small class="allin">≈ <b>${euro(trip.best.pp)}</b> per person all in, flying to ${esc(trip.best.d.code)} (flight, ${trip.best.groundKind}, house, pass, rental, food)</small>` : "") +
-    `<small>Quote for ${dates}${nq > 1 ? ` (+${nq - 1} more)` : ""}${x.exact ? "" : ", adjusted to this week's demand"}${l.notes ? " · " + esc(l.notes) : ""}</small>` +
-    `<div class="hacts"><a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a>` +
-    `<button type="button" class="choose" data-pick="${esc(l.id)}" data-week="${week ?? s.week}"${x.exact ? ` data-checkin="${esc(x.quote.checkin)}" data-nights="${x.quote.nights}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div></div></article>`;
+    (trip ? `<small class="allin">≈ <b>${euro(trip.best.pp)}</b> per person all in, flying to ${esc(trip.best.d.code)}</small>` : "") +
+    `<div class="hacts"><button type="button" class="choose" data-pick="${esc(l.id)}" data-week="${week ?? s.week}"${x.exact ? ` data-checkin="${esc(x.quote.checkin)}" data-nights="${x.quote.nights}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button>` +
+    `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a></div>` +
+    `${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
+    `<small>Quote for ${dates}${nq > 1 ? ` (+${nq - 1} more)` : ""}${x.exact ? "" : ", adjusted to this week's demand"}${l.notes ? " · " + esc(l.notes) : ""}</small></div></article>`;
 }
 function searchLinks(r: Resort, s: State) {
   const rg = dates(s, s.week), ci = isoOf(rg.a), co = isoOf(rg.b), p = people(s.group), b = bedrooms(s.group);
@@ -471,12 +473,8 @@ const DIST = [
 export function renderHouseSection(s: State, view: HouseView, repo: string, allDates = false) {
   $("houseView").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
   const all: (Found & { week?: number })[] = (allDates ? fittingHousesAllDates(s) : fittingHouses(s)).filter((f) => s.house === "all" || f.tier === s.house);
-  const p = people(s.group), b = bedrooms(s.group);
-  const resorts = new Set(all.map((f) => f.r.id)).size;
-  const fit = `${all.length} house${all.length > 1 ? "s" : ""} in ${resorts} resort${resorts > 1 ? "s" : ""} fit${all.length === 1 ? "s" : ""} ${p} people ${s.group.soloRooms === "twin" ? "with a bed each" : `in ${b}+ bedrooms`}${liftText(s)}${s.house === "all" ? "" : `, ${LEVEL_LABEL[s.house].toLowerCase()} level`}`;
-  $("houseslede").innerHTML = !all.length ? ""
-    : allDates ? `${esc(fit)}, across all dates: each shows its cheapest week. Tap a week in the grid below to price that week. Prices are per person for the whole stay.`
-    : `${esc(fit)}, for ${esc(dates(s, s.week).text)}. <button type="button" class="linkbtn" data-act="all-dates">Show all dates</button>`;
+  // Just the number in the step's title: the cards say the rest (and step 1's "Clear" shows all dates again)
+  const n = $("hcount"); n.textContent = String(all.length); n.setAttribute("aria-label", `${all.length} house${all.length === 1 ? "" : "s"} fit`);
   if (!all.length) {
     const add = `https://github.com/${repo}/blob/main/CONTRIBUTING.md#add-a-house`;
     $("housegroups").innerHTML = `<div class="hempty-big"><b>No houses fit yet.</b><span class="foot">${s.liftBand && s.liftBand !== "all" || s.house !== "all" ? `Try “All” for the walk to the lifts or the house level in Filters, or pick other resorts.` : "Pick other resorts in Filters."} Found one? <a href="${esc(add)}" target="_blank" rel="noopener">Add it</a>.</span></div>`;
