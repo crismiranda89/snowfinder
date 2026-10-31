@@ -399,6 +399,7 @@ tr.dimrow td{opacity:.45}
 /* NEW · the week grid's title: light lead-in, the week in bold; "Show all weeks" stays visible when folded */
 #gridTitle .gt-lead{font-weight:400}
 #gridTitle b{font-weight:700}
+#gridTitle.picked b{font-weight:500;font-size:.9em}
 .block.collapsed .head>.keep{display:inline-flex}
 #allWeeks{font-size:.9rem}
 .hphoto .hrate{position:absolute;right:8px;top:8px;font-size:.78rem;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(0,0,0,.62);color:#ffd257}
@@ -589,14 +590,20 @@ section.block,.mypick{scroll-margin-top:96px}
   header .brand{margin-bottom:4px}
   header h1{font-size:1.75rem}
   section.block{gap:8px}
-  section.block>.head>h2,section.block>h2{font-size:1.08rem}
+  section.block>.head>h2,section.block>h2{font-size:1.2rem}
   .block.collapsed{padding-top:10px!important;padding-bottom:10px!important}
   .filters>summary{padding:9px 14px}
+  .filters>summary>b{font-size:1.2rem}
+  /* Folded: a long title (step 1's dates) shortens with "…" so the (i) stays on the same line */
+  .block.collapsed>.head{align-items:center}
+  .block.collapsed>.head>h2{min-width:0;max-width:calc(100% - 26px)}
+  /* Folded with a week picked, the dates say it all: drop "Dates:" so they fit in full */
+  .block.collapsed #gridTitle.picked .gt-lead{display:none}
   .filters>summary .foot{display:none}
 }
 /* Every step title the same size on one line; step 1's lead-in is lighter, its value bold */
 #gridTitle b,#gridTitle .gt-lead{font-size:inherit}
-@media (max-width:640px){ #grid-block>.head>h2,#houses-block>.head>h2,#rank-block>.head>h2,#trip-block>.head>h2,#trips-block>.head>h2,#deeper-block>.head>h2{font-size:1.08rem} }
+@media (max-width:640px){ #grid-block>.head>h2,#houses-block>.head>h2,#rank-block>.head>h2,#trip-block>.head>h2,#trips-block>.head>h2,#deeper-block>.head>h2{font-size:1.2rem} }
 .tname{margin:-4px 0 0;font-weight:600;color:var(--muted)}
 
 /* NEW · the pinned bar's summary opens a dropdown with the whole plan */
@@ -652,7 +659,7 @@ button.qb-sum{font:inherit;color:inherit;background:none;border:0;padding:2px 0;
 /* The per-resort food lines in Food's (i) */
 .fh-rows{display:grid;grid-template-columns:1fr auto auto;gap:2px 10px;margin:6px 0;font-size:.95em}
 .fh-rows b{text-align:right}
-/* Dates' "Let's not complicate": a small pill at the right of the step title that clears the chosen dates */
+/* Dates' "❌ Clear": a small pill at the right of the step title that clears the chosen dates */
 .allweeks{flex:none;margin-left:auto;padding:4px 10px;font-size:.75rem;gap:4px}
 .allweeks span{font-size:.8em}
 

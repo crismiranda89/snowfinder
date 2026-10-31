@@ -46,7 +46,7 @@ rest of the site works the same.
 2. **Group and Filters**: couples, solo friends (room kind or sofa), resorts, food plan (Food (i) shows the
    hand-set meal price per resort × the plan multiplier; not a median).
 3. **Step 1 Dates** (`#grid-block`): resort × week grid. Dates (i) explains it shows every available house
-   for the filters, and picking a week filters them. "❌ Let's not complicate" hides the extra weeks.
+   for the filters, and picking a week filters them. "❌ Clear" clears the picked week (the title then shows it as plain dates, no weekdays).
 4. **Step 2 Houses** (`#houses-block`): fitting houses, by price level or by distance.
 5. **Step 3 Flights and others** (`#rank-block`): airport options for the chosen house. Choosing one folds
    step 3 and scrolls to the pick (on a trip link, to the welcome card when it's the organiser's own house

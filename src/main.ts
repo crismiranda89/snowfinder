@@ -31,7 +31,9 @@ try { if (localStorage.getItem("snowfinder-house-view") === "distance") houseVie
 function render() {
   resetCache();
   // The grid's title shows the week picked in it, or "I can make it work" (any week) until one is tapped.
-  $("gridTitle").querySelector("b")!.textContent = weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text : "I can make it work 🎿";
+  // A picked week as plain dates, without weekdays ("11 Feb → 16 Feb"): the bar above already says Thu → Tue
+  $("gridTitle").querySelector("b")!.textContent = weekChosen ? seasonRange(SEASON, state.pattern, state.week, state.days).text.replace(/\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun) /g, "") : "I can make it work 🎿";
+  $("gridTitle").classList.toggle("picked", weekChosen);
   $("allWeeks").hidden = !weekChosen;
   renderControls(state); renderDests(state); renderWeeks(state); renderHeat(state); renderRank(state, REPO); renderHouseSection(state, houseView, REPO, !weekChosen); renderMyPick(state); renderTripsByGroup(state); renderQuickSum(state); renderTable(state);
 }
