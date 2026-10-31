@@ -343,12 +343,12 @@ function card(s: State, x: Priced, label: string, selected: boolean, week?: numb
   return `<article class="hcard${selected || s.pick === l.id ? " sel" : ""}" role="listitem">` +
     `<a class="hphoto" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">${photo}<span class="tier">${esc(label)}</span>${l.rating != null ? `<span class="hrate" aria-label="Rated ${l.rating.toFixed(1)} out of 10">★ ${l.rating.toFixed(1)}</span>` : ""}</a>` +
     // What decides it first (name, walk, week, price) and the button right under it; the details below
-    `<div class="hbody"><span class="ttl">${esc(l.title)}</span>${lift}` +
+    `<div class="hbody"><a class="ttl" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">${esc(l.title)}</a>${lift}` +
     (week != null ? `<span class="cheapwk">📅 Cheapest week: ${esc(seasonRange(SEASON, s.pattern, week, s.days).text)}</span>` : "") +
     `<div class="hprice"><b>${euro(x.pp)}</b><small>per person, house only · ${euro(x.total)} for the house</small></div>` +
     (trip ? `<small class="allin">≈ <b>${euro(trip.best.pp)}</b> per person all in, flying to ${esc(trip.best.d.code)}</small>` : "") +
-    `<div class="hacts"><button type="button" class="choose" data-pick="${esc(l.id)}" data-week="${week ?? s.week}"${x.exact ? ` data-checkin="${esc(x.quote.checkin)}" data-nights="${x.quote.nights}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button>` +
-    `<a href="${esc(l.url)}" target="_blank" rel="noopener noreferrer">View on ${esc(src)} ↗</a></div>` +
+    // The name (and the photo) open the listing: no separate "View on …" link
+    `<div class="hacts"><button type="button" class="choose" data-pick="${esc(l.id)}" data-week="${week ?? s.week}"${x.exact ? ` data-checkin="${esc(x.quote.checkin)}" data-nights="${x.quote.nights}"` : ""} aria-pressed="${s.pick === l.id}">${s.pick === l.id ? "✓ Your pick" : "Choose this house"}</button></div>` +
     `${liftLine}<small>${esc(facts.join(" · "))}</small>${mapLinks}` +
     `<small>Quote for ${dates}${nq > 1 ? ` (+${nq - 1} more)` : ""}${x.exact ? "" : ", adjusted to this week's demand"}${l.notes ? " · " + esc(l.notes) : ""}</small></div></article>`;
 }

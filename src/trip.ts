@@ -208,12 +208,12 @@ function renderWelcome(result = "") {
   box.hidden = false;
   const html = `<div class="mypick welcomecard">` +
     `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
-    `<div class="mp-body"><span class="eyebrow">${who}</span><b>${esc(p.listing.title)}</b>` +
+    `<div class="mp-body"><span class="eyebrow">${who}</span><a class="ttl-link" href="${esc(p.listing.url)}" target="_blank" rel="noopener noreferrer">${esc(p.listing.title)}</a>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
     `<div class="mp-price"><b>${euro(p.pp)} pp</b><small>all in · ${euro(p.group)} for ${p.people} · house ${euro(p.housePP)} pp</small></div></div>` +
     `<div class="wc-flight"><span class="wc-route">✈ ${esc(o.city)} (${esc(o.code)}) → ${esc(p.option.air)}</span>` +
-    `<small>${t ? `${esc(t.airlines)} · ${hm(t.mins)} flight${t.stops ? ", 1 stop" : ", direct"} · ` : ""}${t ? hm(t.mins + p.option.mins) : esc(p.option.time)} door to door · out ${esc(rg.text.split(" → ")[0])}, back ${esc(rg.text.split(" → ")[1])}</small>` +
-    `<a href="${esc(gf)}" target="_blank" rel="noopener noreferrer">See flights and times for these dates ↗</a></div>` +
+    // The times are the link to the flights for these dates (no separate line for it)
+    `<a class="wc-times" href="${esc(gf)}" target="_blank" rel="noopener noreferrer">${t ? `${esc(t.airlines)} · ${hm(t.mins)} flight${t.stops ? ", 1 stop" : ", direct"} · ` : ""}${t ? hm(t.mins + p.option.mins) : esc(p.option.time)} door to door · out ${esc(rg.text.split(" → ")[0])}, back ${esc(rg.text.split(" → ")[1])} ↗</a></div>` +
     priceBreakdown(s, p) + result +
     `<div class="mp-acts wc-acts">${lock}<button type="button" class="btn secondary wc-explore" data-act="explore">Explore other options</button></div></div>`;
   // Redraw only when something changed: the sheet answering with the same pick mustn't swallow a tap on Explore.
@@ -251,7 +251,7 @@ export function renderMyPick(s: State) {
   // Already in the trip: your vote for it is one tap (Lock it), or done.
   const me = myName().toLowerCase(), votedIt = !!added && !!me && !!last?.votes.some((v) => v.pick === added.id && v.name.toLowerCase() === me);
   box.innerHTML = `<div class="mp-photo">${p.listing.photo ? `<img src="${esc(p.listing.photo)}" alt="" referrerpolicy="no-referrer" loading="lazy">` : ""}</div>` +
-    `<div class="mp-body"><span class="eyebrow">Your pick</span><b>${esc(p.listing.title)}</b>` +
+    `<div class="mp-body"><span class="eyebrow">Your pick</span><a class="ttl-link" href="${esc(p.listing.url)}" target="_blank" rel="noopener noreferrer">${esc(p.listing.title)}</a>` +
     `<small>${esc(p.resort.name)} · ${esc(p.walk)} · ${esc(p.when)}</small>` +
     `<div class="mp-price"><b>${euro(p.pp)}</b><small>per person all in · ${euro(p.group)} group · house ${euro(p.housePP)} pp</small></div>` +
     `<label class="mp-air">✈ Flight <select id="mp-air">${p.flights.map((f) => {
