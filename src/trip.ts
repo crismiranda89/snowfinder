@@ -718,14 +718,18 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
     }
     else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
     else if (act === "promo") {
-      // The image of the trip's top pick (the one on the welcome card), with the trip link
+      // The image of what you have chosen now ("Your pick"); with nothing chosen, the trip's top pick (the welcome
+      // card). Both go with the trip link.
       const sp = sharedPlan(); if (!sp || !last) return;
-      resetCache(); const p = pickSummary(sp.s); resetCache(); if (!p) return;
-      const org = sp.organizer, link = tripLink(last);
-      // The message to send with it, picked in the preview: the group message (as on WhatsApp) or a vote nudge
-      const invite = t.closest<HTMLElement>(".tshare-top")?.querySelector<HTMLElement>("[data-act='copy-msg']")?.dataset.text;
-      openPromo(p, { who: /^AI pick/i.test(org) ? "🤖 AI pick" : `👋 ${org.split(/\s+/)[0]} picked this`, link, toast,
-        invite, vote: `🗳️ Haven't voted yet? Choose our snow trip here ❄️ ${link}` });
+      const s = getState(), link = tripLink(last);
+      resetCache(); const mine = pickSummary(s); resetCache();
+      resetCache(); const p = mine || pickSummary(sp.s); resetCache(); if (!p) return;
+      const by = mine ? myName() || "" : sp.organizer;
+      const who = /^AI pick/i.test(by) ? "🤖 AI pick" : by ? `👋 ${by.split(/\s+/)[0]} picked this` : "⛷️ Our ski trip plan";
+      // The message to send with it, picked in the preview: the group message for this pick, or a vote nudge
+      const invite = mine ? whatsappText(pickData(s, mine), link)
+        : t.closest<HTMLElement>(".tshare-top")?.querySelector<HTMLElement>("[data-act='copy-msg']")?.dataset.text;
+      openPromo(p, { who, link, toast, invite, vote: `🗳️ Haven't voted yet? Choose our snow trip here ❄️ ${link}` });
     }
     else if (act === "copy-msg") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
