@@ -33,7 +33,7 @@ rest of the site works the same.
 | `ui/deck.ts` | The stacked-card picker used instead of dropdowns |
 | `ui/sort.ts` | Sortable tables in Go deeper |
 | `ui/haptic.ts` | Short vibration on taps (Android only) |
-| `ui/promo.ts` | The 1080×1350 promo image (house photo split diagonally with the resort, details card) and its preview with Share / Save / Copy link; from "Share this plan" and step 4 |
+| `ui/promo.ts` | The 1080×1350 promo image (house photo split diagonally with the resort, details card) and its preview with Share / Save / Copy link; from "Share this plan" and step 4's "📸 Instagram" |
 | `trip.ts` | Shared trips: welcome card, "My pick", create/add pick, votes, step 4, Top picks, "I have a better plan" |
 | `loader.ts` | The card slider used for the games (ski style duel + price guess) and the reveal |
 | `styles.css` | All styles, one file |
@@ -56,8 +56,8 @@ rest of the site works the same.
 7. **Games** (`#pick-games`): as soon as the name is saved, two quick games play right under the pick while
    the sheet saves it (`playGames(title, saving)`). When both are done and the save is in, the price reveal
    plays, the games are removed, the result lines move into `#trip-loader`, and step 4 opens.
-8. **Step 4 Confirm availability** (`#trip-block`): "Share on WhatsApp" and "Copy text" on top (the
-   group-chat message, no text box), trip name, availability dot (red "not checked yet" or green
+8. **Step 4 Confirm availability** (`#trip-block`): "WhatsApp", "📸 Instagram" (the promo image of the
+   top pick) and "Copy text" on top (the group-chat message, no text box), trip name, availability dot (red "not checked yet" or green
    "checked · X of Y still free"), votes: each pick with its check dot, pros and cons, "Vote for this"
    and "View listing". No separate pick cards.
 9. **🏅 Top picks** (`#trips-block`): featured trips (`FEATURED` in `trip.ts`) plus trips this browser has

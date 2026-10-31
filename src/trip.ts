@@ -12,6 +12,7 @@ import { LISTINGS } from "./data.ts";
 import { walkMins } from "./model/houses.ts";
 import { glide, loaderResult, loaderVariant, startLoader, type LoaderHandle } from "./loader.ts";
 import { haptic } from "./ui/haptic.ts";
+import { openPromo } from "./ui/promo.ts";
 
 const $ = (id: string) => document.getElementById(id)!;
 const API = (document.querySelector('meta[name="snowfinder-api"]') as HTMLMetaElement | null)?.content || "";
@@ -613,8 +614,9 @@ function renderTrip(_s: State) {
   const link = tripLink(last!);
   const bv = best ? verified(best.data) : null;
   const msg = best ? whatsappText(bv?.known ? { ...best.data, pp: Math.round(bv.pp) } : best.data, link) : `⛷️ Our ski trip: vote here ${link}`;
-  // Two buttons on top: WhatsApp with the message ready, or copy it for any other chat (no text box).
-  const share = `<div class="tshare-top"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Share on WhatsApp</a>` +
+  // Three buttons on top: WhatsApp with the message ready, the promo image (Instagram) and the message to copy.
+  const share = `<div class="tshare-top"><a class="btn wa" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>` +
+    `<button type="button" class="btn secondary" data-act="promo">📸 Instagram</button>` +
     `<button type="button" class="btn secondary" data-act="copy-msg" data-text="${esc(msg)}">Copy text</button></div>`;
   const lim = last.limits;
   const others = Object.entries(myTrips()).filter(([, id]) => id !== trip.id);
@@ -717,6 +719,13 @@ export function wireTrip(getState: () => State, update: (m: (s: State) => void) 
       explored = true; $("welcome").hidden = true; renderMyPick(getState()); haptic(10); glide($("grid-block"));
     }
     else if (act === "clear-pick") update((s) => { s.pick = undefined; s.air = undefined; });
+    else if (act === "promo") {
+      // The image of the trip's top pick (the one on the welcome card), with the trip link
+      const sp = sharedPlan(); if (!sp || !last) return;
+      resetCache(); const p = pickSummary(sp.s); resetCache(); if (!p) return;
+      const org = sp.organizer;
+      openPromo(p, { who: /^AI pick/i.test(org) ? "🤖 AI pick" : `👋 ${org.split(/\s+/)[0]} picked this`, link: tripLink(last), toast });
+    }
     else if (act === "copy-msg") {
       const text = t.closest<HTMLElement>("[data-text]")!.dataset.text!;
       navigator.clipboard.writeText(text).then(() => toast("Text copied: paste it in your group chat."), () => window.prompt("Copy this:", text));
