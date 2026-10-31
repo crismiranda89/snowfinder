@@ -87,20 +87,18 @@ const tripGroup = () => {
 };
 /** The open trip's group and dates (from the organiser's pick), so a visitor's picks fit the trip. */
 /** The organiser's pick on the open trip and its full plan (dates, group, house, flight, food, filters). */
-// A trip link carries a snapshot of the organiser's pick after "#t=" (organiser, the pick's plan, their quiz), so a
-// friend's phone can draw the card at once instead of waiting 5–10 s for the sheet.
+// Older trip links carry a snapshot of the organiser's pick after "#t=" (organiser, the pick's plan, their quiz), so
+// a friend's phone draws the card at once; they still work. Links shared now are short (see tripLink).
 interface Snapshot { o: string; s: string; q?: { answers: string[]; guess: number | null } | null }
-const b64 = (x: string) => btoa(String.fromCharCode(...new TextEncoder().encode(x))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 const unb64 = (x: string) => new TextDecoder().decode(Uint8Array.from(atob(x.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0)));
 function snapshot(): Snapshot | null {
   const m = /[#&]t=([\w-]+)/.exec(location.hash); if (!m) return null;
   try { const v = JSON.parse(unb64(m[1])); return typeof v?.o === "string" && typeof v?.s === "string" ? v : null; } catch { return null; }
 }
-/** The link to a trip, with the snapshot of its top pick. */
+/** The link to a trip, short enough for a chat: just its id. A first visit shows the loading card for the few
+ *  seconds the sheet takes; after that the phone keeps a copy and it opens at once. */
 function tripLink(t: TripView) {
-  const best = t.picks.find((p) => p.name === t.trip.organizer) || t.picks[0];
-  const snap: Snapshot | null = best?.data.share ? { o: t.trip.organizer, s: best.data.share, q: t.organizerQuiz || null } : null;
-  return `${location.origin}${location.pathname}?trip=${encodeURIComponent(t.trip.id)}${snap ? `#t=${b64(JSON.stringify(snap))}` : ""}`;
+  return `${location.origin}${location.pathname}?trip=${encodeURIComponent(t.trip.id)}`;
 }
 /** The organiser's pick on the open trip and its full plan (dates, group, house, flight, food, filters): from the
  *  loaded trip, or from the link's snapshot while the sheet hasn't answered yet. */

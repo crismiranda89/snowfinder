@@ -78,7 +78,8 @@ rest of the site works the same.
 ## Shared trip flow
 
 1. Organiser chooses a house + flight → *Create our trip* → name and reason → `POST createTrip`. The link is
-   `?trip=<id>`; the share hash carries the whole plan.
+   `?trip=<id>` only, short for chats (older links with a `#t=` snapshot of the top pick still open at once);
+   a first visit shows the loading card until the sheet answers, then the phone keeps a copy.
 2. A friend opens the link: welcome card → 🔒 *Lock it* (a `POST vote` for the organiser's pick) or
    *Explore other options* → choose their own → *Add my pick* → `POST addPick` (waits for the organiser's
    `yes` in the sheet) → games → step 4. Votes are `POST vote`; after Lock it, step 4 opens on the votes.
