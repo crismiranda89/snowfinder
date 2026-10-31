@@ -241,6 +241,16 @@ tr.dimrow td{opacity:.45}
 .count{font-size:.8rem;font-weight:700;color:var(--ok);background:var(--ok-bg);border-radius:999px;padding:2px 9px}
 .count.none{color:var(--bad);background:var(--bad-bg)}
 #houses-block .head{flex-wrap:wrap}
+.deals{margin-top:12px;border:1px dashed var(--line);border-radius:10px;padding:0 12px}
+.deals>summary{cursor:pointer;list-style:none;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:10px 0}
+.deals>summary::-webkit-details-marker{display:none}
+.deals>summary small{color:var(--muted);font-size:.8rem}
+.deals>.foot{margin:0 0 8px}
+.deals .hcards{padding-bottom:12px}
+.hcard.deal{grid-template-rows:1fr}
+.deal-tag{justify-self:start;font-size:.75rem;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--accent);color:var(--surface)}
+.deal-pp{font-size:.95rem}.deal-pp s{color:var(--muted);font-size:.85em}
+.deal-note{font-size:.8rem;color:var(--ink);border-top:1px solid var(--line);padding-top:6px;margin-top:2px}
 .hgroup{margin-top:14px}
 .hgroup>h3{font-family:var(--f-display);font-size:1.15rem;font-weight:600;margin:0 0 8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
 .hgroup>h3 small{font-family:var(--f-body,inherit);font-size:.8rem;font-weight:500;color:var(--muted)}

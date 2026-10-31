@@ -47,7 +47,9 @@ rest of the site works the same.
    hand-set meal price per resort × the plan multiplier; not a median).
 3. **Step 1 Dates** (`#grid-block`): resort × week grid. Dates (i) explains it shows every available house
    for the filters, and picking a week filters them. "❌ Clear" clears the picked week (the title then shows it as plain dates, no weekdays).
-4. **Step 2 Houses** (`#houses-block`): fitting houses, by price level or by distance.
+4. **Step 2 Houses** (`#houses-block`): fitting houses, by price level or by distance. On top, folded,
+   "🏷️ Package deals to compare" (`renderDeals`, from `data/deals.json`): WeSki, SnowTrex and Sunweb packages
+   in the picked resorts, checked by hand. Shown only; the price model never uses them.
 5. **Step 3 Flights and others** (`#rank-block`): airport options for the chosen house. Choosing one folds
    step 3 and scrolls to the pick (on a trip link, to the welcome card when it's the organiser's own house
    and flight).

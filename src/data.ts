@@ -2,11 +2,14 @@
 import resortsJson from "../data/resorts.json" with { type: "json" };
 import seasonJson from "../data/season-2027.json" with { type: "json" };
 import listingsJson from "../data/generated/listings.json" with { type: "json" };
-import type { Listing, Option, Resort, ResortsFile, Season } from "./types.ts";
+import dealsJson from "../data/deals.json" with { type: "json" };
+import type { DealsFile, Listing, Option, Resort, ResortsFile, Season } from "./types.ts";
 
 export const RESORTS_FILE = resortsJson as unknown as ResortsFile;
 export const SEASON = seasonJson as unknown as Season;
 export const LISTINGS = (listingsJson as unknown as { listings: Listing[] }).listings;
+/** Package deals from other sellers, shown for comparison only (data/deals.json). */
+export const DEALS = dealsJson as unknown as DealsFile;
 // "…, 4 beds, …" in a listing's notes (Booking.com counts a double as one bed).
 for (const l of LISTINGS) { const m = /(\d+) (?:real |separate |single )?beds?\b/.exec(l.notes || ""); if (m) l.beds = +m[1]; }
 

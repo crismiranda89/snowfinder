@@ -86,6 +86,13 @@ export type SoloRooms = "shared" | "twin" | "own" | "common";
 /** One price quote for a listing: the total for the whole stay, as seen on the listing for those dates. */
 export interface Quote { checkin: string; checkout: string; nights: number; total: number }
 
+/** A package from another seller (data/deals.json), for comparison only: not priced by the model. */
+export interface Deal {
+  seller: string; resort: string; title: string; room: string; bedrooms?: number; dates: string; nights: number;
+  pp: number; was?: number; cur: "EUR" | "GBP"; promo?: string; url: string; note?: string;
+}
+export interface DealsFile { checked: string; sellers: Record<string, { name: string; incl: string }>; deals: Deal[] }
+
 export interface Listing {
   id: string; resort: string; url: string; title: string; source: string;
   bedrooms: number; sleeps: number; quotes: Quote[];

@@ -1,6 +1,6 @@
 // Rendering. Ported from the original simulator's render* functions; text is now English and every
 // "group of 4" is the group's real size. All data strings go through esc() — listings come from people.
-import { LISTINGS, OPTIONS, RESORTS_FILE, RESORT_BY_ID, SEASON } from "../data.ts";
+import { DEALS, LISTINGS, OPTIONS, RESORTS_FILE, RESORT_BY_ID, SEASON } from "../data.ts";
 import { LEVELS, MONTHS, closeTxt, extraNights, fmt, foodDays, isClosed, isoOf, late, leaveDays, level, nights, patternLabel, range as seasonRange, softHoliday, weekLevel } from "../model/calendar.ts";
 import { FOOD_PLANS, calc, edited, foodPerDay, val, type Calc } from "../model/cost.ts";
 import { bedrooms, cars, describe, people, transferFactor } from "../model/group.ts";
@@ -470,7 +470,33 @@ const DIST = [
   { label: "Further: shuttle or car", hint: "more than 10 min, or not stated", max: Infinity },
 ];
 /** allDates: no week picked yet, so each house shows its cheapest week of the season. */
+/** "🏷️ Package deals": what the big ski sellers offer in the picked resorts, folded, on top of step 2. For
+ *  comparison only: they bundle a lift pass or flights, stay Saturday to Saturday and price per person. */
+function renderDeals(s: State) {
+  const el = document.getElementById("deals");
+  if (!el) return;
+  const ids = new Set(visible(s).map((d) => d.resort));
+  const xs = DEALS.deals.filter((d) => ids.has(d.resort));
+  if (!xs.length) { el.innerHTML = ""; return; }
+  const money = (n: number, cur: string) => (cur === "GBP" ? "£" : "€") + n.toLocaleString("en-GB");
+  const open = (el.querySelector("details") as HTMLDetailsElement | null)?.open ? " open" : "";
+  el.innerHTML = `<details class="deals"${open}><summary><b>🏷️ Package deals to compare</b> <small>${xs.length} · WeSki, SnowTrex, Sunweb</small></summary>` +
+    `<p class="foot">Checked ${esc(DEALS.checked)} for 4 adults. Not in our prices: each seller bundles different things and sells Saturday to Saturday.</p>` +
+    `<div class="hcards" role="list" aria-label="Package deals">` + xs.map((d) => {
+      const seller = DEALS.sellers[d.seller];
+      return `<div class="hcard deal" role="listitem"><div class="hbody">` +
+        `<span class="deal-tag">🏷️ ${esc(seller?.name || d.seller)}${d.promo ? ` · ${esc(d.promo)}` : ""}</span>` +
+        `<a class="ttl" href="${esc(d.url)}" target="_blank" rel="noopener">${esc(d.title)}</a>` +
+        `<span class="foot">${esc(RESORT_BY_ID[d.resort]?.name || d.resort)} · ${esc(d.room)} · ${esc(d.dates)}, ${d.nights} nights</span>` +
+        `<span class="deal-pp"><b class="num">${money(d.pp, d.cur)}</b> per person${d.was ? ` <s>${money(d.was, d.cur)}</s>` : ""}</span>` +
+        `<span class="foot">${esc(seller?.incl || "")}</span>` +
+        (d.note ? `<span class="deal-note">${esc(d.note)}</span>` : "") +
+        `</div></div>`;
+    }).join("") + `</div></details>`;
+}
+
 export function renderHouseSection(s: State, view: HouseView, repo: string, allDates = false) {
+  renderDeals(s);
   $("houseView").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === view)));
   const all: (Found & { week?: number })[] = (allDates ? fittingHousesAllDates(s) : fittingHouses(s)).filter((f) => s.house === "all" || f.tier === s.house);
   // Just the number in the step's title: the cards say the rest (and step 1's "Clear" shows all dates again)
