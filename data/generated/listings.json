@@ -1,6 +1,6 @@
 {
- "generated": "2026-10-31T14:09:37+00:00",
- "count": 116,
+ "generated": "2026-11-01T11:29:14+00:00",
+ "count": 135,
  "listings": [
   {
    "id": "bb7c82ece2",
@@ -344,6 +344,56 @@
    }
   },
   {
+   "id": "88e0a8d940",
+   "resort": "mayrhofen",
+   "url": "https://www.booking.com/hotel/at/der-klaushof.en-gb.html",
+   "title": "Der Klaushof",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1458
+    }
+   ],
+   "rating": 9.4,
+   "toLiftM": 7180,
+   "photo": "https://r-xx.bstatic.com/xdata/images/hotel/1200x630/36051391.jpg?k=498a79830c5b08337d5e4b44ccd303c28a0efd628cedd7db11a57bbcc38b5017&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 2 beds, 2 doubles, 46 m²; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 47.15671,
+   "lng": 11.942152,
+   "locApprox": false
+  },
+  {
+   "id": "c672ca5622",
+   "resort": "mayrhofen",
+   "url": "https://www.booking.com/hotel/at/die-floite.en-gb.html",
+   "title": "die Floite apartment, Ginzling",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1274
+    }
+   ],
+   "rating": 9.2,
+   "toLiftM": 6650,
+   "photo": "https://r-xx.bstatic.com/xdata/images/hotel/1200x630/802684405.jpg?k=069bde193dc40c1c67d443bcc4cc3cfb08721b16503a6900eba39734f80ac8f7&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 2 beds, 2 doubles, 70 m², in Ginzling, up the valley; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 47.10071,
+   "lng": 11.811363,
+   "locApprox": false
+  },
+  {
    "id": "df0743d4a8",
    "resort": "mayrhofen",
    "url": "https://www.booking.com/hotel/at/fernblick.en-gb.html",
@@ -372,6 +422,37 @@
     "m": 353,
     "lat": 47.16035,
     "lng": 11.85973
+   }
+  },
+  {
+   "id": "021fceb5b0",
+   "resort": "mayrhofen",
+   "url": "https://www.booking.com/hotel/at/forsterhaus-zum-kramerwirt.en-gb.html",
+   "title": "Försterhaus & Haus Andrea",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 5,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4100
+    }
+   ],
+   "rating": 8.5,
+   "toLiftM": 730,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/302052446.jpg?k=e9e597cef7c68487bebb9357411200b73033878dd32820ae1f7825b7111286ce&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 4 beds, 85 m²; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 47.167476,
+   "lng": 11.865529,
+   "locApprox": false,
+   "lift": {
+    "name": "Penkenbahn",
+    "m": 584,
+    "lat": 47.16342,
+    "lng": 11.86064
    }
   },
   {
@@ -530,6 +611,37 @@
    }
   },
   {
+   "id": "be71a45647",
+   "resort": "mayrhofen",
+   "url": "https://www.booking.com/hotel/at/black-eagle-luxury-appartement-lodge.en-gb.html",
+   "title": "The Black Eagle Luxury Appartements",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 6,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4402
+    }
+   ],
+   "rating": 9.5,
+   "toLiftM": 620,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/839043590.jpg?k=7584bad9ffe52940b7b4a0ff50e7af48e45368432ac7846bcc752be4104eb6fe&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 3 beds, 2 doubles, 1 sofa bed, 80 m², 2 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 47.167872,
+   "lng": 11.860278,
+   "locApprox": false,
+   "lift": {
+    "name": "Penkenbahn",
+    "m": 496,
+    "lat": 47.16342,
+    "lng": 11.86064
+   }
+  },
+  {
    "id": "929c2ac394",
    "resort": "morzine",
    "url": "https://www.booking.com/hotel/fr/alpen-chalet-morzine.en-gb.html",
@@ -589,6 +701,37 @@
     "m": 1023,
     "lat": 46.19503,
     "lng": 6.73972
+   }
+  },
+  {
+   "id": "f28692d955",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/aubergade-101-apartment.en-gb.html",
+   "title": "Aubergade 101 Apartment",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 3790
+    }
+   ],
+   "rating": null,
+   "toLiftM": 120,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/931481591.jpg?k=dcf99650f5942ff27d53087e2c1bb237312998cb0e7685b23ab214353e8cb58e&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 2 beds, 1 double, 1 bunk, 38 m², 2 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 46.179085,
+   "lng": 6.704025,
+   "locApprox": false,
+   "lift": {
+    "name": "Mas Verjus",
+    "m": 96,
+    "lat": 46.17827,
+    "lng": 6.70445
    }
   },
   {
@@ -682,6 +825,37 @@
     "m": 177,
     "lat": 46.19063,
     "lng": 6.77647
+   }
+  },
+  {
+   "id": "19b19c4678",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/les-berberis.en-gb.html",
+   "title": "Berberis 1 Apartment (Snow and Trek)",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 8,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4215
+    }
+   ],
+   "rating": 8.0,
+   "toLiftM": 1180,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/933734614.jpg?k=9791b6a14688208298176a231f900b4f34f8e90b7bac97c8d26466eefeeb1a3b&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 4 beds, 2 doubles, 2 bunks, 70 m², 3 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 46.188579,
+   "lng": 6.693713,
+   "locApprox": false,
+   "lift": {
+    "name": "Super-Morzine",
+    "m": 942,
+    "lat": 46.18355,
+    "lng": 6.70354
    }
   },
   {
@@ -1181,6 +1355,37 @@
    }
   },
   {
+   "id": "5ed263f87b",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/inukshuk-apartment-morzine.en-gb.html",
+   "title": "Inukshuk Apartment (Snow and Trek)",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4210
+    }
+   ],
+   "rating": 8.8,
+   "toLiftM": 460,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/766127977.jpg?k=ec735a85e1640e5123a1bc8e13c06b33d17b6bdf7ce25f0993aa12b522f01db8&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 4 beds, 4 singles, 68 m², 4 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 46.18189,
+   "lng": 6.707697,
+   "locApprox": false,
+   "lift": {
+    "name": "Super-Morzine",
+    "m": 370,
+    "lat": 46.18355,
+    "lng": 6.70354
+   }
+  },
+  {
    "id": "60918c5af0",
    "resort": "morzine",
    "url": "https://www.booking.com/hotel/fr/le-grand-nant-morzine.en-gb.html",
@@ -1302,6 +1507,37 @@
     "m": 550,
     "lat": 46.1802,
     "lng": 6.70109
+   }
+  },
+  {
+   "id": "39f605fdc5",
+   "resort": "morzine",
+   "url": "https://www.booking.com/hotel/fr/montana-apartment.en-gb.html",
+   "title": "Montana 102 Apartment (Snow and Trek), Montriond",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 3128
+    }
+   ],
+   "rating": 9.0,
+   "toLiftM": 2470,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/757253992.jpg?k=f8c5910878e660d8f7492ff430fef4b65a9718cbe6107e27885e607f8d5e064a&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 4 beds, 4 singles, 65 m², 3 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 46.20027,
+   "lng": 6.695043,
+   "locApprox": false,
+   "lift": {
+    "name": "Super-Morzine",
+    "m": 1973,
+    "lat": 46.18355,
+    "lng": 6.70354
    }
   },
   {
@@ -1457,6 +1693,37 @@
     "m": 816,
     "lat": 46.17695,
     "lng": 6.70583
+   }
+  },
+  {
+   "id": "5b8ef73c47",
+   "resort": "pas-de-la-casa",
+   "url": "https://www.booking.com/hotel/ad/studio-zorro.en-gb.html",
+   "title": "AC Apartaments Centre, Pas de la Casa",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 5,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 2141
+    }
+   ],
+   "rating": 8.2,
+   "toLiftM": 90,
+   "photo": "https://r-xx.bstatic.com/xdata/images/hotel/1200x630/270929754.jpg?k=8c2e296ffff1a17ec286911d2c6cdaa0d993c655753c39a1122754332567bc9a&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 4 beds, 1 single, 2 doubles, 1 more, 64 m², 2 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 42.54152,
+   "lng": 1.732158,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 76,
+    "lat": 42.54091,
+    "lng": 1.73257
    }
   },
   {
@@ -1757,6 +2024,37 @@
    }
   },
   {
+   "id": "750d710769",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/pleta-soldeu-b-5-29.en-gb.html",
+   "title": "AC Apartaments Pleta Soldeu",
+   "source": "booking",
+   "bedrooms": 3,
+   "sleeps": 6,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1899
+    }
+   ],
+   "rating": 8.0,
+   "toLiftM": 80,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/606452009.jpg?k=0419e3f78e1637d1f6101b6c4f7e7df108c8c642b62b3b6b18d755d97968e93d&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 3 bedrooms, 4 beds, 2 singles, 1 double, 1 more, 75 m²; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 42.579278,
+   "lng": 1.663621,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 65,
+    "lat": 42.57941,
+    "lng": 1.66285
+   }
+  },
+  {
    "id": "dd24916822",
    "resort": "soldeu",
    "url": "https://www.booking.com/hotel/ad/novell-ii-incles.en-gb.html",
@@ -1943,6 +2241,37 @@
    }
   },
   {
+   "id": "9311b2407c",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/can-pep-apartment.en-gb.html",
+   "title": "Apartaments Riu d'Incles",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1492
+    }
+   ],
+   "rating": 8.0,
+   "toLiftM": 530,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/142197272.jpg?k=c0099ddba9d9c6026590cd73e350748696db41cc7bca043acc10e879572e6f58&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 2 beds, 1 double, 1 bunk, 70 m², Incles valley; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 42.583185,
+   "lng": 1.662755,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 420,
+    "lat": 42.57941,
+    "lng": 1.66285
+   }
+  },
+  {
    "id": "ae227d9224",
    "resort": "soldeu",
    "url": "https://www.booking.com/hotel/ad/apartamentos-superior-el-tarter.en-gb.html",
@@ -2000,6 +2329,130 @@
    "lift": {
     "name": "",
     "m": 190,
+    "lat": 42.57941,
+    "lng": 1.66285
+   }
+  },
+  {
+   "id": "40c04cc16a",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/apartment-gran-sol-el-tarter.en-gb.html",
+   "title": "Apartment Gran Sol, El Tarter",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 6,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1207
+    }
+   ],
+   "rating": 6.0,
+   "toLiftM": 220,
+   "photo": "https://r-xx.bstatic.com/xdata/images/hotel/1200x630/40772545.jpg?k=e945518acd8a89f4de2e125da3f4bb6d93d0f3f0ae8e7f4ecfca4f57ff8c4dbd&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 3 beds, 2 doubles, 1 sofa bed, 65 m², El Tarter; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 42.580124,
+   "lng": 1.646048,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 180,
+    "lat": 42.57851,
+    "lng": 1.64609
+   }
+  },
+  {
+   "id": "c1886d6380",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/bonito-apartamento-incles-by-renttarter.en-gb.html",
+   "title": "Bonito apartamento Incles (Renttarter)",
+   "source": "booking",
+   "bedrooms": 3,
+   "sleeps": 6,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1262
+    }
+   ],
+   "rating": 8.8,
+   "toLiftM": 50,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/335887903.jpg?k=b8524afbb021144058c22b5fe81fcb7b402f9260dabb346b243c32aebbefb180&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 3 bedrooms, 4 beds, 2 singles, 2 doubles, Incles, 2 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 42.578451,
+   "lng": 1.658519,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 39,
+    "lat": 42.5787,
+    "lng": 1.65886
+   }
+  },
+  {
+   "id": "48ad11a7b3",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/paisajes-de-ensueno-en-magnifico-duplex-hut-8217.en-gb.html",
+   "title": "Duplex Siscaró 310, Incles",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 5,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1204
+    }
+   ],
+   "rating": 9.5,
+   "toLiftM": 1140,
+   "photo": "https://r-xx.bstatic.com/xdata/images/hotel/1200x630/592038426.jpg?k=f3701aab18c54aabe0a7ad55cc371558fc75f065c5404ed005a2e30546e4e684&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 3 beds, 1 single, 1 double, 1 sofa bed, 55 m², Incles valley; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 42.587098,
+   "lng": 1.666656,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 911,
+    "lat": 42.57941,
+    "lng": 1.66285
+   }
+  },
+  {
+   "id": "c79751fc40",
+   "resort": "soldeu",
+   "url": "https://www.booking.com/hotel/ad/apartamento-fontargent-2.en-gb.html",
+   "title": "Fontargent 1B, Soldeu",
+   "source": "booking",
+   "bedrooms": 3,
+   "sleeps": 7,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 2056
+    }
+   ],
+   "rating": 8.2,
+   "toLiftM": 210,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/313853959.jpg?k=67af2bbbb642a99948d7b4dc26f77775b6d4c2a8e9f29872881ac2c8f72512f3&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 3 bedrooms, 5 beds, 3 singles, 1 double, 1 sofa bed, 75 m², 2 bathrooms; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 42.577868,
+   "lng": 1.662888,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 172,
     "lat": 42.57941,
     "lng": 1.66285
    }
@@ -2985,6 +3438,37 @@
    }
   },
   {
+   "id": "04ece58609",
+   "resort": "val-thorens",
+   "url": "https://www.booking.com/hotel/fr/appartment-val-thorens-6-personnes-val-thorens.en-gb.html",
+   "title": "Appartment Val Thorens 6 personnes, ski in/out",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 6,
+   "quotes": [
+    {
+     "checkin": "2027-01-21",
+     "checkout": "2027-01-26",
+     "nights": 5,
+     "total": 2110
+    }
+   ],
+   "rating": 7.3,
+   "toLiftM": 180,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/544642529.jpg?k=990bba9b57ccddbfc9e24d3153ccfa0d83e4c97de77b65387962c5159defec3c&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 3 beds, 1 double, 1 bunk, 1 sofa bed, 27 m², not free 4-9 Mar; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 45.296896,
+   "lng": 6.58026,
+   "locApprox": false,
+   "lift": {
+    "name": "",
+    "m": 142,
+    "lat": 45.29574,
+    "lng": 6.5795
+   }
+  },
+  {
    "id": "bc5118454a",
    "resort": "val-thorens",
    "url": "https://www.booking.com/hotel/fr/cosy-6p-apartment-in-val-thorens-3-vallees.en-gb.html",
@@ -3233,6 +3717,37 @@
    }
   },
   {
+   "id": "d686a1f690",
+   "resort": "val-thorens",
+   "url": "https://www.booking.com/hotel/fr/cosy-family-flat-heart-of-val-thorens-and-balcony-with-mountain-views.en-gb.html",
+   "title": "Cosy Family Flat, Résidence le Joker",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 6,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 3476
+    }
+   ],
+   "rating": null,
+   "toLiftM": 200,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/715325004.jpg?k=704be67cb885be29ec3749c7d7c80d7d2dc0c0ddb81109a0158e2de7c4def6ac&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 3 beds, 2 bunks, 1 sofa bed, 30 m²; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 45.297472,
+   "lng": 6.578966,
+   "locApprox": false,
+   "lift": {
+    "name": "Cairn",
+    "m": 161,
+    "lat": 45.29864,
+    "lng": 6.57776
+   }
+  },
+  {
    "id": "91d834b04b",
    "resort": "val-thorens",
    "url": "https://www.booking.com/hotel/fr/nice-42m2-apartment-at-the-foot-of-the-slopes.en-gb.html",
@@ -3354,6 +3869,68 @@
     "m": 121,
     "lat": 45.29574,
     "lng": 6.5795
+   }
+  },
+  {
+   "id": "c2b4b759e2",
+   "resort": "val-thorens",
+   "url": "https://www.booking.com/hotel/fr/residence-olympiades-val-thorens.en-gb.html",
+   "title": "Residence Olympiades, Val Thorens",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 4,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 4896
+    }
+   ],
+   "rating": 10.0,
+   "toLiftM": 190,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/863762691.jpg?k=0423967efb33717ffbf6d90504ff3b2ce2a7a3af35b01b1e3033c8bcf62fefc1&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 2 beds, 1 double, 1 bunk, 25 m²; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 45.29822,
+   "lng": 6.580698,
+   "locApprox": false,
+   "lift": {
+    "name": "Castor et Pollux",
+    "m": 148,
+    "lat": 45.29762,
+    "lng": 6.58239
+   }
+  },
+  {
+   "id": "85c2657ae1",
+   "resort": "val-thorens",
+   "url": "https://www.booking.com/hotel/fr/appartement-5-personnes-vue-cime-caron-ski-in.en-gb.html",
+   "title": "Ski in/out flat for 5, Cime Caron view",
+   "source": "booking",
+   "bedrooms": 2,
+   "sleeps": 5,
+   "quotes": [
+    {
+     "checkin": "2027-03-04",
+     "checkout": "2027-03-09",
+     "nights": 5,
+     "total": 1743
+    }
+   ],
+   "rating": 7.6,
+   "toLiftM": 110,
+   "photo": "https://q-xx.bstatic.com/xdata/images/hotel/1200x630/788946879.jpg?k=e435e95fe1b5370407dc70656c7036809185bf6cd59bdc8d7481ba5f0f2a001b&o=",
+   "addedBy": "claude",
+   "notes": "Booking.com, 2 bedrooms, 3 beds, 1 single, 1 bunk, 1 sofa bed, 26 m²; distance to lifts estimated from the map; priced for 4 adults",
+   "lat": 45.298064,
+   "lng": 6.578589,
+   "locApprox": false,
+   "lift": {
+    "name": "Cairn",
+    "m": 91,
+    "lat": 45.29864,
+    "lng": 6.57776
    }
   },
   {
