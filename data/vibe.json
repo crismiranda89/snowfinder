@@ -1,0 +1,316 @@
+{
+ "_about": "Photos for the vibe check (vibe.html), all from Wikimedia Commons under the licence shown; w = how much each card says about each resort.",
+ "cards": [
+  {
+   "id": "kids-sled",
+   "title": "Sledging till the cheeks go pink",
+   "sub": "Toboggan runs for the kids (and you)",
+   "kids": true,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Micha%C5%82_Fr%C4%85ckowiak_-_Snow_Sledding_%28cropped%29.jpg/960px-Micha%C5%82_Fr%C4%85ckowiak_-_Snow_Sledding_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Micha%C5%82_Fr%C4%85ckowiak_-_Snow_Sledding_(cropped).jpg",
+   "credit": "Michał Frąckowiak",
+   "license": "CC BY-SA 2.0",
+   "w": {
+    "mayrhofen": 2,
+    "val-thorens": 2,
+    "morzine": 1,
+    "soldeu": 1
+   }
+  },
+  {
+   "id": "caldea",
+   "title": "Caldea: warm lagoons in the Pyrenees",
+   "sub": "Thermal spa about 25 minutes from Soldeu",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/64/Caldea_20231205_122111.jpg/960px-Caldea_20231205_122111.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Caldea_20231205_122111.jpg",
+   "credit": "FrankAndProust",
+   "license": "CC0",
+   "w": {
+    "soldeu": 3,
+    "pas-de-la-casa": 2
+   }
+  },
+  {
+   "id": "huskies",
+   "title": "Meet the huskies",
+   "sub": "Dog-sled rides through the snow",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/69/Sled_dog_on_Svalbard_with_heterochromia.jpg/960px-Sled_dog_on_Svalbard_with_heterochromia.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Sled_dog_on_Svalbard_with_heterochromia.jpg",
+   "credit": "AWeith",
+   "license": "CC BY-SA 4.0",
+   "w": {
+    "morzine": 2,
+    "pas-de-la-casa": 2,
+    "soldeu": 2
+   }
+  },
+  {
+   "id": "ice-cave",
+   "title": "Walk inside a glacier",
+   "sub": "The ice cave at 3,200 m, no skis needed",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/bc/Glacier_de_Mont-de-lans_ou_de_Mantel_ice_cave.JPG/960px-Glacier_de_Mont-de-lans_ou_de_Mantel_ice_cave.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Glacier_de_Mont-de-lans_ou_de_Mantel_ice_cave.JPG",
+   "credit": "בידל הפייטן",
+   "license": "CC BY-SA 4.0",
+   "w": {
+    "les-2-alpes": 3
+   }
+  },
+  {
+   "id": "kids-play",
+   "title": "Snow days for the little ones",
+   "sub": "Sledges, snowballs and hot chocolate after",
+   "kids": true,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c0/Narkanda%2C_Himanchal_Pradesh.jpg/960px-Narkanda%2C_Himanchal_Pradesh.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Narkanda,_Himanchal_Pradesh.jpg",
+   "credit": "Harshitshukla7",
+   "license": "CC BY-SA 4.0",
+   "w": {
+    "soldeu": 2,
+    "morzine": 2,
+    "mayrhofen": 1,
+    "les-2-alpes": 1
+   }
+  },
+  {
+   "id": "sleigh",
+   "title": "Horse-drawn sleigh ride",
+   "sub": "Blankets on, bells ringing",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Seiser_Alm_Langkofel_Pferdeschlitten.jpg/960px-Seiser_Alm_Langkofel_Pferdeschlitten.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Seiser_Alm_Langkofel_Pferdeschlitten.jpg",
+   "credit": "Wolfgang Moroder",
+   "license": "CC BY-SA 3.0",
+   "w": {
+    "mayrhofen": 2,
+    "morzine": 2
+   }
+  },
+  {
+   "id": "crystal",
+   "title": "Swarovski Crystal Worlds",
+   "sub": "A sparkling day trip from the Zillertal",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9b/Swarovski_Kristallwelten_23_Weihnachtstannenbaum.JPG/960px-Swarovski_Kristallwelten_23_Weihnachtstannenbaum.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Swarovski_Kristallwelten_23_Weihnachtstannenbaum.JPG",
+   "credit": "Zairon",
+   "license": "CC BY-SA 3.0",
+   "w": {
+    "mayrhofen": 3
+   }
+  },
+  {
+   "id": "annecy",
+   "title": "A day in Annecy",
+   "sub": "The \"Venice of the Alps\", an hour away",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c4/Old_palace_and_canal%2C_Annecy.jpg/960px-Old_palace_and_canal%2C_Annecy.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Old_palace_and_canal,_Annecy.jpg",
+   "credit": "Detroit Publishing Company",
+   "license": "Public domain",
+   "w": {
+    "morzine": 3
+   }
+  },
+  {
+   "id": "pool",
+   "title": "Heated pool, snow all around",
+   "sub": "Swim outside while it snows",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Hot_Tubs_Olympic_Village_Inn_%282133059953%29.jpg/960px-Hot_Tubs_Olympic_Village_Inn_%282133059953%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Hot_Tubs_Olympic_Village_Inn_(2133059953).jpg",
+   "credit": "Rennett Stowe from USA",
+   "license": "CC BY 2.0",
+   "w": {
+    "les-2-alpes": 2,
+    "mayrhofen": 2,
+    "val-thorens": 1,
+    "morzine": 1
+   }
+  },
+  {
+   "id": "snowman",
+   "title": "The family snowman",
+   "sub": "Every holiday needs one",
+   "kids": true,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5c/Justin_the_Whistler_Kids_snowman_%2845829382585%29.jpg/960px-Justin_the_Whistler_Kids_snowman_%2845829382585%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Justin_the_Whistler_Kids_snowman_(45829382585).jpg",
+   "credit": "Ruth Hartnup from Vancouver, Canada",
+   "license": "CC BY 2.0",
+   "w": {
+    "soldeu": 1,
+    "morzine": 1,
+    "mayrhofen": 1,
+    "pas-de-la-casa": 1
+   }
+  },
+  {
+   "id": "vt-village",
+   "title": "The highest village in Europe",
+   "sub": "Val Thorens at 2,300 m: snow guaranteed, views for days",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/View_of_Val_Thorens_in_the_morning_from_Boismint_2.jpg/960px-View_of_Val_Thorens_in_the_morning_from_Boismint_2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:View_of_Val_Thorens_in_the_morning_from_Boismint_2.jpg",
+   "credit": "DimiTalen",
+   "license": "CC0",
+   "w": {
+    "val-thorens": 3
+   }
+  },
+  {
+   "id": "mulled",
+   "title": "Glühwein on a cold afternoon",
+   "sub": "Cosy Tyrolean huts and mulled wine",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0c/Deutscher_Weihnachtsmarkt_2023%2C_Goethe-Institut_Bangkok%2C_Thailand_-_06_%22gl%C3%BChwein%22.jpg/960px-Deutscher_Weihnachtsmarkt_2023%2C_Goethe-Institut_Bangkok%2C_Thailand_-_06_%22gl%C3%BChwein%22.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Deutscher_Weihnachtsmarkt_2023,_Goethe-Institut_Bangkok,_Thailand_-_06_%22gl%C3%BChwein%22.jpg",
+   "credit": "Chainwit.",
+   "license": "CC BY 4.0",
+   "w": {
+    "mayrhofen": 3
+   }
+  },
+  {
+   "id": "lake",
+   "title": "Lake walks",
+   "sub": "Around Lac de Montriond, near Morzine",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/02/Lac_de_Montriond_61.jpg/960px-Lac_de_Montriond_61.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Lac_de_Montriond_61.jpg",
+   "credit": "Krzysztof Golik",
+   "license": "CC BY-SA 4.0",
+   "w": {
+    "morzine": 3
+   }
+  },
+  {
+   "id": "fondue",
+   "title": "Melted cheese, every evening",
+   "sub": "Fondue, raclette, tartiflette",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f8/Fondue_savoyarde.JPG/960px-Fondue_savoyarde.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Fondue_savoyarde.JPG",
+   "credit": "Camille Gévaudan",
+   "license": "CC BY-SA 3.0",
+   "w": {
+    "morzine": 2,
+    "val-thorens": 2,
+    "les-2-alpes": 2
+   }
+  },
+  {
+   "id": "snowshoe",
+   "title": "Snowshoe walk in a quiet forest",
+   "sub": "Easy, no skills needed",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a9/Snowshoeing_in_Tillamook_State_Forest.jpg/960px-Snowshoeing_in_Tillamook_State_Forest.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Snowshoeing_in_Tillamook_State_Forest.jpg",
+   "credit": "Mattsjc",
+   "license": "CC BY 4.0",
+   "w": {
+    "mayrhofen": 2,
+    "morzine": 2,
+    "les-2-alpes": 1,
+    "soldeu": 1
+   }
+  },
+  {
+   "id": "shopping",
+   "title": "Tax-free shopping",
+   "sub": "Andorra la Vella, down the valley",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/71/Andorra_la_vella_felul.jpg/960px-Andorra_la_vella_felul.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Andorra_la_vella_felul.jpg",
+   "credit": "Cserlajos",
+   "license": "Public domain",
+   "w": {
+    "pas-de-la-casa": 3,
+    "soldeu": 2
+   }
+  },
+  {
+   "id": "girl-snow",
+   "title": "Fresh snow, big smiles",
+   "sub": "Snow up to the knees",
+   "kids": true,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/74/Child_in_the_Jura_mountains.jpg/960px-Child_in_the_Jura_mountains.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Child_in_the_Jura_mountains.jpg",
+   "credit": "SilkTork",
+   "license": "CC BY-SA 3.0",
+   "w": {
+    "les-2-alpes": 1,
+    "soldeu": 1,
+    "mayrhofen": 1,
+    "val-thorens": 1
+   }
+  },
+  {
+   "id": "morzine",
+   "title": "A real Savoyard village",
+   "sub": "Morzine: wooden chalets and a lively centre",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d4/Panorama_de_la_vall%C3%A9e_de_morzine.jpg/960px-Panorama_de_la_vall%C3%A9e_de_morzine.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Panorama_de_la_vall%C3%A9e_de_morzine.jpg",
+   "credit": "Snip",
+   "license": "CC BY-SA 1.0",
+   "w": {
+    "morzine": 3
+   }
+  },
+  {
+   "id": "zillertal",
+   "title": "Sunny Tyrolean valleys",
+   "sub": "The Zillertal around Mayrhofen",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/Hart-im-Zillertal-Winter-2023-53.jpg/960px-Hart-im-Zillertal-Winter-2023-53.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Hart-im-Zillertal-Winter-2023-53.jpg",
+   "credit": "Gemeinde-hart",
+   "license": "CC0",
+   "w": {
+    "mayrhofen": 3
+   }
+  },
+  {
+   "id": "l2a",
+   "title": "Sunny village, buzzing main street",
+   "sub": "Les Deux Alpes",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/47/Les_Deux_alpes%2C_Franse_Alpen.jpg/960px-Les_Deux_alpes%2C_Franse_Alpen.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Les_Deux_alpes,_Franse_Alpen.jpg",
+   "credit": "Wikimedia Commons",
+   "license": "CC BY-SA 3.0",
+   "w": {
+    "les-2-alpes": 3
+   }
+  },
+  {
+   "id": "pas",
+   "title": "Party town with a view",
+   "sub": "Pas de la Casa: shops, bars, snow",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Pas_de_la_Casa_%281%29.jpg/960px-Pas_de_la_Casa_%281%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Pas_de_la_Casa_(1).jpg",
+   "credit": "Krzysztof Golik",
+   "license": "CC BY-SA 4.0",
+   "w": {
+    "pas-de-la-casa": 3
+   }
+  },
+  {
+   "id": "soldeu",
+   "title": "Stone villages of Andorra",
+   "sub": "Soldeu and El Tarter",
+   "kids": false,
+   "img": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8f/Sant_Bartomeu_de_Soldeu.jpg/960px-Sant_Bartomeu_de_Soldeu.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "page": "https://commons.wikimedia.org/wiki/File:Sant_Bartomeu_de_Soldeu.jpg",
+   "credit": "Joan Simon from Barcelona, España",
+   "license": "CC BY-SA 2.0",
+   "w": {
+    "soldeu": 3
+   }
+  }
+ ]
+}

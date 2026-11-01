@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Snowfinder vibe checker</title>
+<meta name="description" content="Not a skier? Swipe through spas, sleigh rides, huskies and snowy villages, and find the snow holiday that's yours.">
+<meta name="theme-color" content="#f6e9ef">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Snowfinder vibe checker ✨">
+<meta property="og:description" content="Not a skier? Swipe the photos you love and find your snow holiday.">
+<meta property="og:image" content="%SITE_URL%og.png">
+<meta property="og:url" content="%SITE_URL%vibe.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#fbf3f6;--bg2:#e8f0fb;--ink:#2a2230;--muted:#7a6f80;--card:#fff;--love:#e8467c;--nope:#8c8496;--star:#f2a516;--line:#eadfe6;--accent:#e8467c}
+@media (prefers-color-scheme:dark){:root{--bg:#1d1720;--bg2:#141a26;--ink:#f6eef3;--muted:#b3a8b8;--card:#2a2230;--line:#3a3040}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Figtree,system-ui,sans-serif;color:var(--ink);background:linear-gradient(170deg,var(--bg),var(--bg2));min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+main{max-width:460px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:max(14px,env(safe-area-inset-top)) 16px max(14px,env(safe-area-inset-bottom))}
+h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;margin:0;line-height:1.1}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.top b{font-family:Fraunces,Georgia,serif;font-size:1.15rem}
+.top small{color:var(--muted);font-size:.85rem}
+.bar{height:5px;border-radius:9px;background:var(--line);overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:var(--love);transition:width .3s}
+.btn{appearance:none;border:0;border-radius:999px;padding:14px 22px;font:600 1rem Figtree,sans-serif;background:var(--love);color:#fff;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.btn:active{transform:scale(.97)}
+/* Intro */
+.intro{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;text-align:center}
+.intro h1{font-size:2.3rem}.intro h1 em{color:var(--love)}
+.intro p{color:var(--muted);font-size:1.05rem;margin:0;line-height:1.45}
+.peek{display:flex;justify-content:center;margin:6px 0 4px}.peek img{width:92px;height:122px;object-fit:cover;border-radius:16px;border:3px solid var(--card);box-shadow:0 8px 24px #0002;margin:0 -14px}
+.peek img:nth-child(1){transform:rotate(-9deg)}.peek img:nth-child(3){transform:rotate(9deg)}.peek img:nth-child(2){position:relative;z-index:1;transform:translateY(-8px)}
+.how{display:flex;justify-content:center;gap:18px;font-size:.9rem;color:var(--muted)}
+/* Deck */
+.deck{position:relative;flex:1;min-height:420px;max-height:640px}
+.card{position:absolute;inset:0;border-radius:24px;overflow:hidden;background:var(--card);box-shadow:0 14px 40px #2a223033;touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform}
+.card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.card .shade{position:absolute;inset:auto 0 0 0;padding:70px 18px 18px;background:linear-gradient(transparent,#000c);color:#fff}
+.card h2{font-size:1.6rem;margin-bottom:4px}
+.card .sub{font-size:.95rem;opacity:.92}
+.card .kid{position:absolute;top:14px;left:14px;background:#fffe;color:#2a2230;font-size:.8rem;font-weight:700;padding:5px 10px;border-radius:999px}
+.card .cred{position:absolute;top:14px;right:14px;font-size:.65rem;color:#fffd;background:#0005;padding:3px 7px;border-radius:8px;max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .stamp{position:absolute;top:56px;font:700 1.7rem Figtree,sans-serif;padding:4px 12px;border:4px solid;border-radius:12px;opacity:0;letter-spacing:.04em}
+.card .stamp.yes{left:20px;color:#3ccf7a;transform:rotate(-14deg)}.card .stamp.no{right:20px;color:#ff5d6c;transform:rotate(14deg)}
+.card.behind{transform:scale(.95) translateY(12px);filter:brightness(.92)}
+.acts{display:flex;justify-content:center;align-items:center;gap:20px;padding:16px 0 4px}
+.round{width:64px;height:64px;border-radius:50%;border:0;background:var(--card);box-shadow:0 6px 18px #2a223026;font-size:1.7rem;cursor:pointer;display:grid;place-items:center}
+.round.small{width:50px;height:50px;font-size:1.3rem}
+.round:active{transform:scale(.92)}
+/* Result */
+.result{display:flex;flex-direction:column;gap:14px}
+.hero{position:relative;border-radius:24px;overflow:hidden;aspect-ratio:4/5;box-shadow:0 14px 40px #2a223033}
+.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.hero .shade{position:absolute;inset:auto 0 0 0;padding:90px 20px 20px;background:linear-gradient(transparent,#000d);color:#fff}
+.hero .eyebrow{font-size:.85rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
+.hero h1{font-size:2.6rem;margin:4px 0}
+.hero .match{font-size:1.05rem}
+.why{background:var(--card);border-radius:18px;padding:14px 16px}
+.why b{display:block;margin-bottom:6px}
+.why ul{margin:0;padding-left:1.1em;line-height:1.5}
+.others{display:grid;gap:8px}
+.other{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:14px;padding:10px 14px}
+.other .m{height:6px;border-radius:9px;background:var(--line);flex:1;margin:0 12px;overflow:hidden}.other .m i{display:block;height:100%;background:var(--love)}
+.stack{display:grid;gap:10px}
+.credits{font-size:.72rem;color:var(--muted);line-height:1.5;margin-top:6px}.credits a{color:inherit}
+.empty{color:var(--muted);text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script type="module" src="vibe.js"></script>
+</body>
+</html>

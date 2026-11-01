@@ -17,8 +17,10 @@ mkdirSync("dist", { recursive: true });
 cpSync("public", "dist", { recursive: true });
 cpSync("src/styles.css", "dist/styles.css");
 writeFileSync("dist/index.html", readFileSync("index.html", "utf8").replaceAll("%SITE_URL%", SITE_URL).replaceAll("%REPO%", REPO).replaceAll("%SHEET_API%", SHEET_API));
+// The vibe checker (vibe.html + src/vibe.ts): a swipe page for the non-skiers, its own small bundle.
+writeFileSync("dist/vibe.html", readFileSync("vibe.html", "utf8").replaceAll("%SITE_URL%", SITE_URL));
 
-const options = { entryPoints: ["src/main.ts"], bundle: true, format: "esm", target: "es2020", outfile: "dist/app.js", minify: !serve, sourcemap: serve, logLevel: "info" };
+const options = { entryPoints: { app: "src/main.ts", vibe: "src/vibe.ts" }, bundle: true, format: "esm", target: "es2020", outdir: "dist", minify: !serve, sourcemap: serve, logLevel: "info" };
 if (serve) {
   const ctx = await esbuild.context(options);
   await ctx.watch();
@@ -32,4 +34,5 @@ if (serve) {
   writeFileSync("dist/index.html", readFileSync("dist/index.html", "utf8")
     .replace('href="styles.css"', `href="styles.css?v=${v("dist/styles.css")}"`)
     .replace('src="app.js"', `src="app.js?v=${v("dist/app.js")}"`));
+  writeFileSync("dist/vibe.html", readFileSync("dist/vibe.html", "utf8").replace('src="vibe.js"', `src="vibe.js?v=${v("dist/vibe.js")}"`));
 }
