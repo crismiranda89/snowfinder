@@ -65,6 +65,14 @@ h1,h2{font-family:"Space Grotesk",system-ui,sans-serif;font-weight:700;margin:0;
 .why{background:var(--card);border-radius:18px;padding:14px 16px}
 .why b{display:block;margin-bottom:6px}
 .why ul{margin:0;padding-left:1.1em;line-height:1.5}
+.picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:4px}
+.picks figure{margin:0;position:relative;border-radius:12px;overflow:hidden;aspect-ratio:3/4}
+.picks img{width:100%;height:100%;object-fit:cover;display:block}
+.picks figcaption{position:absolute;inset:auto 0 0 0;padding:16px 6px 5px;background:linear-gradient(transparent,#000b);color:#fff;font-size:.68rem;font-weight:600;line-height:1.2}
+.picks .pstar{position:absolute;top:5px;left:5px;font-size:.9rem}
+.why.both{background:#ffe6de}
+.namefield{display:grid;gap:6px;font-size:.85rem;color:var(--muted)}
+.namefield input{font:500 1rem "DM Sans",sans-serif;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);width:100%}
 .others{display:grid;gap:8px}
 .other{display:flex;justify-content:space-between;align-items:center;background:var(--card);border-radius:14px;padding:10px 14px}
 .other .m{height:6px;border-radius:9px;background:var(--line);flex:1;margin:0 12px;overflow:hidden}.other .m i{display:block;height:100%;background:var(--love)}

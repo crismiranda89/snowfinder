@@ -138,35 +138,90 @@ function vote(v: Vote) {
 }
 
 /** Per resort: liked weight ÷ weight shown (★ counts double), with a little smoothing for resorts barely seen. */
-function scores() {
+function scores(vs = votes) {
   return Object.keys(RESORTS).map((id) => {
     let shown = 0, liked = 0;
-    for (const { c, v } of votes) { const w = c.w[id] || 0; shown += w; if (v !== "nope") liked += w * (v === "star" ? 2 : 1); }
-    return { id, pct: Math.round(Math.min(1, (liked + 0.5) / (shown + 2)) * 100), loved: votes.filter(({ c, v }) => v !== "nope" && c.w[id]).sort((a, b) => (b.v === "star" ? 1 : 0) - (a.v === "star" ? 1 : 0) || (b.c.w[id] - a.c.w[id])) };
+    for (const { c, v } of vs) { const w = c.w[id] || 0; shown += w; if (v !== "nope") liked += w * (v === "star" ? 2 : 1); }
+    return { id, pct: Math.round(Math.min(1, (liked + 0.5) / (shown + 2)) * 100), loved: vs.filter(({ c, v }) => v !== "nope" && c.w[id]).sort((a, b) => (b.v === "star" ? 1 : 0) - (a.v === "star" ? 1 : 0) || (b.c.w[id] - a.c.w[id])) };
   }).sort((a, b) => b.pct - a.pct || b.loved.length - a.loved.length);
+}
+
+/** Shared picks travel in the link: ?by=Ana&s=star,ids&l=loved,ids&n=nope,ids (unknown ids are dropped). */
+const NAME_KEY = "snowtinder-name";
+function shareLink(vs: typeof votes, by: string) {
+  const u = new URL("vibe.html", location.href), ids = (v: Vote) => vs.filter((x) => x.v === v).map((x) => x.c.id).join(",");
+  if (by) u.searchParams.set("by", by);
+  for (const [k, v] of [["s", "star"], ["l", "love"], ["n", "nope"]] as const) if (ids(v)) u.searchParams.set(k, ids(v));
+  return u.href;
+}
+function readShared(): { by: string; votes: typeof votes } | null {
+  const q = new URLSearchParams(location.search), vs: typeof votes = [];
+  for (const [k, v] of [["s", "star"], ["l", "love"], ["n", "nope"]] as const)
+    for (const id of (q.get(k) || "").split(",")) { const c = CARDS.find((x) => x.id === id); if (c && !vs.some((x) => x.c === c)) vs.push({ c, v }); }
+  return vs.length ? { by: (q.get("by") || "").trim().slice(0, 30), votes: vs } : null;
+}
+const friend = readShared();
+const loadName = () => { try { return localStorage.getItem(NAME_KEY) || ""; } catch { return ""; } };
+
+/** The photos someone said yes to, ★ first. */
+function picksGrid(vs: typeof votes) {
+  const yes = [...vs.filter((x) => x.v === "star"), ...vs.filter((x) => x.v === "love")];
+  return yes.length ? `<div class="picks">${yes.map(({ c, v }) => `<figure><img src="${esc(c.thumb)}" alt="">${v === "star" ? `<span class="pstar">⭐</span>` : ""}<figcaption>${esc(c.title)}</figcaption></figure>`).join("")}</div>` : "";
+}
+const hero$ = (r: { name: string; country: string }, pct: number, img: string, eyebrow: string) =>
+  `<div class="hero"><img src="${esc(img)}" alt=""><div class="shade"><div class="eyebrow">${eyebrow}</div><h1>${esc(r.name)}</h1><div class="match">${pct}% match · ${esc(r.country)}</div></div></div>`;
+const heroCard = (top: ReturnType<typeof scores>[number]) =>
+  top.loved.find((x) => x.c.w[top.id] >= 3)?.c || CARDS.find((c) => c.w[top.id] >= 3) || top.loved[0]?.c || CARDS[0];
+
+/** Opened from someone's shared link: their resort and the photos they picked. */
+function sharedView(f: NonNullable<typeof friend>) {
+  clearInterval(teaser); document.body.dataset.look = "";
+  const top = scores(f.votes)[0], who = f.by ? esc(f.by) : "Your friend";
+  const yes = f.votes.filter((x) => x.v !== "nope").length;
+  app.innerHTML = `<section class="result">
+    ${hero$(RESORTS[top.id], top.pct, heroCard(top).img, `${who}'s snow vibe is`)}
+    <div class="why"><b>${who} picked ${yes} of ${f.votes.length} photos</b>${picksGrid(f.votes) || `<p class="empty">Nothing yet: tough crowd.</p>`}</div>
+    <div class="stack"><button class="btn" data-act="start">Play Snowtinder yourself 🔥</button><a class="btn ghost" href="./">See the trip plan (prices, houses)</a></div></section>`;
 }
 
 function result() {
   const s = scores(), top = s[0], r = RESORTS[top.id];
   const liked = votes.filter((x) => x.v !== "nope").length;
   // The photo is the place itself: a card that's most about this resort, the one you liked if any.
-  const hero = top.loved.find((x) => x.c.w[top.id] >= 3)?.c || CARDS.find((c) => c.w[top.id] >= 3) || top.loved[0]?.c || CARDS[0];
-  const link = new URL("vibe.html", location.href).href;
-  const msg = `✨ I played Snowtinder and my snow trip is ${r.name} (${top.pct}% match)!` +
-    (top.loved.length ? ` I'm in for: ${top.loved.slice(0, 3).map((x) => x.c.title.toLowerCase()).join(", ")}.` : "") + ` Your turn 👉 ${link}`;
+  const hero = heroCard(top);
+  const both = friend ? votes.filter((x) => x.v !== "nope" && friend.votes.some((y) => y.c === x.c && y.v !== "nope")) : [];
+  const msg = (by: string) => {
+    const yes = [...votes.filter((x) => x.v === "star"), ...votes.filter((x) => x.v === "love")].map((x) => x.c.title.toLowerCase());
+    return `✨ I played Snowtinder and my snow trip is ${r.name} (${top.pct}% match)!` +
+      (yes.length ? ` I'm in for: ${yes.slice(0, 4).join(", ")}${yes.length > 4 ? ` and ${yes.length - 4} more` : ""}.` : "") +
+      ` See all my picks and play 👉 ${shareLink(votes, by)}`;
+  };
+  const name = loadName();
   app.innerHTML = `<section class="result">
-    <div class="hero"><img src="${esc(hero.img)}" alt=""><div class="shade"><div class="eyebrow">Your snow vibe is</div><h1>${esc(r.name)}</h1><div class="match">${top.pct}% match · ${esc(r.country)}</div></div></div>
-    ${liked ? `<div class="why"><b>Because you loved</b><ul>${top.loved.slice(0, 4).map((x) => `<li>${x.v === "star" ? "⭐ " : ""}${esc(x.c.title)}</li>`).join("")}</ul></div>`
+    ${hero$(r, top.pct, hero.img, "Your snow vibe is")}
+    ${friend && both.length ? `<div class="why both"><b>💞 You and ${friend.by ? esc(friend.by) : "your friend"} both picked</b><ul>${both.map((x) => `<li>${esc(x.c.title)}</li>`).join("")}</ul></div>` : ""}
+    ${liked ? `<div class="why"><b>Your picks (${liked} of ${votes.length})</b>${picksGrid(votes)}</div>`
       : `<p class="empty">Nothing caught your eye? Fair. ${esc(r.name)} is the best guess; try again with a few more hearts.</p>`}
     <div class="others">${s.slice(1, 4).map((x) => `<div class="other"><span>${esc(RESORTS[x.id].name)}</span><span class="m"><i style="width:${x.pct}%"></i></span><b>${x.pct}%</b></div>`).join("")}</div>
     <div class="stack">
-      <a class="btn" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Send to the group on WhatsApp</a>
+      <label class="namefield">Your name, so they know whose picks these are<input id="by" maxlength="30" placeholder="e.g. Ana" value="${esc(name)}" autocomplete="given-name"></label>
+      <a class="btn" id="wa" href="#" target="_blank" rel="noopener">Share my picks on WhatsApp</a>
+      <button class="btn ghost" data-act="share">Share or copy the link</button>
       <a class="btn ghost" href="./">See the trip plan (prices, houses)</a>
       <button class="btn ghost" data-act="again">Swipe again</button>
     </div>
     <p class="credits">Photos from Unsplash, showing each activity (not always at these resorts): ${votes.map(({ c }) => `<a href="${esc(c.page)}" target="_blank" rel="noopener">${esc(c.credit)}</a>${c.where ? ` (${esc(c.where)})` : ""}`).join(" · ")}.</p></section>`;
+  const input = app.querySelector<HTMLInputElement>("#by")!, wa = app.querySelector<HTMLAnchorElement>("#wa")!;
+  const sync = () => { const by = input.value.trim(); wa.href = `https://wa.me/?text=${encodeURIComponent(msg(by))}`; try { localStorage.setItem(NAME_KEY, by); } catch { /* private mode */ } };
+  input.addEventListener("input", sync); sync();
+  shareNow = async () => {
+    const by = input.value.trim(), url = shareLink(votes, by);
+    try { if (navigator.share) return await navigator.share({ title: "Snowtinder", text: msg(by).replace(/ See all my picks.*$/, ""), url }); } catch { return; }
+    try { await navigator.clipboard.writeText(msg(by)); const b = app.querySelector<HTMLElement>('[data-act="share"]'); if (b) b.textContent = "Copied ✓"; } catch { prompt("Copy this link:", url); }
+  };
   haptic([15, 60, 15, 60, 30]);
 }
+let shareNow = async () => {};
 
 function start() { clearInterval(teaser); document.body.dataset.look = ""; deck = newDeck(); votes = []; render(); }
 
@@ -175,9 +230,10 @@ app.addEventListener("click", (e) => {
   const v = t.closest<HTMLElement>("[data-vote]"); if (v) vote(v.dataset.vote as Vote);
   const a = t.closest<HTMLElement>("[data-act]")?.dataset.act;
   if (a === "start" || a === "again") start();
+  if (a === "share") void shareNow();
 });
 document.addEventListener("keydown", (e) => {
   if (!app.querySelector(".deck")) return;
   if (e.key === "ArrowRight") vote("love"); else if (e.key === "ArrowLeft") vote("nope"); else if (e.key === "ArrowUp") vote("star");
 });
-intro();
+if (friend) sharedView(friend); else intro();
