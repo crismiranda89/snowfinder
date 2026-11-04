@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Snowfinder vibe checker</title>
+<title>Snowtinder</title>
 <meta name="description" content="Not a skier? Swipe through spas, sleigh rides, huskies and snowy villages, and find the snow holiday that's yours.">
 <meta name="theme-color" content="#f6e9ef">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Snowfinder vibe checker ✨">
+<meta property="og:title" content="Snowtinder 🔥">
 <meta property="og:description" content="Not a skier? Swipe the photos you love and find your snow holiday.">
 <meta property="og:image" content="%SITE_URL%og.png">
 <meta property="og:url" content="%SITE_URL%vibe.html">
@@ -77,6 +77,18 @@ body[data-look="a"] main{padding:0;max-width:none}
 .look-a .bleed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .look-a .bleed-copy{position:relative;display:grid;gap:14px;padding:120px max(20px,env(safe-area-inset-left)) max(28px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#000000d9 45%);color:#fff;max-width:520px}
 .look-a h1{font-size:3rem;color:#fff}.look-a p{color:#fffd;align-self:auto}.look-a .intro-kicker{color:#ffd2c4}.look-a .round-count{color:#fffb!important}
+.look-a{overflow:hidden}
+.look-a .bleed{transform:scale(1.14);animation:nudge 4s ease-in-out infinite}
+.lstamp{position:absolute;top:18%;z-index:1;font:700 2.2rem "DM Sans",sans-serif;padding:4px 14px;border:5px solid;border-radius:14px;letter-spacing:.04em;opacity:0}
+.lstamp.yes{left:24px;color:#3ccf7a;transform:rotate(-14deg);animation:stampyes 4s ease-in-out infinite}
+.lstamp.no{right:24px;color:#ff5d6c;transform:rotate(14deg);animation:stampno 4s ease-in-out infinite}
+.swipehint{display:flex;align-items:center;justify-content:space-between;background:#ffffff26;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid #fff5;border-radius:999px;padding:9px 16px;font-weight:700;font-size:.95rem}
+.swipehint i{font-style:normal;font-size:1.6rem;animation:hand 4s ease-in-out infinite}
+.look-a .hinttext{font-size:.88rem;margin-top:-6px}
+@keyframes nudge{0%,12%,50%,62%,100%{transform:scale(1.14) translateX(0) rotate(0)}28%,34%{transform:scale(1.14) translateX(3%) rotate(1deg)}78%,84%{transform:scale(1.14) translateX(-3%) rotate(-1deg)}}
+@keyframes stampyes{0%,16%,42%,100%{opacity:0}26%,36%{opacity:1}}
+@keyframes stampno{0%,66%,92%,100%{opacity:0}76%,86%{opacity:1}}
+@keyframes hand{0%,12%,50%,62%,100%{transform:translateX(0) rotate(0)}28%,34%{transform:translateX(70px) rotate(15deg)}78%,84%{transform:translateX(-70px) rotate(-15deg)}}
 /* Landing B: a teaser deck that swipes itself */
 .look-b .tease{position:relative;height:330px;width:230px;align-self:center}
 .tcard{position:absolute;inset:0;border-radius:20px;overflow:hidden;box-shadow:0 14px 34px #2a223040;background:var(--card);transition:transform .6s ease-in,opacity .6s}
@@ -99,7 +111,7 @@ body[data-look="a"] main{padding:0;max-width:none}
 .postcard .hand{position:absolute;left:16px;bottom:10px;font:600 1.45rem "Caveat",cursive;color:#2a2230}
 .postcard .stampbox{position:absolute;top:-14px;right:-12px;width:58px;height:66px;background:var(--love);color:#fff;display:grid;place-items:center;font-size:1.8rem;border:4px dashed #fff;border-radius:4px;transform:rotate(8deg);box-shadow:0 6px 14px #0003}
 @media (max-width:380px){.intro h1{font-size:2.35rem}.peek img{width:82px;height:112px}.look-a h1{font-size:2.5rem}.look-b .tease{height:290px;width:200px}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>

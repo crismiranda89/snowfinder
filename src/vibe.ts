@@ -1,4 +1,4 @@
-// Snowfinder vibe checker (vibe.html): for the people who don't ski. Swipe photos of spas, sleigh rides, huskies
+// Snowtinder (vibe.html), Snowfinder's swipe game: for the people who don't ski. Swipe photos of spas, sleigh rides, huskies
 // and snowy villages (right = love it, left = not for me, ★ = must have); after ROUNDS cards it names the resort
 // that fits best. Each card says how much it speaks for each resort (data/vibe.json, `w`); the match is the share
 // of a resort's weight in the cards you saw that you liked, so resorts with more cards don't win by default.
@@ -51,7 +51,7 @@ function intro() {
   document.body.dataset.look = LOOK;
   if (LOOK === "b") {
     const xs = ["dogsled", "hottub", "horses", "raclette", "sleigh"].map(byId);
-    app.innerHTML = `<section class="intro look-b"><div class="intro-kicker">Snowfinder vibe checker</div>
+    app.innerHTML = `<section class="intro look-b"><div class="intro-kicker">Snowtinder 🔥</div>
       <h1>Swipe your<br><em>snow trip.</em></h1>
       <div class="tease">${xs.map((c, i) => `<div class="tcard" style="z-index:${xs.length - i}"><img src="${esc(c.thumb)}" alt=""><span class="stamp yes">LOVE</span><span class="stamp no">NOPE</span><b>${esc(c.title)}</b></div>`).join("")}</div>
       <p>Love it or pass it: we'll tell you which resort is yours.</p>${start$}</section>`;
@@ -80,16 +80,20 @@ function intro() {
     return;
   }
   const c = byId("dogsled");
-  app.innerHTML = `<section class="intro look-a"><img class="bleed" src="${esc(c.img)}" alt=""><div class="bleed-copy">
-    <div class="intro-kicker">Snowfinder vibe checker</div><h1>Not a skier?<br><em>Even better.</em></h1>
-    <p>Huskies, hot tubs, sleigh rides. Swipe what you love and find your snow trip.</p>${start$}</div></section>`;
+  // The photo nudges right (LOVE) and left (NOPE) like a card being swiped, with a hand showing the move.
+  app.innerHTML = `<section class="intro look-a"><img class="bleed" src="${esc(c.img)}" alt="">
+    <span class="lstamp yes">LOVE</span><span class="lstamp no">NOPE</span><div class="bleed-copy">
+    <div class="intro-kicker">Snowtinder 🔥</div><h1>Not a skier?<br><em>Even better.</em></h1>
+    <p>Huskies, hot tubs, sleigh rides. Swipe what you love and find your snow trip.</p>
+    <div class="swipehint" aria-hidden="true"><span>✖️ Nope</span><i>👆</i><span>Love ❤️</span></div>
+    <p class="hinttext">Swipe right if you'd go, left if it's a no.</p>${start$}</div></section>`;
 }
 
 function render() {
   const i = votes.length;
   if (i >= deck.length) return result();
   const c = deck[i], next = deck[i + 1];
-  app.innerHTML = `<div class="top"><b>Vibe checker</b><small>${i + 1} / ${deck.length}</small></div>
+  app.innerHTML = `<div class="top"><b>Snowtinder 🔥</b><small>${i + 1} / ${deck.length}</small></div>
     <div class="bar"><i style="width:${(i / deck.length) * 100}%"></i></div>
     <div class="deck">${next ? cardHtml(next, true) : ""}${cardHtml(c, false)}</div>
     <div class="acts"><button class="round" data-vote="nope" aria-label="Not for me">✖️</button><button class="round small" data-vote="star" aria-label="Must have">⭐</button><button class="round" data-vote="love" aria-label="Love it">❤️</button></div>`;
@@ -148,7 +152,7 @@ function result() {
   // The photo is the place itself: a card that's most about this resort, the one you liked if any.
   const hero = top.loved.find((x) => x.c.w[top.id] >= 3)?.c || CARDS.find((c) => c.w[top.id] >= 3) || top.loved[0]?.c || CARDS[0];
   const link = new URL("vibe.html", location.href).href;
-  const msg = `✨ I did the Snowfinder vibe check and my snow trip is ${r.name} (${top.pct}% match)!` +
+  const msg = `✨ I played Snowtinder and my snow trip is ${r.name} (${top.pct}% match)!` +
     (top.loved.length ? ` I'm in for: ${top.loved.slice(0, 3).map((x) => x.c.title.toLowerCase()).join(", ")}.` : "") + ` Your turn 👉 ${link}`;
   app.innerHTML = `<section class="result">
     <div class="hero"><img src="${esc(hero.img)}" alt=""><div class="shade"><div class="eyebrow">Your snow vibe is</div><h1>${esc(r.name)}</h1><div class="match">${top.pct}% match · ${esc(r.country)}</div></div></div>
