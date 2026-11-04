@@ -11,7 +11,7 @@ type Vote = "love" | "nope" | "star";
 
 const CARDS = (vibeJson as unknown as { cards: Card[] }).cards;
 const RESORTS = Object.fromEntries((resortsJson as unknown as { resorts: { id: string; name: string; country: string }[] }).resorts.map((r) => [r.id, r]));
-const ROUNDS = 14;
+const ROUNDS = 20;
 const app = document.getElementById("app")!;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -43,7 +43,7 @@ function newDeck(): Card[] {
  *  photo mosaic of questions, and a postcard. */
 const LOOK = (new URLSearchParams(location.search).get("look") || "a").replace(/[^a-d]/g, "") || "a";
 const byId = (id: string) => CARDS.find((c) => c.id === id) || CARDS[0];
-const start$ = `<button class="btn" data-act="start">Find my snow trip →</button><p class="round-count">${ROUNDS} photos · about a minute</p>`;
+const start$ = `<button class="btn" data-act="start">Find my snow trip →</button><p class="round-count">${ROUNDS} photos · about two minutes</p>`;
 let teaser = 0;
 
 function intro() {
