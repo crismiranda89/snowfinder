@@ -21,7 +21,7 @@ rest of the site works the same.
 
 | File | What it does |
 |---|---|
-| `vibe.ts` | The vibe checker (`vibe.html`, its own `vibe.js` bundle): for non-skiers, swipe 12 photos from `data/vibe.json` (Wikimedia Commons, credited) and get the resort that fits; linked from the footer |
+| `vibe.ts` | The vibe checker (`vibe.html`, its own `vibe.js` bundle): for non-skiers, swipe 14 of the activity photos in `data/vibe.json` (Unsplash, picked by the organiser, HD from the Unsplash CDN, credited with where each was taken) and get the resort that fits; four landing designs via `?look=a\|b\|c\|d`; linked from the footer |
 | `main.ts` | Boot: restores state (a share link wins over saved state), renders, wires every control, the fold system and the pinned price bar |
 | `state.ts` | `State`, defaults, `localStorage`, share-link encode/decode, named `GROUPS` and `normGroup` |
 | `data.ts` | Imports the season, resorts and listings JSON |

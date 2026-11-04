@@ -14,26 +14,27 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,600&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
 <style>
-:root{--bg:#fbf3f6;--bg2:#e8f0fb;--ink:#2a2230;--muted:#7a6f80;--card:#fff;--love:#e8467c;--nope:#8c8496;--star:#f2a516;--line:#eadfe6;--accent:#e8467c}
-@media (prefers-color-scheme:dark){:root{--bg:#1d1720;--bg2:#141a26;--ink:#f6eef3;--muted:#b3a8b8;--card:#2a2230;--line:#3a3040}}
+:root{--bg:#fff3ea;--bg2:#f3eee4;--ink:#242c30;--muted:#766f6b;--card:#fffdf9;--love:#e45e45;--nope:#8c8496;--star:#e9a12c;--line:#eadbd0;--accent:#e45e45}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:Figtree,system-ui,sans-serif;color:var(--ink);background:linear-gradient(170deg,var(--bg),var(--bg2));min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body{font-family:"DM Sans",system-ui,sans-serif;color:var(--ink);background:linear-gradient(170deg,var(--bg),var(--bg2));min-height:100dvh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
 main{max-width:460px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;padding:max(14px,env(safe-area-inset-top)) 16px max(14px,env(safe-area-inset-bottom))}
-h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;margin:0;line-height:1.1}
+h1,h2{font-family:"Space Grotesk",system-ui,sans-serif;font-weight:700;margin:0;line-height:1.04;letter-spacing:-.045em}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-.top b{font-family:Fraunces,Georgia,serif;font-size:1.15rem}
+.top b{font-family:"Space Grotesk",system-ui,sans-serif;font-size:1.15rem}
 .top small{color:var(--muted);font-size:.85rem}
 .bar{height:5px;border-radius:9px;background:var(--line);overflow:hidden;margin-bottom:12px}.bar i{display:block;height:100%;width:0;background:var(--love);transition:width .3s}
-.btn{appearance:none;border:0;border-radius:999px;padding:14px 22px;font:600 1rem Figtree,sans-serif;background:var(--love);color:#fff;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn{appearance:none;border:0;border-radius:999px;padding:14px 22px;font:600 1rem "DM Sans",sans-serif;background:var(--love);color:#fff;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
 .btn:active{transform:scale(.97)}
 /* Intro */
 .intro{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;text-align:center}
-.intro h1{font-size:2.3rem}.intro h1 em{color:var(--love)}
-.intro p{color:var(--muted);font-size:1.05rem;margin:0;line-height:1.45}
+.intro h1{font-size:2.7rem}.intro h1 em{color:var(--love);font-style:normal}
+.intro p{color:var(--muted);font-size:1.05rem;margin:0;line-height:1.5;max-width:390px;align-self:center}
+.intro-kicker{font-size:.74rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#a6533e;margin-top:4px}
+.round-count{font-size:.82rem!important;color:#8b8079!important;letter-spacing:.02em}
 .peek{display:flex;justify-content:center;margin:6px 0 4px}.peek img{width:92px;height:122px;object-fit:cover;border-radius:16px;border:3px solid var(--card);box-shadow:0 8px 24px #0002;margin:0 -14px}
 .peek img:nth-child(1){transform:rotate(-9deg)}.peek img:nth-child(3){transform:rotate(9deg)}.peek img:nth-child(2){position:relative;z-index:1;transform:translateY(-8px)}
 .how{display:flex;justify-content:center;gap:18px;font-size:.9rem;color:var(--muted)}
@@ -42,11 +43,11 @@ h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;margin:0;line-height:1.
 .card{position:absolute;inset:0;border-radius:24px;overflow:hidden;background:var(--card);box-shadow:0 14px 40px #2a223033;touch-action:none;user-select:none;-webkit-user-select:none;will-change:transform}
 .card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
 .card .shade{position:absolute;inset:auto 0 0 0;padding:70px 18px 18px;background:linear-gradient(transparent,#000c);color:#fff}
-.card h2{font-size:1.6rem;margin-bottom:4px}
+.card h2{font-size:1.6rem;margin-bottom:4px;letter-spacing:-.025em}
 .card .sub{font-size:.95rem;opacity:.92}
 .card .kid{position:absolute;top:14px;left:14px;background:#fffe;color:#2a2230;font-size:.8rem;font-weight:700;padding:5px 10px;border-radius:999px}
 .card .cred{position:absolute;top:14px;right:14px;font-size:.65rem;color:#fffd;background:#0005;padding:3px 7px;border-radius:8px;max-width:55%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card .stamp{position:absolute;top:56px;font:700 1.7rem Figtree,sans-serif;padding:4px 12px;border:4px solid;border-radius:12px;opacity:0;letter-spacing:.04em}
+.card .stamp{position:absolute;top:56px;font:700 1.7rem "DM Sans",sans-serif;padding:4px 12px;border:4px solid;border-radius:12px;opacity:0;letter-spacing:.04em}
 .card .stamp.yes{left:20px;color:#3ccf7a;transform:rotate(-14deg)}.card .stamp.no{right:20px;color:#ff5d6c;transform:rotate(14deg)}
 .card.behind{transform:scale(.95) translateY(12px);filter:brightness(.92)}
 .acts{display:flex;justify-content:center;align-items:center;gap:20px;padding:16px 0 4px}
@@ -70,6 +71,34 @@ h1,h2{font-family:Fraunces,Georgia,serif;font-weight:600;margin:0;line-height:1.
 .stack{display:grid;gap:10px}
 .credits{font-size:.72rem;color:var(--muted);line-height:1.5;margin-top:6px}.credits a{color:inherit}
 .empty{color:var(--muted);text-align:center}
+/* Landing A: one full-bleed photo with the copy over it */
+body[data-look="a"] main{padding:0;max-width:none}
+.look-a{position:relative;min-height:100dvh;justify-content:flex-end;text-align:left;gap:0}
+.look-a .bleed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.look-a .bleed-copy{position:relative;display:grid;gap:14px;padding:120px max(20px,env(safe-area-inset-left)) max(28px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#000000d9 45%);color:#fff;max-width:520px}
+.look-a h1{font-size:3rem;color:#fff}.look-a p{color:#fffd;align-self:auto}.look-a .intro-kicker{color:#ffd2c4}.look-a .round-count{color:#fffb!important}
+/* Landing B: a teaser deck that swipes itself */
+.look-b .tease{position:relative;height:330px;width:230px;align-self:center}
+.tcard{position:absolute;inset:0;border-radius:20px;overflow:hidden;box-shadow:0 14px 34px #2a223040;background:var(--card);transition:transform .6s ease-in,opacity .6s}
+.tcard img{width:100%;height:100%;object-fit:cover}
+.tcard b{position:absolute;inset:auto 0 0 0;padding:40px 12px 12px;background:linear-gradient(transparent,#000c);color:#fff;font-size:.95rem;text-align:left}
+.tcard .stamp{position:absolute;top:22px;font:700 1.2rem "DM Sans",sans-serif;padding:3px 9px;border:3px solid;border-radius:10px;opacity:0}
+.tcard .stamp.yes{left:14px;color:#3ccf7a;transform:rotate(-14deg)}.tcard .stamp.no{right:14px;color:#ff5d6c;transform:rotate(14deg)}
+.tcard.out-yes{transform:translate(150%,-4%) rotate(24deg);opacity:0}.tcard.out-yes .stamp.yes{opacity:1}
+.tcard.out-no{transform:translate(-150%,-4%) rotate(-24deg);opacity:0}.tcard.out-no .stamp.no{opacity:1}
+/* Landing C: a mosaic of questions */
+.mosaic{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mosaic figure{margin:0;position:relative;border-radius:16px;overflow:hidden;aspect-ratio:3/4}
+.mosaic figure:nth-child(2),.mosaic figure:nth-child(5){transform:translateY(14px)}
+.mosaic img{width:100%;height:100%;object-fit:cover}
+.mosaic figcaption{position:absolute;left:8px;bottom:8px;background:#fffffff0;color:var(--ink);font-weight:700;font-size:.8rem;padding:4px 9px;border-radius:999px}
+.look-c h1{margin-top:12px}
+/* Landing D: a postcard */
+.postcard{position:relative;align-self:center;width:min(86%,330px);background:#fff;padding:12px 12px 46px;border-radius:6px;box-shadow:0 18px 40px #2a223038;transform:rotate(-3deg)}
+.postcard img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;display:block}
+.postcard .hand{position:absolute;left:16px;bottom:10px;font:600 1.45rem "Caveat",cursive;color:#2a2230}
+.postcard .stampbox{position:absolute;top:-14px;right:-12px;width:58px;height:66px;background:var(--love);color:#fff;display:grid;place-items:center;font-size:1.8rem;border:4px dashed #fff;border-radius:4px;transform:rotate(8deg);box-shadow:0 6px 14px #0003}
+@media (max-width:380px){.intro h1{font-size:2.35rem}.peek img{width:82px;height:112px}.look-a h1{font-size:2.5rem}.look-b .tease{height:290px;width:200px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>

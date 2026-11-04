@@ -6,12 +6,12 @@ import vibeJson from "../data/vibe.json" with { type: "json" };
 import resortsJson from "../data/resorts.json" with { type: "json" };
 import { haptic } from "./ui/haptic.ts";
 
-interface Card { id: string; title: string; sub: string; kids: boolean; img: string; page: string; credit: string; license: string; w: Record<string, number> }
+interface Card { id: string; title: string; sub: string; kids: boolean; img: string; thumb: string; page: string; credit: string; where: string; license: string; w: Record<string, number> }
 type Vote = "love" | "nope" | "star";
 
 const CARDS = (vibeJson as unknown as { cards: Card[] }).cards;
 const RESORTS = Object.fromEntries((resortsJson as unknown as { resorts: { id: string; name: string; country: string }[] }).resorts.map((r) => [r.id, r]));
-const ROUNDS = 12;
+const ROUNDS = 14;
 const app = document.getElementById("app")!;
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -39,15 +39,50 @@ function newDeck(): Card[] {
   return picked;
 }
 
+/** Four landing designs, ?look=a|b|c|d (a by default): a full-bleed photo, a deck that swipes itself, a
+ *  photo mosaic of questions, and a postcard. */
+const LOOK = (new URLSearchParams(location.search).get("look") || "a").replace(/[^a-d]/g, "") || "a";
+const byId = (id: string) => CARDS.find((c) => c.id === id) || CARDS[0];
+const start$ = `<button class="btn" data-act="start">Find my snow trip →</button><p class="round-count">${ROUNDS} photos · about a minute</p>`;
+let teaser = 0;
+
 function intro() {
-  const peek = [CARDS.find((c) => c.id === "caldea"), CARDS.find((c) => c.kids), CARDS.find((c) => c.id === "huskies")].filter(Boolean) as Card[];
-  app.innerHTML = `<section class="intro">
-    <div class="peek">${peek.map((c) => `<img src="${esc(c.img)}" alt="">`).join("")}</div>
-    <h1>Snowfinder <em>vibe checker</em></h1>
-    <p>Not a skier? Perfect. Swipe the snow days you'd love, from spas and sleigh rides to huskies and cheese, and we'll tell you where to go.</p>
-    <div class="how"><span>👈 not for me</span><span>love it 👉</span><span>⭐ must have</span></div>
-    <button class="btn" data-act="start">Start swiping ✨</button>
-    <p style="font-size:.85rem">${ROUNDS} photos, about a minute.</p></section>`;
+  clearInterval(teaser);
+  document.body.dataset.look = LOOK;
+  if (LOOK === "b") {
+    const xs = ["dogsled", "hottub", "horses", "raclette", "sleigh"].map(byId);
+    app.innerHTML = `<section class="intro look-b"><div class="intro-kicker">Snowfinder vibe checker</div>
+      <h1>Swipe your<br><em>snow trip.</em></h1>
+      <div class="tease">${xs.map((c, i) => `<div class="tcard" style="z-index:${xs.length - i}"><img src="${esc(c.thumb)}" alt=""><span class="stamp yes">LOVE</span><span class="stamp no">NOPE</span><b>${esc(c.title)}</b></div>`).join("")}</div>
+      <p>Love it or pass it: we'll tell you which resort is yours.</p>${start$}</section>`;
+    // The teaser deck swipes itself, alternating love and nope, then starts over.
+    let k = 0, minZ = 0;
+    teaser = window.setInterval(() => {
+      const cs = [...app.querySelectorAll<HTMLElement>(".tcard")];
+      if (!cs.length) return clearInterval(teaser);
+      const top = cs[k % cs.length], love = k % 3 !== 1;
+      top.classList.add(love ? "out-yes" : "out-no");
+      setTimeout(() => { top.classList.remove("out-yes", "out-no"); top.style.zIndex = String(--minZ); }, 700);
+      k++;
+    }, 1500);
+    return;
+  }
+  if (LOOK === "c") {
+    const qs: [string, string][] = [["dogsled", "Huskies?"], ["hottub", "Hot tub?"], ["raclette", "Raclette?"], ["horses", "Horses?"], ["party", "Party?"], ["kids-play", "Kids?"]];
+    app.innerHTML = `<section class="intro look-c"><div class="mosaic">${qs.map(([id, q]) => `<figure><img src="${esc(byId(id).thumb)}" alt=""><figcaption>${q}</figcaption></figure>`).join("")}</div>
+      <h1>Which snow trip <em>is yours?</em></h1><p>No skiing required. Swipe what you'd love and get your resort match.</p>${start$}</section>`;
+    return;
+  }
+  if (LOOK === "d") {
+    const c = byId("sleigh");
+    app.innerHTML = `<section class="intro look-d"><div class="postcard"><img src="${esc(c.img)}" alt=""><span class="hand">wish you were here ❄️</span><span class="stampbox">❄</span></div>
+      <h1>Your winter,<br><em>without the skis.</em></h1><p>Sleigh rides, huskies, spas and fondue. Swipe the ones you'd travel for.</p>${start$}</section>`;
+    return;
+  }
+  const c = byId("dogsled");
+  app.innerHTML = `<section class="intro look-a"><img class="bleed" src="${esc(c.img)}" alt=""><div class="bleed-copy">
+    <div class="intro-kicker">Snowfinder vibe checker</div><h1>Not a skier?<br><em>Even better.</em></h1>
+    <p>Huskies, hot tubs, sleigh rides. Swipe what you love and find your snow trip.</p>${start$}</div></section>`;
 }
 
 function render() {
@@ -64,7 +99,7 @@ function render() {
 
 function cardHtml(c: Card, behind: boolean) {
   return `<div class="card${behind ? " behind" : ""}"><img src="${esc(c.img)}" alt="${esc(c.title)}" draggable="false">
-    ${c.kids ? `<span class="kid">👧 Kids love this</span>` : ""}<span class="cred">📷 ${esc(c.credit)}</span>
+    ${c.kids ? `<span class="kid">👧 Kids love this</span>` : ""}<span class="cred">📷 ${esc(c.credit)}${c.where ? ` · ${esc(c.where)}` : ""}</span>
     <span class="stamp yes">LOVE</span><span class="stamp no">NOPE</span>
     <div class="shade"><h2>${esc(c.title)}</h2><div class="sub">${esc(c.sub)}</div></div></div>`;
 }
@@ -125,11 +160,11 @@ function result() {
       <a class="btn ghost" href="./">See the trip plan (prices, houses)</a>
       <button class="btn ghost" data-act="again">Swipe again</button>
     </div>
-    <p class="credits">Photos from Wikimedia Commons: ${votes.map(({ c }) => `<a href="${esc(c.page)}" target="_blank" rel="noopener">${esc(c.credit)}</a> (${esc(c.license)})`).join(" · ")}.</p></section>`;
+    <p class="credits">Photos from Unsplash, showing each activity (not always at these resorts): ${votes.map(({ c }) => `<a href="${esc(c.page)}" target="_blank" rel="noopener">${esc(c.credit)}</a>${c.where ? ` (${esc(c.where)})` : ""}`).join(" · ")}.</p></section>`;
   haptic([15, 60, 15, 60, 30]);
 }
 
-function start() { deck = newDeck(); votes = []; render(); }
+function start() { clearInterval(teaser); document.body.dataset.look = ""; deck = newDeck(); votes = []; render(); }
 
 app.addEventListener("click", (e) => {
   const t = e.target as HTMLElement;
