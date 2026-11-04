@@ -1,5 +1,5 @@
 {
- "_about": "Photos for the vibe checker (vibe.html), picked by the organiser from Unsplash (free under the Unsplash License, credited to each photographer). Activity photos show the activity, not necessarily at our resorts; \"where\" is where the photo was taken when the photographer recorded it. w = how much each card says about each resort.",
+ "_about": "Photos for the vibe checker (vibe.html), picked by the organiser from Unsplash (free under the Unsplash License, credited to each photographer). Activity photos show the activity, not necessarily at our resorts; \"where\" is where the photo was taken when the photographer recorded it. w = how much each card says about each resort. common = an activity every resort has (a beer, raclette, a hot tub): it counts for all of them and shows up less often.",
  "cards": [
   {
    "id": "horses",
@@ -13,8 +13,9 @@
    "where": "Pakistan",
    "license": "Unsplash License",
    "w": {
+    "morzine": 2,
     "mayrhofen": 2,
-    "morzine": 2
+    "soldeu": 1
    }
   },
   {
@@ -29,8 +30,8 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "mayrhofen": 3,
-    "morzine": 2
+    "morzine": 3,
+    "mayrhofen": 3
    }
   },
   {
@@ -45,9 +46,11 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "pas-de-la-casa": 3,
+    "pas-de-la-casa": 2,
     "soldeu": 2,
-    "morzine": 2
+    "morzine": 2,
+    "les-2-alpes": 1,
+    "val-thorens": 1
    }
   },
   {
@@ -63,7 +66,9 @@
    "license": "Unsplash License",
    "w": {
     "pas-de-la-casa": 3,
-    "soldeu": 2
+    "soldeu": 2,
+    "val-thorens": 1,
+    "les-2-alpes": 1
    }
   },
   {
@@ -96,11 +101,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "val-thorens": 2,
-    "morzine": 1,
     "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 2,
+    "pas-de-la-casa": 1,
     "soldeu": 1
-   }
+   },
+   "common": true
   },
   {
    "id": "beer",
@@ -114,8 +122,14 @@
    "where": "Zillertal, Austria",
    "license": "Unsplash License",
    "w": {
-    "mayrhofen": 3
-   }
+    "mayrhofen": 2,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "hottub",
@@ -129,13 +143,14 @@
    "where": "Montréal, Canada",
    "license": "Unsplash License",
    "w": {
-    "pas-de-la-casa": 1,
-    "les-2-alpes": 1,
-    "val-thorens": 1,
     "mayrhofen": 1,
+    "les-2-alpes": 1,
     "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
     "soldeu": 1
-   }
+   },
+   "common": true
   },
   {
    "id": "pool",
@@ -150,9 +165,10 @@
    "license": "Unsplash License",
    "w": {
     "soldeu": 3,
-    "pas-de-la-casa": 2,
-    "les-2-alpes": 2,
-    "mayrhofen": 2
+    "mayrhofen": 2,
+    "morzine": 2,
+    "les-2-alpes": 1,
+    "pas-de-la-casa": 1
    }
   },
   {
@@ -167,9 +183,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "mayrhofen": 3,
-    "morzine": 1
-   }
+    "mayrhofen": 2,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "icecave",
@@ -198,11 +219,14 @@
    "where": "Pyrenees",
    "license": "Unsplash License",
    "w": {
-    "les-2-alpes": 2,
-    "morzine": 2,
-    "mayrhofen": 2,
-    "val-thorens": 1
-   }
+    "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "icedrive",
@@ -231,9 +255,10 @@
    "where": "China",
    "license": "Unsplash License",
    "w": {
-    "val-thorens": 2,
     "mayrhofen": 2,
-    "les-2-alpes": 1
+    "val-thorens": 2,
+    "les-2-alpes": 1,
+    "morzine": 1
    }
   },
   {
@@ -248,11 +273,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "soldeu": 2,
-    "morzine": 2,
     "mayrhofen": 1,
-    "les-2-alpes": 1
-   }
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "snowangel",
@@ -266,11 +294,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
+    "mayrhofen": 1,
     "les-2-alpes": 1,
-    "soldeu": 1,
+    "morzine": 1,
     "val-thorens": 1,
-    "mayrhofen": 1
-   }
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "raclette",
@@ -284,10 +315,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "morzine": 3,
+    "mayrhofen": 1,
+    "les-2-alpes": 2,
+    "morzine": 2,
     "val-thorens": 2,
-    "les-2-alpes": 2
-   }
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "market",
@@ -346,10 +381,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "morzine": 3,
-    "soldeu": 2,
-    "les-2-alpes": 1
-   }
+    "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 2,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "snowshoe",
@@ -363,11 +402,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "mayrhofen": 2,
-    "morzine": 2,
-    "soldeu": 1,
-    "les-2-alpes": 1
-   }
+    "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "lake",
@@ -457,10 +499,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "mayrhofen": 2,
-    "val-thorens": 2,
-    "les-2-alpes": 2
-   }
+    "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "toboggan",
@@ -474,10 +520,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "mayrhofen": 3,
-    "val-thorens": 2,
-    "morzine": 2
-   }
+    "mayrhofen": 2,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "coaster",
@@ -507,13 +557,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "morzine": 1,
     "mayrhofen": 1,
-    "val-thorens": 1,
     "les-2-alpes": 1,
-    "soldeu": 1,
-    "pas-de-la-casa": 1
-   }
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "massage",
@@ -527,10 +578,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "soldeu": 3,
-    "mayrhofen": 2,
-    "val-thorens": 2
-   }
+    "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 2
+   },
+   "common": true
   },
   {
    "id": "skischool",
@@ -544,10 +599,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "soldeu": 3,
-    "les-2-alpes": 2,
-    "mayrhofen": 2
-   }
+    "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   },
   {
    "id": "tubing",
@@ -561,10 +620,14 @@
    "where": "",
    "license": "Unsplash License",
    "w": {
-    "les-2-alpes": 3,
-    "val-thorens": 2,
-    "soldeu": 2
-   }
+    "mayrhofen": 1,
+    "les-2-alpes": 1,
+    "morzine": 1,
+    "val-thorens": 1,
+    "pas-de-la-casa": 1,
+    "soldeu": 1
+   },
+   "common": true
   }
  ]
 }

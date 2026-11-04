@@ -6,7 +6,7 @@ import vibeJson from "../data/vibe.json" with { type: "json" };
 import resortsJson from "../data/resorts.json" with { type: "json" };
 import { haptic } from "./ui/haptic.ts";
 
-interface Card { id: string; title: string; sub: string; kids: boolean; img: string; thumb: string; page: string; credit: string; where: string; license: string; w: Record<string, number> }
+interface Card { id: string; title: string; sub: string; kids: boolean; img: string; thumb: string; page: string; credit: string; where: string; license: string; w: Record<string, number>; common?: boolean }
 type Vote = "love" | "nope" | "star";
 
 const CARDS = (vibeJson as unknown as { cards: Card[] }).cards;
@@ -18,17 +18,22 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 let deck: Card[] = [];
 let votes: { c: Card; v: Vote }[] = [];
 
-/** A deck that opens with kids in the snow, then the rest shuffled; every resort gets at least two cards. */
+/** Cards every resort has (a beer, raclette, a hot tub) count for all of them, so at most this many per game. */
+const MAX_COMMON = 5;
+
+/** A deck that opens with kids in the snow, then the rest shuffled, with few common cards; every resort gets at
+ *  least two cards of its own. */
 function newDeck(): Card[] {
-  const kids = CARDS.filter((c) => c.kids), rest = CARDS.filter((c) => !c.kids);
   const shuffle = <T,>(xs: T[]) => { const a = [...xs]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const first = shuffle(kids)[0];
-  const picked = [first, ...shuffle([...rest, ...kids.filter((c) => c !== first)]).slice(0, ROUNDS - 1)];
-  const count = (id: string, xs = picked) => xs.filter((c) => c.w[id]).length;
+  const first = shuffle(CARDS.filter((c) => c.kids))[0];
+  const others = CARDS.filter((c) => c !== first);
+  const common = shuffle(others.filter((c) => c.common)).slice(0, MAX_COMMON - (first.common ? 1 : 0));
+  const picked = [first, ...shuffle([...others.filter((c) => !c.common), ...common]).slice(0, ROUNDS - 1)];
+  const count = (id: string, xs = picked) => xs.filter((c) => c.w[id] && !c.common).length;
   // Top up any resort with under two cards: swap out a later card no other resort needs to stay at two.
   for (const id of Object.keys(RESORTS)) {
     while (count(id) < 2) {
-      const add = shuffle(CARDS.filter((x) => x.w[id] && !picked.includes(x)))[0];
+      const add = shuffle(CARDS.filter((x) => x.w[id] && !x.common && !picked.includes(x)))[0];
       let drop = -1;
       for (let i = picked.length - 1; i > 0 && drop < 0; i--) if (!picked[i].w[id] && Object.keys(picked[i].w).every((r) => count(r) > 2)) drop = i;
       if (!add || drop < 0) break;

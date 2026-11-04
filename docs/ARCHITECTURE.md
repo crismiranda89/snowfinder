@@ -21,7 +21,7 @@ rest of the site works the same.
 
 | File | What it does |
 |---|---|
-| `vibe.ts` | Snowtinder, the swipe game (`vibe.html`, its own `vibe.js` bundle): for non-skiers, swipe 20 of the activity photos in `data/vibe.json` (Unsplash, picked by the organiser, HD from the Unsplash CDN, credited with where each was taken) and get the resort that fits; the share link carries the picks (`?by=and get the resort that fits; four landings=and get the resort that fits; four landingl=and get the resort that fits; four landingn=`) and opens a page with that person's result and photos; four landing designs via `?look=a\|b\|c\|d`; linked from the footer |
+| `vibe.ts` | Snowtinder, the swipe game (`vibe.html`, its own `vibe.js` bundle): for non-skiers, swipe 20 of the activity photos in `data/vibe.json` (Unsplash, picked by the organiser, HD from the Unsplash CDN, credited with where each was taken) and get the resort that fits (cards marked `common`, like a beer or raclette, count for every resort and at most 5 show per game); the share link carries the picks (`?by=and get the resort that fits; four landings=and get the resort that fits; four landingl=and get the resort that fits; four landingn=`) and opens a page with that person's result and photos; four landing designs via `?look=a\|b\|c\|d`; linked from the footer |
 | `main.ts` | Boot: restores state (a share link wins over saved state), renders, wires every control, the fold system and the pinned price bar |
 | `state.ts` | `State`, defaults, `localStorage`, share-link encode/decode, named `GROUPS` and `normGroup` |
 | `data.ts` | Imports the season, resorts and listings JSON |
